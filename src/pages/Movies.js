@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import axios from 'axios';
 
 const Movies = () => {
 
@@ -8,17 +9,6 @@ const Movies = () => {
         { id: 2, name: "Movie 2" },
         { id: 3, name: "Movie 3" },
     ]);
-
-    const [newMovieName, setNewMovieName] = useState(""); // State to hold the name of the new movie
-
-    const addMovie = () => {
-        const newMovie = {
-            id: movies.length + 1,
-            name: newMovieName // Use the name entered by the user
-        };
-        setMovies([...movies, newMovie]);
-        setNewMovieName(""); // Clear the input field after adding the movie
-    };
 
     return (
         <>
@@ -42,13 +32,7 @@ const Movies = () => {
                         </li>
                     ))}
                 </div>
-
-                <div className="input-group pt-4">
-                    <input type="text" className="form-control" placeholder="Enter movie name" value={newMovieName} onChange={(e) => setNewMovieName(e.target.value)} />
-                    <div className="input-group-append">
-                        <button onClick={addMovie} className="btn btn-primary" type="button">Add Movie</button>
-                    </div>
-                </div>
+                <a className="btn btn-primary" href="./search">Add Movie</a>
             </div>
         </>
     )

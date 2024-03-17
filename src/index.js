@@ -10,6 +10,7 @@ import Movies from "./pages/Movies";
 import Manga from "./pages/Manga";
 import Anime from "./pages/Anime";
 import Tvshows from "./pages/Tvshows";
+import Search from './pages/Search';
 
 export default function All() {
   return (
@@ -19,7 +20,8 @@ export default function All() {
         <Route path="movies" element={<Movies />} />
         <Route path="manga" element={<Manga />} />
         <Route path="anime" element={<Anime />} />
-        <Route path="Tvshows" element={<Tvshows />} />
+        <Route path="tvshows" element={<Tvshows />} />
+        <Route path="search" element={<Search />} />
       </Routes>
     </BrowserRouter>
   );
