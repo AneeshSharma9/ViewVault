@@ -3,8 +3,6 @@ import { getAnalytics } from "firebase/analytics";
 import { getDatabase } from "firebase/database";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: `${process.env.REACT_APP_FIREBASE_KEY}`,
     authDomain: "view-vault.firebaseapp.com",
@@ -16,7 +14,6 @@ const firebaseConfig = {
     databaseURL: "https://view-vault-default-rtdb.firebaseio.com/",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const provider = new GoogleAuthProvider();

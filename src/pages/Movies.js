@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
-import { ref, get, remove } from "firebase/database";
+import { ref, get, remove, update } from "firebase/database";
 
 const Movies = () => {
     const [movies, setMovies] = useState([]);
@@ -30,7 +30,8 @@ const Movies = () => {
                 const movieData = snapshot.val();
                 const movieArray = Object.keys(movieData).map((key) => ({
                     id: key,
-                    name: movieData[key].movietitle
+                    name: movieData[key].movietitle,
+                    watched: movieData[key].watched || false
                 }));
                 setMovies(movieArray);
             } else {
@@ -55,6 +56,22 @@ const Movies = () => {
             });
     };
 
+    const handleToggleWatched = async (movieId, watched) => {
+        try {
+            const movieRef = ref(db, `users/${uid}/movielist/${movieId}`);
+            await update(movieRef, { watched: !watched });
+            setMovies(movies.map(movie => {
+                if (movie.id === movieId) {
+                    return { ...movie, watched: !watched };
+                }
+                return movie;
+            }));
+        } catch (error) {
+            console.error('Error updating watched status:', error);
+        }
+    };
+
+
     return (
         <div className="">
             <Navbar />
@@ -73,7 +90,7 @@ const Movies = () => {
                         {movies.map((movie) => (
                             <li key={movie.id} className="list-group-item rounded m-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
                                 <div className="form-check">
-                                    <input className="form-check-input" type="checkbox" value="" id={`checkboxExample${movie.id}`} />
+                                    <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                     <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
                                 </div>
                                 <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>
