@@ -4,13 +4,14 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import firebase from './utils/firebase'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Movies from "./pages/Movies";
 import Manga from "./pages/Manga";
 import Anime from "./pages/Anime";
 import Tvshows from "./pages/Tvshows";
-import Search from './pages/Search';
+import SearchMovie from './pages/SearchMovie';
 
 export default function All() {
   return (
@@ -21,7 +22,7 @@ export default function All() {
         <Route path="manga" element={<Manga />} />
         <Route path="anime" element={<Anime />} />
         <Route path="tvshows" element={<Tvshows />} />
-        <Route path="search" element={<Search />} />
+        <Route path="searchmovie" element={<SearchMovie />} />
       </Routes>
     </BrowserRouter>
   );

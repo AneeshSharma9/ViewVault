@@ -1,8 +1,10 @@
 import './App.css';
+import Navbar from './pages/Navbar';
 
 function App() {
   return (
     <div className="App">
+      <Navbar></Navbar>
       <h1>ViewVault</h1>
       <nav class="nav nav-pills nav-fill">
         <a class="nav-item nav-link" href="/movies">Movies</a>
