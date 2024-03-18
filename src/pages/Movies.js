@@ -144,30 +144,32 @@ const Movies = () => {
             <Navbar />
             <div className="container-fluid">
 
-                <h1 className="text-center m-4">Movie Watchlist</h1>
-
                 <div className="row">
-                    <div className="text-center col-lg-2 col-md-3 col-sm-11 position-fixed border m-5 rounded shadow p-4">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <h4 className="text-center">Watchlists</h4>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/movies">Movies</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">TV Shows</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Anime</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Manga</a>
-                            </li>
-                        </ul>
+                    <div className="m-3">
+                        <div className="text-center col-lg-2 col-md-3 col-sm-11 position-fixed border m-5 rounded shadow p-4">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <h4 className="">Watchlists</h4>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="/movies">Movies</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">TV Shows</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Anime</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Manga</a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div className="col-lg-8 col-md-7 col-sm-12 offset-lg-3 offset-md-4">
+                        <h1 className="text-center m-4">Movie Watchlist</h1>
+
                         <div className="pt-2 pb-4">
                             <div className="dropdown mb-2">
                                 <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
