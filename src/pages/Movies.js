@@ -32,6 +32,7 @@ const Movies = () => {
                 const movieData = snapshot.val();
                 const movieArray = Object.keys(movieData).map((key) => ({
                     id: key,
+                    movieid: movieData[key].movieid,
                     name: movieData[key].movietitle,
                     watched: movieData[key].watched,
                     runtime: movieData[key].runtime,
@@ -112,6 +113,18 @@ const Movies = () => {
         navigate('/recommended', { state: movie });
     }
 
+    const toLookmovie = (movieName) => {
+        const formattedMovieName = movieName.replace(/ /g, '%20');
+        const lookmovieUrl = `https://lookmovie.foundation/movies/search/?q=${formattedMovieName}`;
+        window.open(lookmovieUrl, '_blank');
+    }
+
+    const toDopebox = (movieName) => {
+        const formattedMovieName = movieName.replace(/ /g, '-');
+        const dopeboxUrl = `https://dopebox.to/search/${formattedMovieName}`;
+        window.open(dopeboxUrl, '_blank');
+    }
+
     return (
         <div className="">
             <Navbar />
@@ -151,12 +164,12 @@ const Movies = () => {
                                         <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item" onClick={()=>{toComponentB(movie)}}>More like this</a></li>
-                                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                                            <li><a class="dropdown-item" onClick={()=>{toDopebox(movie.name)}}>Stream on DopeBox</a></li>
+                                            <li><a class="dropdown-item" onClick={()=>{toLookmovie(movie.name)}}>Stream on Lookmovie</a></li>
                                         </ul>
                                     </div>
                                     <button className="btn btn-outline-danger m-2" onClick={() => handleRemoveMovie(movie.id)}>X</button>
                                 </div>
-
                             </li>
                         ))}
                     </div>
