@@ -32,7 +32,8 @@ const Movies = () => {
                 const movieArray = Object.keys(movieData).map((key) => ({
                     id: key,
                     name: movieData[key].movietitle,
-                    watched: movieData[key].watched
+                    watched: movieData[key].watched,
+                    runtime: movieData[key].runtime
                 }));
 
                 setMovies(movieArray);
@@ -50,7 +51,6 @@ const Movies = () => {
         remove(movieRef)
             .then(() => {
                 console.log('Movie removed successfully!');
-                // Remove the movie from the state
                 setMovies(movies.filter(movie => movie.id !== movieId));
             })
             .catch((error) => {
@@ -75,8 +75,6 @@ const Movies = () => {
 
     const handleSortBy = (value) => {
         setSortBy(value);
-    
-        // Sort the movies array based on the sortBy value
         if (value === "To Watch") {
             const sortedMovies = movies.slice().sort((a, b) => {
                 return a.watched - b.watched;
@@ -87,6 +85,23 @@ const Movies = () => {
                 return b.watched - a.watched;
             });
             setMovies(sortedMovies);
+        }
+    };
+
+    const convertMinToHrMin = (minutes) => {
+        if (isNaN(minutes)) {
+            return "Invalid input";
+        }
+
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+
+        if (hours === 0) {
+            return `${remainingMinutes} mins`;
+        } else if (remainingMinutes === 0) {
+            return `${hours} hr`;
+        } else {
+            return `${hours} hr ${remainingMinutes} mins`;
         }
     };
 
@@ -119,7 +134,9 @@ const Movies = () => {
                                 <div className="form-check">
                                     <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                     <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
+                                    <p className="fst-italic">{convertMinToHrMin(movie.runtime)}</p>
                                 </div>
+
                                 <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>
                             </li>
                         ))}

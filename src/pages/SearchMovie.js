@@ -48,7 +48,6 @@ const SearchMovie = () => {
             });
             const results = response.data.results;
             setSearchResults(results);
-            //sort by 
             console.log(results)
         } catch (error) {
             console.error('Error fetching movies:', error);
@@ -59,14 +58,23 @@ const SearchMovie = () => {
         searchMovie();
     };
 
+
     const handleAddMovie = async (movie) => {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const movieDetails = await response.json();
+        console.log(movieDetails.runtime)
+
         const uid = auth.currentUser.uid;
         if (uid) {
             const userMovieListRef = ref(db, `users/${uid}/movielist`);
             push(userMovieListRef, {
                 movietitle: movie.title,
                 movieid: movie.id,
-                watched: false
+                watched: false,
+                runtime: movieDetails.runtime
             })
                 .then(() => {
                     console.log('Movie added successfully!');
