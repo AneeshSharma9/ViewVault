@@ -8,7 +8,7 @@ const Movies = () => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uid, setUid] = useState(null);
-    const [sortBy, setSortBy] = useState("Sort By");
+    const [sortBy, setSortBy] = useState("Default");
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -37,7 +37,8 @@ const Movies = () => {
                     watched: movieData[key].watched,
                     runtime: movieData[key].runtime,
                     providers: movieData[key].providers,
-                    agerating: movieData[key].agerating
+                    agerating: movieData[key].agerating,
+                    vote_average: movieData[key].voteaverage
                 }));
                 setMovies(movieArray);
             } else {
@@ -88,6 +89,8 @@ const Movies = () => {
                 return b.watched - a.watched;
             });
             setMovies(sortedMovies);
+        } else{
+            fetchMovies(uid);
         }
     };
 
@@ -112,19 +115,29 @@ const Movies = () => {
 
     const toComponentB = (movie) => {
         navigate('/recommended', { state: movie });
-    }
+    };
 
     const toLookmovie = (movieName) => {
         const formattedMovieName = movieName.replace(/ /g, '%20');
         const lookmovieUrl = `https://lookmovie.foundation/movies/search/?q=${formattedMovieName}`;
         window.open(lookmovieUrl, '_blank');
-    }
+    };
 
     const toDopebox = (movieName) => {
         const formattedMovieName = movieName.replace(/ /g, '-');
         const dopeboxUrl = `https://dopebox.to/search/${formattedMovieName}`;
         window.open(dopeboxUrl, '_blank');
-    }
+    };
+
+    const getBackgroundColor = (voteAverage) => {
+        if (voteAverage * 10 >= 70) {
+            return "bg-success";
+        } else if (voteAverage * 10 >= 50) {
+            return "bg-warning text-dark";
+        } else {
+            return "bg-danger";
+        }
+    };
 
     return (
         <div className="">
@@ -147,6 +160,7 @@ const Movies = () => {
                         <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
                             <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
                             <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
+                            <li><button className="dropdown-item" onClick={() => handleSortBy("Default")}>Default</button></li>
                         </ul>
                     </div>
                     <div className="list-group list-group-light">
@@ -155,13 +169,19 @@ const Movies = () => {
                                 <div className="form-check">
                                     <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                     <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
-                                    <p><span class="badge bg-light text-dark border border-danger">{movie.agerating}</span>{' '}<span className="fst-italic">{convertMinToHrMin(movie.runtime)}</span></p>
+                                    <p>
+                                        <span class={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
+                                        {' '}
+                                        <span class="badge bg-light text-dark border border-danger">{movie.agerating}</span>
+                                        {' '}
+                                        <span className="fst-italic">{convertMinToHrMin(movie.runtime)}</span>
+                                    </p>
                                     {movie.providers && movie.providers.length > 0 && (
                                         <p>Stream On: {movie.providers.join(', ')}</p>
                                     )}
                                 </div>
-                                <div>
-                                    <div class=" btn-group dropstart">
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div class="btn-group dropstart m-2">
                                         <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</a></li>
@@ -169,7 +189,7 @@ const Movies = () => {
                                             <li><a class="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</a></li>
                                         </ul>
                                     </div>
-                                    <button className="btn btn-outline-danger m-2" onClick={() => handleRemoveMovie(movie.id)}>X</button>
+                                    <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>
                                 </div>
                             </li>
                         ))}

@@ -110,7 +110,8 @@ const SearchMovie = () => {
                 watched: false,
                 runtime: movieDetails.runtime,
                 providers: providerNames,
-                agerating: certificationForUS
+                agerating: certificationForUS,
+                voteaverage: movie.vote_average
             })
                 .then(() => {
                     console.log('Movie added successfully!');

@@ -44,12 +44,35 @@ const Recommended = () => {
 
 
     const handleAddMovie = async (movie) => {
+        //Getting general movie details
         const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
         if (!detailsResponse.ok) {
             throw new Error('Failed to fetch movie details');
         }
         const movieDetails = await detailsResponse.json();
 
+        //Getting age rating
+        const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!ratingResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const movieRating = await ratingResponse.json();
+        let certificationForUS = null;
+        const results = movieRating.results;
+        for (const result of results) {
+            if (result.iso_3166_1 === "US") {
+                const releaseDates = result.release_dates;
+                for (const releaseDate of releaseDates) {
+                    if (releaseDate.certification) {
+                        certificationForUS = releaseDate.certification;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        //Getting streaming providers
         const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
         if (!providersResponse.ok) {
             throw new Error('Failed to fetch movie details');
@@ -70,7 +93,9 @@ const Recommended = () => {
                 movieid: movie.id,
                 watched: false,
                 runtime: movieDetails.runtime,
-                providers: providerNames
+                providers: providerNames,
+                agerating: certificationForUS,
+                voteaverage: movie.vote_average
             })
                 .then(() => {
                     console.log('Movie added successfully!');
