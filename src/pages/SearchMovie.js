@@ -94,12 +94,23 @@ const SearchMovie = () => {
         }
     };
 
+    const getBackgroundColor = (voteAverage) => {
+        if (voteAverage * 10 >= 70) {
+            return "bg-success";
+        } else if (voteAverage * 10 >= 50) {
+            return "bg-warning text-dark";
+        } else {
+            return "bg-danger";
+        }
+    };
+    
+
     return (
         <div className="">
             <Navbar></Navbar>
             <div className="container">
-                <h1 className="text-center p-4">Find Movies</h1>
-                <div className="input-group">
+                <h1 className="text-center p-3">Find Movies</h1>
+                <div className="input-group p-4 bg-white">
                     <input type="text" className="form-control" placeholder="Search for a movie..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} />
                     <div className="input-group-append">
                         <button className="btn btn-primary" type="button" onClick={handleSearch}>Search</button>
@@ -108,9 +119,11 @@ const SearchMovie = () => {
 
                 <ul className="list-group mt-4">
                     {searchResults.map((movie) => (
-                        <li key={movie.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
+                        
+                        <li key={movie.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center"> 
                             <div className="">
-                                <p className="fw-bold">{movie.title} <span className="fw-light">({movie.release_date.substring(0, 4)})</span></p>
+                                <p className="fw-bold">{movie.title} <span className="fw-light">({movie.release_date.substring(0, 4)})</span> <span class={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span></p>
+                                
                                 <p className="fw-normal">{movie.overview}</p>
                             </div>
                             {addedMovies[movie.id] ? (

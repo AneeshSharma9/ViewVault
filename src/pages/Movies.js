@@ -119,11 +119,11 @@ const Movies = () => {
                 <h1 className="text-center">Movie Watchlist</h1>
 
                 <div className="pt-2 pb-4">
-                    <div class="dropdown mb-2">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div className="dropdown mb-2">
+                        <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                             {sortBy}
                         </button>
-                        <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
                             <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
                             <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
                         </ul>
@@ -136,8 +136,17 @@ const Movies = () => {
                                     <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
                                     <p className="fst-italic">{convertMinToHrMin(movie.runtime)}</p>
                                 </div>
+                                <div>
+                                    <div class=" btn-group dropstart">
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item active" href="#">More like this</a></li>
+                                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                                        </ul>
+                                    </div>
+                                    <button className="btn btn-outline-danger m-2" onClick={() => handleRemoveMovie(movie.id)}>X</button>
+                                </div>
 
-                                <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>
                             </li>
                         ))}
                     </div>
@@ -146,7 +155,6 @@ const Movies = () => {
                     <a className="btn btn-primary" href="./searchmovie">Add Movie</a>
                 </div>
             </div>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         </div>
     )
 };
