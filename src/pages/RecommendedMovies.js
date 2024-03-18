@@ -6,7 +6,7 @@ import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
 
 
-const Recommended = () => {
+const RecommendedMovies = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [addedMovies, setAddedMovies] = useState({});
@@ -20,6 +20,34 @@ const Recommended = () => {
                 setUid(uid);
                 if (uid) {
                     searchMovie();
+                }
+            } else {
+                setUid(null);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+            if (user) {
+                const uid = user.uid;
+                setUid(uid);
+                if (uid) {
+                    const userMovieListRef = ref(db, `users/${uid}/movielist`);
+                    get(userMovieListRef).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const movieData = snapshot.val();
+                            const movieIds = Object.values(movieData).map((movie) => movie.movieid);
+                            const addedMoviesData = {};
+                            movieIds.forEach((movieId) => {
+                                addedMoviesData[movieId] = true;
+                            });
+                            setAddedMovies(addedMoviesData);
+                        }
+                    }).catch((error) => {
+                        console.error('Error fetching user movies:', error);
+                    });
                 }
             } else {
                 setUid(null);
@@ -144,4 +172,4 @@ const Recommended = () => {
     )
 };
 
-export default Recommended;
+export default RecommendedMovies;

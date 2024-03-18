@@ -45,7 +45,7 @@ const Navbar = () => {
                         <a className="nav-link" href="/searchmovie">Movies</a>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link" href="/">TV Shows</a>
+                        <a className="nav-link" href="/searchtv">TV Shows</a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link" href="/">Anime</a>

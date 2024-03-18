@@ -3,6 +3,7 @@ import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, get, remove, update } from "firebase/database";
 import { Link, useNavigate } from 'react-router-dom';
+import Sidebar from "./Sidebar";
 
 const Movies = () => {
     const [movies, setMovies] = useState([]);
@@ -114,7 +115,7 @@ const Movies = () => {
     const navigate = useNavigate();
 
     const toComponentB = (movie) => {
-        navigate('/recommended', { state: movie });
+        navigate('/recommendedmovies', { state: movie });
     };
 
     const toLookmovie = (movieName) => {
@@ -146,25 +147,7 @@ const Movies = () => {
 
                 <div className="row">
                     <div className="m-3">
-                        <div className="text-center col-lg-2 col-md-3 col-sm-11 position-fixed border m-5 rounded shadow p-4">
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <h4 className="">Watchlists</h4>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="/movies">Movies</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">TV Shows</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Anime</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Manga</a>
-                                </li>
-                            </ul>
-                        </div>
+                        <Sidebar/>
                     </div>
 
                     <div className="col-lg-8 col-md-7 col-sm-12 offset-lg-3 offset-md-4">
@@ -202,9 +185,9 @@ const Movies = () => {
                                             <div class="btn-group dropstart m-2">
                                                 <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
                                                 <ul class="dropdown-menu">
-                                                    <li><a class="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</a></li>
-                                                    <li><a class="dropdown-item" onClick={() => { toDopebox(movie.name) }}>Stream on DopeBox</a></li>
-                                                    <li><a class="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</a></li>
+                                                    <li><button class="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
+                                                    <li><button class="dropdown-item" onClick={() => { toDopebox(movie.name) }}>Stream on DopeBox</button></li>
+                                                    <li><button class="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</button></li>
                                                 </ul>
                                             </div>
                                             <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>

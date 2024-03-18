@@ -14,7 +14,9 @@ import Manga from "./pages/Manga";
 import Anime from "./pages/Anime";
 import Tvshows from "./pages/Tvshows";
 import SearchMovie from './pages/SearchMovie';
-import Recommended from './pages/Recommended';
+import RecommendedMovies from './pages/RecommendedMovies';
+import RecommendedShows from './pages/RecommendedShows';
+import SearchTV from './pages/SearchTV';
 
 export default function All() {
   return (
@@ -26,7 +28,9 @@ export default function All() {
         <Route path="anime" element={<Anime />} />
         <Route path="tvshows" element={<Tvshows />} />
         <Route path="searchmovie" element={<SearchMovie />} />
-        <Route path="recommended" element={<Recommended />} />
+        <Route path="recommendedmovies" element={<RecommendedMovies />} />
+        <Route path="recommendedshows" element={<RecommendedShows />} />
+        <Route path="searchtv" element={<SearchTV />} />
       </Routes>
       
     </BrowserRouter>
