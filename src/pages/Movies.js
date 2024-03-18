@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, get, remove, update } from "firebase/database";
+import { Link, useNavigate } from 'react-router-dom';
 
 const Movies = () => {
     const [movies, setMovies] = useState([]);
@@ -105,6 +106,12 @@ const Movies = () => {
         }
     };
 
+    const navigate = useNavigate();
+
+    const toComponentB = (movie) => {
+        navigate('/recommended', { state: movie });
+    }
+
     return (
         <div className="">
             <Navbar />
@@ -143,7 +150,7 @@ const Movies = () => {
                                     <div class=" btn-group dropstart">
                                         <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item active" href="#">More like this</a></li>
+                                            <li><a class="dropdown-item" onClick={()=>{toComponentB(movie)}}>More like this</a></li>
                                             <li><a class="dropdown-item" href="#">Another action</a></li>
                                         </ul>
                                     </div>
