@@ -7,6 +7,7 @@ const Movies = () => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uid, setUid] = useState(null);
+    const [sortBy, setSortBy] = useState("Sort By");
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -31,8 +32,9 @@ const Movies = () => {
                 const movieArray = Object.keys(movieData).map((key) => ({
                     id: key,
                     name: movieData[key].movietitle,
-                    watched: movieData[key].watched || false
+                    watched: movieData[key].watched
                 }));
+
                 setMovies(movieArray);
             } else {
                 console.log("No movies available");
@@ -71,6 +73,22 @@ const Movies = () => {
         }
     };
 
+    const handleSortBy = (value) => {
+        setSortBy(value);
+    
+        // Sort the movies array based on the sortBy value
+        if (value === "To Watch") {
+            const sortedMovies = movies.slice().sort((a, b) => {
+                return a.watched - b.watched;
+            });
+            setMovies(sortedMovies);
+        } else if (value === "Watched") {
+            const sortedMovies = movies.slice().sort((a, b) => {
+                return b.watched - a.watched;
+            });
+            setMovies(sortedMovies);
+        }
+    };
 
     return (
         <div className="">
@@ -83,12 +101,21 @@ const Movies = () => {
                     <a className="nav-item nav-link" href="/manga">Manga</a>
                 </nav>
 
-                <h1 className="text-center">Movies</h1>
+                <h1 className="text-center">Movie Watchlist</h1>
 
                 <div className="pt-2 pb-4">
+                    <div class="dropdown mb-2">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                            {sortBy}
+                        </button>
+                        <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                            <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
+                            <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
+                        </ul>
+                    </div>
                     <div className="list-group list-group-light">
                         {movies.map((movie) => (
-                            <li key={movie.id} className="list-group-item rounded m-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
+                            <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
                                 <div className="form-check">
                                     <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                     <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
@@ -102,6 +129,7 @@ const Movies = () => {
                     <a className="btn btn-primary" href="./searchmovie">Add Movie</a>
                 </div>
             </div>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         </div>
     )
 };

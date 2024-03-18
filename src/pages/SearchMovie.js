@@ -48,6 +48,7 @@ const SearchMovie = () => {
             });
             const results = response.data.results;
             setSearchResults(results);
+            //sort by 
             console.log(results)
         } catch (error) {
             console.error('Error fetching movies:', error);
@@ -88,8 +89,6 @@ const SearchMovie = () => {
     return (
         <div className="">
             <Navbar></Navbar>
-
-
             <div className="container">
                 <h1 className="text-center p-4">Find Movies</h1>
                 <div className="input-group">
@@ -110,7 +109,8 @@ const SearchMovie = () => {
                                 <button className="btn btn-success me-2" type="button">✓</button>
                             ) : (
                                 <button className="btn btn-primary me-2" type="button" onClick={() => { handleAddMovie(movie) }}>+</button>
-                            )}                        </li>
+                            )}
+                        </li>
                     ))}
                 </ul>
             </div>
