@@ -48,7 +48,6 @@ const SearchMovie = () => {
             });
             const results = response.data.results;
             setSearchResults(results);
-            console.log(results)
         } catch (error) {
             console.error('Error fetching movies:', error);
         }
@@ -60,12 +59,36 @@ const SearchMovie = () => {
 
 
     const handleAddMovie = async (movie) => {
+        //Getting general movie details
         const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
         if (!detailsResponse.ok) {
             throw new Error('Failed to fetch movie details');
         }
         const movieDetails = await detailsResponse.json();
-    
+        console.log(movieDetails)
+
+        //Getting age rating
+        const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!ratingResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const movieRating = await ratingResponse.json();
+        let certificationForUS = null;
+        const results = movieRating.results;
+        for (const result of results) {
+            if (result.iso_3166_1 === "US") {
+                const releaseDates = result.release_dates;
+                for (const releaseDate of releaseDates) {
+                    if (releaseDate.certification) {
+                        certificationForUS = releaseDate.certification;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        //Getting streaming providers
         const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
         if (!providersResponse.ok) {
             throw new Error('Failed to fetch movie details');
@@ -75,9 +98,9 @@ const SearchMovie = () => {
         if (movieProviders.results.US && movieProviders.results.US.flatrate) {
             const flatrateProviders = movieProviders.results.US.flatrate;
             providerNames = flatrateProviders.map(provider => provider.provider_name);
-            console.log(providerNames);
         }
 
+        //Saving movie to user's database
         const uid = auth.currentUser.uid;
         if (uid) {
             const userMovieListRef = ref(db, `users/${uid}/movielist`);
@@ -86,7 +109,8 @@ const SearchMovie = () => {
                 movieid: movie.id,
                 watched: false,
                 runtime: movieDetails.runtime,
-                providers: providerNames
+                providers: providerNames,
+                agerating: certificationForUS
             })
                 .then(() => {
                     console.log('Movie added successfully!');
@@ -115,7 +139,7 @@ const SearchMovie = () => {
             return "bg-danger";
         }
     };
-    
+
 
     return (
         <div className="">
@@ -131,11 +155,11 @@ const SearchMovie = () => {
 
                 <ul className="list-group mt-4">
                     {searchResults.map((movie) => (
-                        
-                        <li key={movie.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center"> 
+
+                        <li key={movie.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
                             <div className="">
                                 <p className="fw-bold">{movie.title} <span className="fw-light">({movie.release_date.substring(0, 4)})</span> <span class={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span></p>
-                                
+
                                 <p className="fw-normal">{movie.overview}</p>
                             </div>
                             {addedMovies[movie.id] ? (

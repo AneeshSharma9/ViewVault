@@ -36,7 +36,8 @@ const Movies = () => {
                     name: movieData[key].movietitle,
                     watched: movieData[key].watched,
                     runtime: movieData[key].runtime,
-                    providers: movieData[key].providers
+                    providers: movieData[key].providers,
+                    agerating: movieData[key].agerating
                 }));
                 setMovies(movieArray);
             } else {
@@ -154,7 +155,7 @@ const Movies = () => {
                                 <div className="form-check">
                                     <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                     <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
-                                    <p className="fst-italic">{convertMinToHrMin(movie.runtime)}</p>
+                                    <p><span class="badge bg-light text-dark border border-danger">{movie.agerating}</span>{' '}<span className="fst-italic">{convertMinToHrMin(movie.runtime)}</span></p>
                                     {movie.providers && movie.providers.length > 0 && (
                                         <p>Stream On: {movie.providers.join(', ')}</p>
                                     )}
@@ -163,9 +164,9 @@ const Movies = () => {
                                     <div class=" btn-group dropstart">
                                         <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" onClick={()=>{toComponentB(movie)}}>More like this</a></li>
-                                            <li><a class="dropdown-item" onClick={()=>{toDopebox(movie.name)}}>Stream on DopeBox</a></li>
-                                            <li><a class="dropdown-item" onClick={()=>{toLookmovie(movie.name)}}>Stream on Lookmovie</a></li>
+                                            <li><a class="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</a></li>
+                                            <li><a class="dropdown-item" onClick={() => { toDopebox(movie.name) }}>Stream on DopeBox</a></li>
+                                            <li><a class="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</a></li>
                                         </ul>
                                     </div>
                                     <button className="btn btn-outline-danger m-2" onClick={() => handleRemoveMovie(movie.id)}>X</button>
