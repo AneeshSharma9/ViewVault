@@ -33,9 +33,9 @@ const Movies = () => {
                     id: key,
                     name: movieData[key].movietitle,
                     watched: movieData[key].watched,
-                    runtime: movieData[key].runtime
+                    runtime: movieData[key].runtime,
+                    providers: movieData[key].providers
                 }));
-
                 setMovies(movieArray);
             } else {
                 console.log("No movies available");
@@ -135,6 +135,9 @@ const Movies = () => {
                                     <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                     <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
                                     <p className="fst-italic">{convertMinToHrMin(movie.runtime)}</p>
+                                    {movie.providers && movie.providers.length > 0 && (
+                                        <p>Stream On: {movie.providers.join(', ')}</p>
+                                    )}
                                 </div>
                                 <div>
                                     <div class=" btn-group dropstart">

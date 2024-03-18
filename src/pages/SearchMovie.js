@@ -60,12 +60,23 @@ const SearchMovie = () => {
 
 
     const handleAddMovie = async (movie) => {
-        const response = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
-        if (!response.ok) {
+        const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!detailsResponse.ok) {
             throw new Error('Failed to fetch movie details');
         }
-        const movieDetails = await response.json();
-        console.log(movieDetails.runtime)
+        const movieDetails = await detailsResponse.json();
+    
+        const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!providersResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const movieProviders = await providersResponse.json();
+        let providerNames = [];
+        if (movieProviders.results.US && movieProviders.results.US.flatrate) {
+            const flatrateProviders = movieProviders.results.US.flatrate;
+            providerNames = flatrateProviders.map(provider => provider.provider_name);
+            console.log(providerNames);
+        }
 
         const uid = auth.currentUser.uid;
         if (uid) {
@@ -74,7 +85,8 @@ const SearchMovie = () => {
                 movietitle: movie.title,
                 movieid: movie.id,
                 watched: false,
-                runtime: movieDetails.runtime
+                runtime: movieDetails.runtime,
+                providers: providerNames
             })
                 .then(() => {
                     console.log('Movie added successfully!');
