@@ -135,8 +135,8 @@ const SearchManga = () => {
                         <li key={manga.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
                             <div className="">
                                 <p className="fw-bold">{manga.attributes.title.en}
-                                    <span className="fw-light m-1">({manga.attributes.year})</span>
-                                    <span className={`fw-normal badge rounded-pill text-capitalize ${getBackgroundColor(manga.attributes.status)}`}>{manga.attributes.status}</span>
+                                    <span className="m-1 fw-light">({manga.attributes.year})</span>
+                                    <span className={`m-1 fw-normal badge rounded-pill text-capitalize ${getBackgroundColor(manga.attributes.status)}`}>{manga.attributes.status}</span>
                                 </p>
                                 <p className="fw-normal">{manga.attributes.description.en}</p>
                             </div>
