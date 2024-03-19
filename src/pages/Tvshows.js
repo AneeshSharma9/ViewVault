@@ -130,14 +130,14 @@ const Tvshows = () => {
 
                 <div className="row">
                     <div className="m-3">
-                        <Sidebar/>
+                        <Sidebar />
                     </div>
 
                     <div className="col-lg-8 col-md-7 col-sm-12 offset-lg-3 offset-md-4">
                         <h1 className="text-center m-4">TV Show Watchlist</h1>
 
                         <div className="pt-2 pb-4">
-                            <div className="dropdown mb-2">
+                            <div className="dropdown mb-2 d-flex justify-content-between">
                                 <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                                     {sortBy}
                                 </button>
@@ -146,6 +146,7 @@ const Tvshows = () => {
                                     <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
                                     <li><button className="dropdown-item" onClick={() => handleSortBy("Default")}>Default</button></li>
                                 </ul>
+                                <a className="btn btn-primary" href="./searchtv">Add TV Show</a>
                             </div>
                             <div className="list-group list-group-light">
                                 {shows.map((show) => (
@@ -154,9 +155,9 @@ const Tvshows = () => {
                                             <input className="form-check-input" type="checkbox" value={show.watched} id={`checkboxExample${show.id}`} checked={show.watched} onChange={() => handleToggleWatched(show.id, show.watched)} />
                                             <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${show.id}`}>{show.title}</label>
                                             <p>
-                                                <span class={`badge rounded-pill ${getBackgroundColor(show.vote_average)}`}>{(show.vote_average * 10).toFixed(2)}%</span>
+                                                <span className={`badge rounded-pill ${getBackgroundColor(show.vote_average)}`}>{(show.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
-                                                <span class="badge bg-light text-dark border border-danger">{show.agerating}</span>
+                                                <span className="badge bg-light text-dark border border-danger">{show.agerating}</span>
                                                 {' '}
                                                 <span className="fst-italic">{show.num_episodes} episodes</span>
                                             </p>
@@ -165,12 +166,12 @@ const Tvshows = () => {
                                             )}
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between">
-                                            <div class="btn-group dropstart m-2">
-                                                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
-                                                <ul class="dropdown-menu">
-                                                    <li><button class="dropdown-item" onClick={() => { toComponentB(show) }}>More like this</button></li>
-                                                    <li><button class="dropdown-item" onClick={() => { toDopebox(show.title) }}>Stream on DopeBox</button></li>
-                                                    <li><button class="dropdown-item" onClick={() => { toLookmovie(show.title) }}>Stream on Lookmovie</button></li>
+                                            <div className="btn-group dropstart m-2">
+                                                <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
+                                                <ul className="dropdown-menu">
+                                                    <li><button className="dropdown-item" onClick={() => { toComponentB(show) }}>More like this</button></li>
+                                                    <li><button className="dropdown-item" onClick={() => { toDopebox(show.title) }}>Stream on DopeBox</button></li>
+                                                    <li><button className="dropdown-item" onClick={() => { toLookmovie(show.title) }}>Stream on Lookmovie</button></li>
                                                 </ul>
                                             </div>
                                             <button className="btn btn-outline-danger" onClick={() => handleRemoveShow(show.id)}>X</button>

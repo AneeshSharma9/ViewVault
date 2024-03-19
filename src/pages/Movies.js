@@ -147,14 +147,14 @@ const Movies = () => {
 
                 <div className="row">
                     <div className="m-3">
-                        <Sidebar/>
+                        <Sidebar />
                     </div>
 
                     <div className="col-lg-8 col-md-7 col-sm-12 offset-lg-3 offset-md-4">
                         <h1 className="text-center m-4">Movie Watchlist</h1>
 
                         <div className="pt-2 pb-4">
-                            <div className="dropdown mb-2">
+                            <div className="dropdown mb-2 d-flex justify-content-between">
                                 <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                                     {sortBy}
                                 </button>
@@ -163,6 +163,7 @@ const Movies = () => {
                                     <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
                                     <li><button className="dropdown-item" onClick={() => handleSortBy("Default")}>Default</button></li>
                                 </ul>
+                                <a className="btn btn-primary" href="./searchmovie">Add Movie</a>
                             </div>
                             <div className="list-group list-group-light">
                                 {movies.map((movie) => (
@@ -171,9 +172,9 @@ const Movies = () => {
                                             <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                             <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
                                             <p>
-                                                <span class={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
+                                                <span className={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
-                                                <span class="badge bg-light text-dark border border-danger">{movie.agerating}</span>
+                                                <span className="badge bg-light text-dark border border-danger">{movie.agerating}</span>
                                                 {' '}
                                                 <span className="fst-italic">{convertMinToHrMin(movie.runtime)}</span>
                                             </p>
@@ -182,12 +183,12 @@ const Movies = () => {
                                             )}
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between">
-                                            <div class="btn-group dropstart m-2">
-                                                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
-                                                <ul class="dropdown-menu">
-                                                    <li><button class="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
-                                                    <li><button class="dropdown-item" onClick={() => { toDopebox(movie.name) }}>Stream on DopeBox</button></li>
-                                                    <li><button class="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</button></li>
+                                            <div className="btn-group dropstart m-2">
+                                                <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
+                                                <ul className="dropdown-menu">
+                                                    <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
+                                                    <li><button className="dropdown-item" onClick={() => { toDopebox(movie.name) }}>Stream on DopeBox</button></li>
+                                                    <li><button className="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</button></li>
                                                 </ul>
                                             </div>
                                             <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>

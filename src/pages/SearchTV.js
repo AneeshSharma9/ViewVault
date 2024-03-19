@@ -153,7 +153,7 @@ const SearchTV = () => {
 
                         <li key={tvshow.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
                             <div className="">
-                                <p className="fw-bold">{tvshow.name} <span className="fw-light">({tvshow.first_air_date.substring(0, 4)})</span> <span class={`badge rounded-pill ${getBackgroundColor(tvshow.vote_average)}`}>{(tvshow.vote_average * 10).toFixed(2)}%</span> </p>                                
+                                <p className="fw-bold">{tvshow.name} <span className="fw-light">({tvshow.first_air_date.substring(0, 4)})</span> <span className={`badge rounded-pill ${getBackgroundColor(tvshow.vote_average)}`}>{(tvshow.vote_average * 10).toFixed(2)}%</span> </p>                                
                                 <p className="fw-normal">{tvshow.overview}</p>
                             </div>
                             {addedShows[tvshow.id] ? (
