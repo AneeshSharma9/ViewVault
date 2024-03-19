@@ -40,6 +40,7 @@ const SearchManga = () => {
     }, []);
 
     const searchManga = async () => {
+        const axios = require('axios');
         const baseUrl = 'https://api.mangadex.org';
         const resp = await axios({
             method: 'GET',
@@ -73,6 +74,7 @@ const SearchManga = () => {
 
     const handleAddManga = async (manga) => {
         //Get manga bayesian ratings
+        const axios = require('axios');
         const baseUrl = 'https://api.mangadex.org';
         const resp = await axios({
             method: 'GET',
@@ -119,6 +121,7 @@ const SearchManga = () => {
         <div className="">
             <Navbar></Navbar>
             <div className="container">
+                <h1 className="text-center p-5 fw-bold">! In Development !</h1>
                 <h1 className="text-center p-5 fw-bold">Find Manga</h1>
                 <div className="input-group p-3 bg-white">
                     <input type="text" className="form-control" placeholder="Search for a manga..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} />
