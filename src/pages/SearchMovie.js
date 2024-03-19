@@ -156,11 +156,12 @@ const SearchMovie = () => {
 
                 <ul className="list-group mt-4">
                     {searchResults.map((movie) => (
-
                         <li key={movie.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
                             <div className="">
-                                <p className="fw-bold">{movie.title} <span className="fw-light">({movie.release_date.substring(0, 4)})</span> <span className={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span></p>
-
+                                <p className="fw-bold">{movie.title}
+                                    <span className="fw-light">({movie.release_date.substring(0, 4)})</span>
+                                    <span className={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
+                                </p>
                                 <p className="fw-normal">{movie.overview}</p>
                             </div>
                             {addedMovies[movie.id] ? (
