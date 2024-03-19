@@ -140,8 +140,8 @@ const SearchTV = () => {
         <div className="">
             <Navbar></Navbar>
             <div className="container">
-                <h1 className="text-center p-3">Find TV Shows</h1>
-                <div className="input-group p-4 bg-white">
+                <h1 className="text-center p-5 fw-bold">Find TV Shows</h1>
+                <div className="input-group p-3 bg-white">
                     <input type="text" className="form-control" placeholder="Search for a tv show..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} />
                     <div className="input-group-append">
                         <button className="btn btn-primary" type="button" onClick={handleSearch}>Search</button>

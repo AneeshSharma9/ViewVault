@@ -12,10 +12,10 @@ const Sidebar = () => {
                     <a className="nav-link text-muted" href="/tvshows">TV Shows</a>
                 </li>
                 <li className="nav-item">
-                    <a className="nav-link text-muted" href="#">Anime</a>
+                    <a className="nav-link text-muted" href="/anime">Anime</a>
                 </li>
                 <li className="nav-item">
-                    <a className="nav-link text-muted" href="#">Manga</a>
+                    <a className="nav-link text-muted" href="/manga">Manga</a>
                 </li>
             </ul>
         </div>

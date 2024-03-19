@@ -1,7 +1,6 @@
 import Navbar from "./Navbar";
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
 

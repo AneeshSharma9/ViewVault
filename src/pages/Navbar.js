@@ -41,20 +41,20 @@ const Navbar = () => {
 
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul className="navbar-nav mr-auto">
-                    <li className="nav-item">
+                    <li className="nav-item p-2">
                         <a className="nav-link" href="/searchmovie">Movies</a>
                     </li>
-                    <li className="nav-item">
+                    <li className="nav-item p-2">
                         <a className="nav-link" href="/searchtv">TV Shows</a>
                     </li>
-                    <li className="nav-item">
-                        <a className="nav-link" href="/">Anime</a>
+                    <li className="nav-item p-2">
+                        <a className="nav-link" href="/searchanime">Anime</a>
                     </li>
-                    <li className="nav-item">
-                        <a className="nav-link" href="/">Manga</a>
+                    <li className="nav-item p-2">
+                        <a className="nav-link" href="/searchmanga">Manga</a>
                     </li>
-                    <li className="nav-item">
-                        <a className="nav-link" href="/movies">Watchlists</a>
+                    <li className="nav-item p-2">
+                        <a className="nav-link" href="/movies">My Watchlists</a>
                     </li>
                 </ul>
 

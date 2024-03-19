@@ -1,6 +1,6 @@
 import Navbar from "./Navbar";
 
-const Anime = () => {
+const SearchManga = () => {
 
     return (
         <div className="">
@@ -12,4 +12,4 @@ const Anime = () => {
     )
 };
 
-export default Anime;
+export default SearchManga;

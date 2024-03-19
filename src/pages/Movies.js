@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, get, remove, update } from "firebase/database";
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from "./Sidebar";
 
 const Movies = () => {
@@ -151,7 +151,7 @@ const Movies = () => {
                     </div>
 
                     <div className="col-lg-8 col-md-7 col-sm-12 offset-lg-3 offset-md-4">
-                        <h1 className="text-center m-4">Movie Watchlist</h1>
+                        <h1 className="text-center m-4 fw-bold">Movie Watchlist</h1>
 
                         <div className="pt-2 pb-4">
                             <div className="dropdown mb-2 d-flex justify-content-between">
@@ -171,13 +171,13 @@ const Movies = () => {
                                         <div className="form-check">
                                             <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                             <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
-                                            <p>
-                                                <span className={`badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
+                                            <div className="d-flex align-items-center">
+                                                <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
-                                                <span className="badge bg-light text-dark border border-danger">{movie.agerating}</span>
+                                                <span className="m-1 badge bg-light text-dark border border-danger">{movie.agerating}</span>
                                                 {' '}
-                                                <span className="fst-italic">{convertMinToHrMin(movie.runtime)}</span>
-                                            </p>
+                                                <span className="m-1 fst-italic">{convertMinToHrMin(movie.runtime)}</span>
+                                            </div>
                                             {movie.providers && movie.providers.length > 0 && (
                                                 <p>Stream On: {movie.providers.join(', ')}</p>
                                             )}

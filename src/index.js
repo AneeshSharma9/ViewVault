@@ -6,6 +6,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+
+//Need this
 import firebase from './utils/firebase'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -17,22 +19,31 @@ import SearchMovie from './pages/SearchMovie';
 import RecommendedMovies from './pages/RecommendedMovies';
 import RecommendedShows from './pages/RecommendedShows';
 import SearchTV from './pages/SearchTV';
+import SearchAnime from './pages/SearchAnime'
+import SearchManga from './pages/SearchManga';
 
 export default function All() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
-        <Route path="movies" element={<Movies />} />
-        <Route path="manga" element={<Manga />} />
-        <Route path="anime" element={<Anime />} />
+
         <Route path="tvshows" element={<Tvshows />} />
+        <Route path="searchtv" element={<SearchTV />} />
+        <Route path="recommendedshows" element={<RecommendedShows />} />
+
+        <Route path="movies" element={<Movies />} />
         <Route path="searchmovie" element={<SearchMovie />} />
         <Route path="recommendedmovies" element={<RecommendedMovies />} />
-        <Route path="recommendedshows" element={<RecommendedShows />} />
-        <Route path="searchtv" element={<SearchTV />} />
+
+        <Route path="anime" element={<Anime />} />
+        <Route path="searchanime" element={<SearchAnime />} />
+
+        <Route path="manga" element={<Manga />} />
+        <Route path="searchmanga" element={<SearchManga />} />
+
       </Routes>
-      
+
     </BrowserRouter>
   );
 }
