@@ -22,6 +22,7 @@ import SearchTV from './pages/SearchTV';
 import SearchAnime from './pages/SearchAnime'
 import SearchManga from './pages/SearchManga';
 
+
 export default function All() {
   return (
     <BrowserRouter>
