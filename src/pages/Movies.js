@@ -171,7 +171,7 @@ const Movies = () => {
                                         <div className="form-check">
                                             <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                             <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
-                                            <div className="d-flex align-items-center">
+                                            <div className="d-flex flex-wrap align-items-center">
                                                 <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
                                                 <span className="m-1 badge bg-light text-dark border border-danger">{movie.agerating}</span>

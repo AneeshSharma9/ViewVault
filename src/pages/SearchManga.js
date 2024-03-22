@@ -149,9 +149,9 @@ const SearchManga = () => {
                                 <p className="fw-normal">{manga.attributes.description.en}</p>
                             </div>
                             {addedManga[manga.id] ? (
-                                <button className="btn btn-success me-2" type="button">✓</button>
+                                <button className="btn btn-success mx-3" type="button">✓</button>
                             ) : (
-                                <button className="btn btn-primary me-2" type="button" onClick={() => { handleAddManga(manga) }}>+</button>
+                                <button className="btn btn-primary mx-3" type="button" onClick={() => { handleAddManga(manga) }}>+</button>
                             )}
                         </li>
                     ))}

@@ -156,7 +156,7 @@ const Tvshows = () => {
                                         <div className="form-check">
                                             <input className="form-check-input" type="checkbox" value={show.watched} id={`checkboxExample${show.id}`} checked={show.watched} onChange={() => handleToggleWatched(show.id, show.watched)} />
                                             <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${show.id}`}>{show.title}</label>
-                                            <div className="d-flex align-items-center">
+                                            <div className="d-flex flex-wrap align-items-center">
                                                 <span className={`m-1 badge rounded-pill ${getBackgroundColor(show.vote_average)}`}>{(show.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
                                                 <span className="m-1 badge bg-light text-dark border border-danger">{show.agerating}</span>

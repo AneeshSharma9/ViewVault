@@ -170,9 +170,9 @@ const SearchMovie = () => {
                                 <p className="fw-normal">{movie.overview}</p>
                             </div>
                             {addedMovies[movie.id] ? (
-                                <button className="btn btn-success me-2" type="button">✓</button>
+                                <button className="btn btn-success mx-3" type="button">✓</button>
                             ) : (
-                                <button className="btn btn-primary me-2" type="button" onClick={() => { handleAddMovie(movie) }}>+</button>
+                                <button className="btn btn-primary mx-3" type="button" onClick={() => { handleAddMovie(movie) }}>+</button>
                             )}
                         </li>
                     ))}

@@ -141,7 +141,7 @@ const Manga = () => {
                                                 <span className="m-1 fst-italic">{manga.chapters} chapters</span>
                                             </div>
                                         </div>
-                                        <div className="d-flex align-items-center justify-content-between">
+                                        <div className="d-flex flex-wrap align-items-center justify-content-between">
                                             <div className="btn-group dropstart m-2">
                                                 <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
                                                 <ul className="dropdown-menu">

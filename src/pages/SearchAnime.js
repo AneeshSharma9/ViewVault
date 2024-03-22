@@ -167,9 +167,9 @@ const SearchAnime = () => {
                                 <p className="fw-normal">{tvshow.overview}</p>
                             </div>
                             {addedShows[tvshow.id] ? (
-                                <button className="btn btn-success me-2" type="button">✓</button>
+                                <button className="btn btn-success mx-3" type="button">✓</button>
                             ) : (
-                                <button className="btn btn-primary me-2" type="button" onClick={() => { handleAddShow(tvshow) }}>+</button>
+                                <button className="btn btn-primary mx-3" type="button" onClick={() => { handleAddShow(tvshow) }}>+</button>
                             )}
                         </li>
                     ))}
