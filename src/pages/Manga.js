@@ -112,15 +112,9 @@ const Manga = () => {
         <div className="">
             <Navbar />
             <div className="container-fluid">
-
-                <div className="row">
-                    <div className="m-3">
-                        <Sidebar />
-                    </div>
-
-                    <div className="col-lg-8 col-md-7 col-sm-12 offset-lg-3 offset-md-4">
+                <div className="container">
+                    <div className="p-4">
                         <h1 className="text-center m-4 fw-bold">Manga List</h1>
-
                         <div className="pt-2 pb-4">
                             <div className="dropdown mb-2 d-flex justify-content-between">
                                 <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
