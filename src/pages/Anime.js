@@ -3,8 +3,7 @@ import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, get, remove, update } from "firebase/database";
 import { useNavigate } from 'react-router-dom';
-import Sidebar from "./Sidebar";
-
+import Footer from "./Footer";
 const Anime = () => {
     const [shows, setShows] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -186,6 +185,7 @@ const Anime = () => {
                     </div>
                 </div>
             </div>
+            <Footer></Footer>
         </div>
     )
 };

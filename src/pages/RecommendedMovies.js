@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
+import Footer from "./Footer";
 
 
 const RecommendedMovies = () => {
@@ -167,6 +168,7 @@ const RecommendedMovies = () => {
                     ))}
                 </ul>
             </div>
+            <Footer></Footer>
         </div>
     )
 };

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
+import Footer from "./Footer";
 
 
 const RecommendedShows = () => {
@@ -164,6 +165,7 @@ const RecommendedShows = () => {
                     ))}
                 </ul>
             </div>
+            <Footer></Footer>
         </div>
     )
 };

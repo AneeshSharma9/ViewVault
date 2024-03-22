@@ -3,6 +3,8 @@ import axios from "axios";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
+import Footer from "./Footer";
+
 
 const SearchMovie = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -56,10 +58,6 @@ const SearchMovie = () => {
 
     const handleSearch = () => {
         searchMovie();
-    };
-
-    const handleInputFocus = () => {
-        inputRef.current.select();
     };
 
     const handleAddMovie = async (movie) => {
@@ -145,6 +143,9 @@ const SearchMovie = () => {
         }
     };
 
+    const handleInputFocus = () => {
+        inputRef.current.select();
+    };
 
     return (
         <div className="">
@@ -152,7 +153,7 @@ const SearchMovie = () => {
             <div className="container">
                 <h1 className="text-center p-5 fw-bold">Find Movies</h1>
                 <div className="input-group p-3 bg-white">
-                    <input type="text" className="form-control" placeholder="Search for a movie..." ref={inputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} onFocus={handleInputFocus}/>
+                    <input type="text" className="form-control" placeholder="Search for a movie..." ref={inputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} onFocus={handleInputFocus} />
                     <div className="input-group-append">
                         <button className="btn btn-primary" type="button" onClick={handleSearch}>Search</button>
                     </div>
@@ -177,6 +178,7 @@ const SearchMovie = () => {
                     ))}
                 </ul>
             </div>
+            <Footer></Footer>
         </div>
     );
 };

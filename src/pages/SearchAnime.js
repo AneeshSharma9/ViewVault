@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
+import Footer from "./Footer";
+
 
 const SearchAnime = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [addedShows, setAddedShows] = useState({});
     const [uid, setUid] = useState(null);
+    const inputRef = useRef(null);
+
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -135,6 +139,10 @@ const SearchAnime = () => {
         }
     };
 
+    const handleInputFocus = () => {
+        inputRef.current.select();
+    };
+
 
     return (
         <div className="">
@@ -142,7 +150,7 @@ const SearchAnime = () => {
             <div className="container">
                 <h1 className="text-center p-5 fw-bold">Find Anime</h1>
                 <div className="input-group p-3 bg-white">
-                    <input type="text" className="form-control" placeholder="Search for an anime..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} />
+                    <input type="text" className="form-control" placeholder="Search for an anime..." ref={inputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} onFocus={handleInputFocus} />
                     <div className="input-group-append">
                         <button className="btn btn-primary" type="button" onClick={handleSearch}>Search</button>
                     </div>
@@ -167,6 +175,7 @@ const SearchAnime = () => {
                     ))}
                 </ul>
             </div>
+            <Footer></Footer>
         </div>
     );
 };

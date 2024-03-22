@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, get, remove, update } from "firebase/database";
-import Sidebar from "./Sidebar";
+import Footer from "./Footer";
 
 const Manga = () => {
     const [mangas, setMangas] = useState([]);
@@ -162,6 +162,7 @@ const Manga = () => {
                     </div>
                 </div>
             </div>
+            <Footer></Footer>
         </div>
     )
 };
