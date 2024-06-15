@@ -69,6 +69,9 @@ const Navbar = () => {
             </div>
             <ul className="navbar-nav ml-auto">
                 <li className="nav-item">
+                    <a className="nav-link" href="/movienyte">MovieNyte</a>
+                </li>
+                <li className="nav-item">
                     {uid ?
                         <button className="btn btn-outline-danger my-2 my-sm-0" onClick={handleSignOut}>Logout</button>
                         :

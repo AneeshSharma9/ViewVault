@@ -21,6 +21,7 @@ import RecommendedShows from './pages/RecommendedShows';
 import SearchTV from './pages/SearchTV';
 import SearchAnime from './pages/SearchAnime'
 import SearchManga from './pages/SearchManga';
+import MovieNyte from './pages/MovieNyte';
 
 
 export default function All() {
@@ -42,6 +43,8 @@ export default function All() {
 
         <Route path="manga" element={<Manga />} />
         <Route path="searchmanga" element={<SearchManga />} />
+
+        <Route path="movienyte" element={<MovieNyte />} />
 
       </Routes>
 
