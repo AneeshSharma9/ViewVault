@@ -4,7 +4,7 @@ import Footer from "./Footer";
 import axios from "axios";
 
 const MovieNyte = () => {
-    const initialPersonState = { id: 1, name: "Person 1", preferences: { genre: [], rating: [], year: '', runtime: '', language: '', country: '' } };
+    const initialPersonState = { id: 1, name: "Person 1", preferences: { genre: [], rating: [], year: '', runtime: '', country: '' } };
     const [people, setPeople] = useState([initialPersonState]);
     const [genres, setGenres] = useState([]);
     const [currentPerson, setCurrentPerson] = useState(null);
@@ -14,7 +14,6 @@ const MovieNyte = () => {
         rating: [],
         year: '',
         runtime: '',
-        language: '',
         country: ''
     });
 
@@ -72,7 +71,6 @@ const MovieNyte = () => {
             rating: [],
             year: '',
             runtime: '',
-            language: '',
             country: ''
         });
     };
@@ -123,9 +121,8 @@ const MovieNyte = () => {
                                         <ul className="list-group list-group-flush">
                                             <li className="list-group-item">Genres: {person.preferences.genre.join(', ')}</li>
                                             <li className="list-group-item">Age Rating: {person.preferences.rating.join(', ')}</li>
-                                            <li className="list-group-item">Release Year: {person.preferences.year}</li>
-                                            <li className="list-group-item">Runtime: {person.preferences.runtime}</li>
-                                            <li className="list-group-item">Language: {person.preferences.language}</li>
+                                            <li className="list-group-item">Min. Release Year: {person.preferences.year}</li>
+                                            <li className="list-group-item">Runtime (hrs): {person.preferences.runtime}</li>
                                             <li className="list-group-item">Country of Origin: {person.preferences.country}</li>
                                         </ul>
                                         <button type="button" className="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" onClick={() => setCurrentPerson(index)}>Edit</button>
@@ -190,16 +187,12 @@ const MovieNyte = () => {
                                     </div>
                                 </div>
                                 <div className="form-group">
-                                    <label>Release Year</label>
+                                    <label>Min. Release Year</label>
                                     <input type="number" className="form-control" name="year" value={tempPreferences.year} onChange={handlePreferenceChange} />
                                 </div>
                                 <div className="form-group">
-                                    <label>Runtime</label>
+                                    <label>Runtime (hrs)</label>
                                     <input type="number" className="form-control" name="runtime" value={tempPreferences.runtime} onChange={handlePreferenceChange} />
-                                </div>
-                                <div className="form-group">
-                                    <label>Language</label>
-                                    <input type="text" className="form-control" name="language" value={tempPreferences.language} onChange={handlePreferenceChange} />
                                 </div>
                                 <div className="form-group">
                                     <label>Country of Origin</label>
