@@ -110,7 +110,7 @@ const MovieNyte = () => {
                         <h1 className="text-center m-4 fw-bold">MovieNyte</h1>
                         {people?.map((person, index) => (
                             <div key={index} className="mb-4">
-                                <div className="card">
+                                <div className="card shadow">
                                     <div className="card-body">
                                         <button
                                             type="button" className="btn btn-outline-danger"
@@ -128,19 +128,12 @@ const MovieNyte = () => {
                                             <li className="list-group-item">Language: {person.preferences.language}</li>
                                             <li className="list-group-item">Country of Origin: {person.preferences.country}</li>
                                         </ul>
-                                        <button
-                                            className="btn btn-primary"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#staticBackdrop"
-                                            onClick={() => setCurrentPerson(index)}
-                                        >
-                                            Edit Person
-                                        </button>
+                                        <button type="button" className="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" onClick={() => setCurrentPerson(index)}>Edit</button>
                                     </div>
                                 </div>
                             </div>
                         ))}
-                        <button className="btn btn-secondary" onClick={addPerson}>+</button>
+                        <button className="btn btn-primary" onClick={addPerson}>+</button>
                     </div>
                 </div>
             </div>
