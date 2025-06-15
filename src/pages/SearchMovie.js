@@ -67,7 +67,11 @@ const SearchMovie = () => {
             throw new Error('Failed to fetch movie details');
         }
         const movieDetails = await detailsResponse.json();
-        console.log(movieDetails)
+        console.log(movieDetails);
+        const genreString = movieDetails.genres
+          .map(genre => genre.name)
+          .join(' / ');
+        console.log(genreString);
 
         //Getting age rating
         const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
@@ -113,7 +117,8 @@ const SearchMovie = () => {
                 runtime: movieDetails.runtime,
                 providers: providerNames,
                 agerating: certificationForUS,
-                voteaverage: movie.vote_average
+                voteaverage: movie.vote_average,
+                genres: genreString 
             })
                 .then(() => {
                     console.log('Movie added successfully!');

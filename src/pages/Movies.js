@@ -39,7 +39,8 @@ const Movies = () => {
                     runtime: movieData[key].runtime,
                     providers: movieData[key].providers,
                     agerating: movieData[key].agerating,
-                    vote_average: movieData[key].voteaverage
+                    vote_average: movieData[key].voteaverage,
+                    genres: movieData[key].genres
                 }));
                 setMovies(movieArray);
             } else {
@@ -178,6 +179,7 @@ const Movies = () => {
                                                 {' '}
                                                 <span className="m-1 fst-italic">{convertMinToHrMin(movie.runtime)}</span>
                                             </div>
+                                            <p className="m-1 badge bg-light text-dark border border-info">{movie.genres}</p>
                                             {movie.providers && movie.providers.length > 0 && (
                                                 <p>Stream On: {movie.providers.join(', ')}</p>
                                             )}
