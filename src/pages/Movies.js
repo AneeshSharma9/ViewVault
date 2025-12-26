@@ -17,6 +17,7 @@ const Movies = () => {
     const [importText, setImportText] = useState("");
     const [importStatus, setImportStatus] = useState("");
     const [isImporting, setIsImporting] = useState(false);
+    const [showClearModal, setShowClearModal] = useState(false);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -287,6 +288,17 @@ const Movies = () => {
         }
     };
 
+    const handleClearWatchlist = async () => {
+        try {
+            const movieListRef = ref(db, `users/${uid}/movielist`);
+            await remove(movieListRef);
+            setMovies([]);
+            setShowClearModal(false);
+        } catch (error) {
+            console.error('Error clearing watchlist:', error);
+        }
+    };
+
     return (
         <div className="">
             <Navbar />
@@ -313,6 +325,8 @@ const Movies = () => {
                                         <ul className="dropdown-menu dropdown-menu-end">
                                             <li><button className="dropdown-item" onClick={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}>Import Watchlist</button></li>
                                             <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
+                                            <li><hr className="dropdown-divider" /></li>
+                                            <li><button className="dropdown-item text-danger" onClick={() => setShowClearModal(true)}>Clear Watchlist</button></li>
                                         </ul>
                                     </div>
                                     <a className="btn btn-primary" href="./searchmovie">Add Movie</a>
@@ -412,6 +426,27 @@ const Movies = () => {
                                 <button type="button" className="btn btn-primary" onClick={handleImportWatchlist} disabled={isImporting || !importText.trim()}>
                                     {isImporting ? "Importing..." : "Import"}
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showClearModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Clear Watchlist</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowClearModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Are you sure you want to clear your entire watchlist?</p>
+                                <p className="text-danger fw-bold">This action cannot be undone.</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowClearModal(false)}>Cancel</button>
+                                <button type="button" className="btn btn-danger" onClick={handleClearWatchlist}>Clear Watchlist</button>
                             </div>
                         </div>
                     </div>
