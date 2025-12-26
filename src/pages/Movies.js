@@ -10,6 +10,8 @@ const Movies = () => {
     const [loading, setLoading] = useState(true);
     const [uid, setUid] = useState(null);
     const [sortBy, setSortBy] = useState("Default");
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportText, setExportText] = useState("");
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -153,6 +155,16 @@ const Movies = () => {
         }
     };
 
+    const exportWatchlist = () => {
+        const lines = movies.map(movie => {
+            const year = movie.releaseyear && movie.releaseyear !== "" ? ` (${movie.releaseyear})` : "";
+            return `${movie.name}${year}`;
+        });
+        const content = lines.join("\n");
+        setExportText(content);
+        setShowExportModal(true);
+    };
+
     return (
         <div className="">
             <Navbar />
@@ -171,7 +183,17 @@ const Movies = () => {
                                     <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
                                     <li><button className="dropdown-item" onClick={() => handleSortBy("Runtime")}>Runtime</button></li>
                                 </ul>
-                                <a className="btn btn-primary" href="./searchmovie">Add Movie</a>
+                                <div className="d-flex gap-2">
+                                    <div className="dropdown">
+                                        <button className="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            ⋯
+                                        </button>
+                                        <ul className="dropdown-menu dropdown-menu-end">
+                                            <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
+                                        </ul>
+                                    </div>
+                                    <a className="btn btn-primary" href="./searchmovie">Add Movie</a>
+                                </div>
                             </div>
                             <div className="list-group list-group-light">
                                 {movies.map((movie) => (
@@ -213,6 +235,31 @@ const Movies = () => {
                     </div>
                 </div>
             </div>
+
+            {showExportModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Export Watchlist</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowExportModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                <textarea 
+                                    className="form-control" 
+                                    rows="10" 
+                                    value={exportText} 
+                                    readOnly
+                                />
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Footer></Footer>
         </div>
     )
