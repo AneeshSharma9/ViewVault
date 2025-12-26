@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
-import { ref, get, remove, update } from "firebase/database";
+import { ref, get, remove, update, push } from "firebase/database";
 import { useNavigate } from 'react-router-dom';
 import Footer from "./Footer";
+import axios from "axios";
 
 const Movies = () => {
     const [movies, setMovies] = useState([]);
@@ -12,6 +13,10 @@ const Movies = () => {
     const [sortBy, setSortBy] = useState("Default");
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportText, setExportText] = useState("");
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importText, setImportText] = useState("");
+    const [importStatus, setImportStatus] = useState("");
+    const [isImporting, setIsImporting] = useState(false);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -158,11 +163,128 @@ const Movies = () => {
     const exportWatchlist = () => {
         const lines = movies.map(movie => {
             const year = movie.releaseyear && movie.releaseyear !== "" ? ` (${movie.releaseyear})` : "";
-            return `${movie.name}${year}`;
+            const watchedStatus = movie.watched ? " [x]" : " []";
+            return `${movie.name}${year}${watchedStatus}`;
         });
         const content = lines.join("\n");
         setExportText(content);
         setShowExportModal(true);
+    };
+
+    const handleImportWatchlist = async () => {
+        if (!importText.trim()) return;
+        
+        setIsImporting(true);
+        setImportStatus("Starting import...");
+        
+        const lines = importText.split("\n").filter(line => line.trim());
+        const existingMovieIds = movies.map(m => m.movieid);
+        let added = 0;
+        let skipped = 0;
+        let notFound = 0;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            setImportStatus(`Processing ${i + 1}/${lines.length}: ${line}`);
+            
+            // Parse "Title (Year) [x]" or "Title (Year) []" format
+            // Also handles "Title (Year)" without watched status (defaults to not watched)
+            const match = line.match(/^(.+?)\s*(?:\((\d{4})\))?\s*(?:\[(x?)\])?$/);
+            if (!match) continue;
+            
+            const title = match[1].trim();
+            const year = match[2];
+            const isWatched = match[3] === 'x';
+            
+            try {
+                // Search TMDB
+                const response = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
+                    params: {
+                        api_key: process.env.REACT_APP_API_KEY,
+                        query: title,
+                        year: year || undefined
+                    }
+                });
+                
+                const results = response.data.results;
+                if (results.length === 0) {
+                    notFound++;
+                    continue;
+                }
+                
+                // Get the first matching result
+                const movie = results[0];
+                
+                // Check if already in watchlist
+                if (existingMovieIds.includes(movie.id)) {
+                    skipped++;
+                    continue;
+                }
+                
+                // Fetch movie details
+                const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
+                const movieDetails = await detailsResponse.json();
+                const genreString = movieDetails.genres.map(genre => genre.name).join(' / ');
+                
+                // Get age rating
+                const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
+                const movieRating = await ratingResponse.json();
+                let certificationForUS = null;
+                for (const result of movieRating.results) {
+                    if (result.iso_3166_1 === "US") {
+                        for (const releaseDate of result.release_dates) {
+                            if (releaseDate.certification) {
+                                certificationForUS = releaseDate.certification;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                // Get streaming providers
+                const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
+                const movieProviders = await providersResponse.json();
+                let providerNames = [];
+                if (movieProviders.results.US && movieProviders.results.US.flatrate) {
+                    providerNames = movieProviders.results.US.flatrate.map(provider => provider.provider_name);
+                }
+                
+                // Get IMDB ID
+                const imdbResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/external_ids?api_key=${process.env.REACT_APP_API_KEY}`);
+                const imdbData = await imdbResponse.json();
+                
+                // Add to database
+                const userMovieListRef = ref(db, `users/${uid}/movielist`);
+                await push(userMovieListRef, {
+                    movietitle: movie.title,
+                    movieid: movie.id,
+                    watched: isWatched,
+                    runtime: movieDetails.runtime,
+                    providers: providerNames,
+                    agerating: certificationForUS,
+                    voteaverage: movie.vote_average,
+                    genres: genreString,
+                    releaseyear: movieDetails.release_date ? movieDetails.release_date.substring(0, 4) : "",
+                    imdbid: imdbData.imdb_id
+                });
+                
+                existingMovieIds.push(movie.id);
+                added++;
+                
+            } catch (error) {
+                console.error(`Error importing "${line}":`, error);
+                notFound++;
+            }
+        }
+        
+        setImportStatus(`Done! Added: ${added}, Skipped (already in list): ${skipped}, Not found: ${notFound}`);
+        setIsImporting(false);
+        
+        // Refresh the movie list
+        if (added > 0) {
+            fetchMovies(uid);
+        }
     };
 
     return (
@@ -189,6 +311,7 @@ const Movies = () => {
                                             ⋯
                                         </button>
                                         <ul className="dropdown-menu dropdown-menu-end">
+                                            <li><button className="dropdown-item" onClick={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}>Import Watchlist</button></li>
                                             <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
                                         </ul>
                                     </div>
@@ -254,6 +377,41 @@ const Movies = () => {
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showImportModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Import Watchlist</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowImportModal(false)} disabled={isImporting}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p className="text-muted small mb-2">Enter one movie per line in the format: <code>Title (Year) [x]</code> for watched or <code>Title (Year) []</code> for not watched</p>
+                                <textarea 
+                                    className="form-control" 
+                                    rows="10" 
+                                    value={importText}
+                                    onChange={(e) => setImportText(e.target.value)}
+                                    placeholder="The Shawshank Redemption (1994) [x]&#10;Inception (2010) []&#10;The Dark Knight (2008)"
+                                    disabled={isImporting}
+                                />
+                                {importStatus && (
+                                    <div className={`mt-2 small ${importStatus.startsWith("Done") ? "text-success" : "text-info"}`}>
+                                        {importStatus}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowImportModal(false)} disabled={isImporting}>Close</button>
+                                <button type="button" className="btn btn-primary" onClick={handleImportWatchlist} disabled={isImporting || !importText.trim()}>
+                                    {isImporting ? "Importing..." : "Import"}
+                                </button>
                             </div>
                         </div>
                     </div>
