@@ -106,6 +106,15 @@ const SearchMovie = () => {
             providerNames = flatrateProviders.map(provider => provider.provider_name);
         }
 
+        //Getting imdb id from tmdb id
+        const imdbResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/external_ids?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!imdbResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const imdbData = await imdbResponse.json();
+        const imdbId = imdbData.imdb_id;
+        console.log("imdbId: " + imdbId);
+
         //Saving movie to user's database
         const uid = auth.currentUser.uid;
         if (uid) {
@@ -118,7 +127,9 @@ const SearchMovie = () => {
                 providers: providerNames,
                 agerating: certificationForUS,
                 voteaverage: movie.vote_average,
-                genres: genreString 
+                genres: genreString,
+                releaseyear: movieDetails.release_date.substring(0, 4),
+                imdbid: imdbId
             })
                 .then(() => {
                     console.log('Movie added successfully!');

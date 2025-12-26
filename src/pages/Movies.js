@@ -40,7 +40,9 @@ const Movies = () => {
                     providers: movieData[key].providers,
                     agerating: movieData[key].agerating,
                     vote_average: movieData[key].voteaverage,
-                    genres: movieData[key].genres
+                    genres: movieData[key].genres,
+                    releaseyear: movieData[key].releaseyear,
+                    imdbid: movieData[key].imdbid
                 }));
                 setMovies(movieArray);
             } else {
@@ -135,6 +137,11 @@ const Movies = () => {
         const dopeboxUrl = `https://dopebox.to/search/${formattedMovieName}`;
         window.open(dopeboxUrl, '_blank');
     };
+    
+    const toImdbParentsGuide = (imdbId) => {
+        const imdbUrl = `https://www.imdb.com/title/${imdbId}/parentalguide/#nudity`;
+        window.open(imdbUrl, '_blank');
+    };
 
     const getBackgroundColor = (voteAverage) => {
         if (voteAverage * 10 >= 70) {
@@ -171,7 +178,7 @@ const Movies = () => {
                                     <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
                                         <div className="form-check">
                                             <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
-                                            <label className="form-check-label ml-2 fw-bold" htmlFor={`checkboxExample${movie.id}`}>{movie.name}</label>
+                                            <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
                                             <div className="d-flex flex-wrap align-items-center">
                                                 <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
@@ -191,6 +198,7 @@ const Movies = () => {
                                                     <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
                                                     <li><button className="dropdown-item" onClick={() => { toDopebox(movie.name) }}>Stream on DopeBox</button></li>
                                                     <li><button className="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</button></li>
+                                                    <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
                                                 </ul>
                                             </div>
                                             <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>
