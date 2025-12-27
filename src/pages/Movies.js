@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, get, remove, update, push } from "firebase/database";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from "./Footer";
 import axios from "axios";
 
 const Movies = () => {
+    const [searchParams] = useSearchParams();
+    const listId = searchParams.get('list');
+    
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uid, setUid] = useState(null);
     const [sortBy, setSortBy] = useState("Default");
+    const [listName, setListName] = useState("Movie Watchlist");
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportText, setExportText] = useState("");
     const [showImportModal, setShowImportModal] = useState(false);
@@ -32,17 +36,43 @@ const Movies = () => {
                 setUid(uid);
                 fetchMovies(uid);
                 fetchWatchSites(uid);
+                if (listId) {
+                    fetchListName(uid);
+                } else {
+                    setListName("Movie Watchlist");
+                }
             } else {
                 setUid(null);
                 setLoading(false);
             }
         });
         return () => unsubscribe();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [listId]);
+
+    const getMoviesPath = (uid) => {
+        if (listId) {
+            return `users/${uid}/customwatchlists/${listId}/items`;
+        }
+        return `users/${uid}/movielist`;
+    };
+
+    const fetchListName = async (uid) => {
+        try {
+            const listRef = ref(db, `users/${uid}/customwatchlists/${listId}`);
+            const snapshot = await get(listRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                setListName(data.name || "Custom Watchlist");
+            }
+        } catch (error) {
+            console.error('Error fetching list name:', error);
+        }
+    };
 
     const fetchMovies = async (uid) => {
         try {
-            const moviesRef = ref(db, `users/${uid}/movielist`);
+            const moviesRef = ref(db, getMoviesPath(uid));
             const snapshot = await get(moviesRef);
             if (snapshot.exists()) {
                 const movieData = snapshot.val();
@@ -62,6 +92,7 @@ const Movies = () => {
                 setMovies(movieArray);
             } else {
                 console.log("No movies available");
+                setMovies([]);
             }
             setLoading(false);
         } catch (error) {
@@ -83,7 +114,7 @@ const Movies = () => {
     };
 
     const handleRemoveMovie = (movieId) => {
-        const movieRef = ref(db, `users/${uid}/movielist/${movieId}`);
+        const movieRef = ref(db, `${getMoviesPath(uid)}/${movieId}`);
         remove(movieRef)
             .then(() => {
                 console.log('Movie removed successfully!');
@@ -96,7 +127,7 @@ const Movies = () => {
 
     const handleToggleWatched = async (movieId, watched) => {
         try {
-            const movieRef = ref(db, `users/${uid}/movielist/${movieId}`);
+            const movieRef = ref(db, `${getMoviesPath(uid)}/${movieId}`);
             await update(movieRef, { watched: !watched });
             setMovies(movies.map(movie => {
                 if (movie.id === movieId) {
@@ -291,7 +322,7 @@ const Movies = () => {
                 const imdbData = await imdbResponse.json();
                 
                 // Add to database
-                const userMovieListRef = ref(db, `users/${uid}/movielist`);
+                const userMovieListRef = ref(db, getMoviesPath(uid));
                 await push(userMovieListRef, {
                     movietitle: movie.title,
                     movieid: movie.id,
@@ -325,7 +356,7 @@ const Movies = () => {
 
     const handleClearWatchlist = async () => {
         try {
-            const movieListRef = ref(db, `users/${uid}/movielist`);
+            const movieListRef = ref(db, getMoviesPath(uid));
             await remove(movieListRef);
             setMovies([]);
             setShowClearModal(false);
@@ -340,7 +371,7 @@ const Movies = () => {
             <div className="container-fluid">
                 <div className="container">
                     <div className="p-4">
-                        <h1 className="text-center m-4 fw-bold">Movie Watchlist</h1>
+                        <h1 className="text-center m-4 fw-bold">{listName}</h1>
                         <div className="pt-2 pb-4">
                             <div className="dropdown mb-2 d-flex justify-content-between">
                                 <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">

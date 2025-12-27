@@ -1,6 +1,6 @@
 import { auth, signInWithGooglePopup, db } from "../utils/firebase"
 import { signOut } from "firebase/auth";
-import { ref, push, get } from "firebase/database";
+import { ref, push, get, remove } from "firebase/database";
 import { useState, useEffect } from "react";
 
 const Navbar = () => {
@@ -9,6 +9,8 @@ const Navbar = () => {
     const [newListName, setNewListName] = useState("");
     const [newListType, setNewListType] = useState("movies");
     const [customWatchlists, setCustomWatchlists] = useState([]);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [listToDelete, setListToDelete] = useState(null);
 
     const fetchCustomWatchlists = async (userId) => {
         try {
@@ -87,6 +89,27 @@ const Navbar = () => {
         }
     };
 
+    const handleDeleteClick = (e, list) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setListToDelete(list);
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!listToDelete || !uid) return;
+        
+        try {
+            const listRef = ref(db, `users/${uid}/customwatchlists/${listToDelete.id}`);
+            await remove(listRef);
+            setShowDeleteModal(false);
+            setListToDelete(null);
+            fetchCustomWatchlists(uid);
+        } catch (error) {
+            console.error('Error deleting watchlist:', error);
+        }
+    };
+
     return (
         <nav className="navbar sticky-top navbar-expand-lg navbar-dark bg-dark p-3 shadow">
             <a className="navbar-brand fw-bold" href="/">ViewVault</a>
@@ -122,10 +145,17 @@ const Navbar = () => {
                                     <li><hr className="dropdown-divider" /></li>
                                     <li><span className="dropdown-item-text text-muted small">Custom Watchlists</span></li>
                                     {customWatchlists.map(list => (
-                                        <li key={list.id}>
-                                            <a className="dropdown-item" href={`/${list.type}?list=${list.id}`}>
+                                        <li key={list.id} className="d-flex align-items-center">
+                                            <a className="dropdown-item flex-grow-1" href={`/${list.type}?list=${list.id}`}>
                                                 {getTypeIcon(list.type)} {list.name}
                                             </a>
+                                            <button 
+                                                className="btn btn-sm btn-outline-danger me-2" 
+                                                onClick={(e) => handleDeleteClick(e, list)}
+                                                style={{ padding: '2px 6px', fontSize: '12px' }}
+                                            >
+                                                ✕
+                                            </button>
                                         </li>
                                     ))}
                                 </>
@@ -186,6 +216,27 @@ const Navbar = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>
                                 <button type="button" className="btn btn-primary" onClick={handleCreateWatchlist} disabled={!newListName.trim()}>Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteModal && listToDelete && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Delete Watchlist</h5>
+                                <button type="button" className="btn-close" onClick={() => { setShowDeleteModal(false); setListToDelete(null); }}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Are you sure you want to delete "<strong>{listToDelete.name}</strong>"?</p>
+                                <p className="text-danger">This will permanently delete the watchlist and all its items.</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setListToDelete(null); }}>Cancel</button>
+                                <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Delete</button>
                             </div>
                         </div>
                     </div>
