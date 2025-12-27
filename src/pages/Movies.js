@@ -634,30 +634,19 @@ const Movies = () => {
                                     {availableProviders.map(provider => (
                                         <div key={provider.provider_id} className="col-6 col-md-4 mb-2">
                                             <div 
-                                                className={`form-check p-2 rounded ${editingProviders.includes(provider.provider_name) ? 'bg-primary bg-opacity-10 border border-primary' : 'border'}`}
-                                                style={{ cursor: 'pointer' }}
+                                                className={`p-2 rounded d-flex align-items-center ${editingProviders.includes(provider.provider_name) ? 'bg-primary text-white' : 'bg-light border'}`}
+                                                style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
                                                 onClick={() => handleProviderToggle(provider.provider_name)}
                                             >
-                                                <input 
-                                                    className="form-check-input" 
-                                                    type="checkbox" 
-                                                    checked={editingProviders.includes(provider.provider_name)}
-                                                    onChange={() => handleProviderToggle(provider.provider_name)}
-                                                    id={`provider-${provider.provider_id}`}
-                                                />
-                                                <label className="form-check-label w-100" htmlFor={`provider-${provider.provider_id}`} style={{ cursor: 'pointer' }}>
-                                                    <div className="d-flex align-items-center">
-                                                        {provider.logo_path && (
-                                                            <img 
-                                                                src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`} 
-                                                                alt={provider.provider_name}
-                                                                className="me-2 rounded"
-                                                                style={{ width: '24px', height: '24px' }}
-                                                            />
-                                                        )}
-                                                        <span className="small">{provider.provider_name}</span>
-                                                    </div>
-                                                </label>
+                                                {provider.logo_path && (
+                                                    <img 
+                                                        src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`} 
+                                                        alt={provider.provider_name}
+                                                        className="me-2 rounded"
+                                                        style={{ width: '24px', height: '24px' }}
+                                                    />
+                                                )}
+                                                <span className="small">{provider.provider_name}</span>
                                             </div>
                                         </div>
                                     ))}
