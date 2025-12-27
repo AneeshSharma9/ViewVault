@@ -23,6 +23,8 @@ const Movies = () => {
     const [isImporting, setIsImporting] = useState(false);
     const [showClearModal, setShowClearModal] = useState(false);
     const [showSitesModal, setShowSitesModal] = useState(false);
+    const [showDeleteMovieModal, setShowDeleteMovieModal] = useState(false);
+    const [movieToDelete, setMovieToDelete] = useState(null);
     const [watchSites, setWatchSites] = useState([
         { name: "Lookmovie", url: "https://lookmovie.foundation/movies/search/?q=", format: "%20" },
         { name: "DopeBox", url: "https://dopebox.to/search/", format: "-" }
@@ -113,12 +115,21 @@ const Movies = () => {
         }
     };
 
-    const handleRemoveMovie = (movieId) => {
-        const movieRef = ref(db, `${getMoviesPath(uid)}/${movieId}`);
+    const handleDeleteClick = (movie) => {
+        setMovieToDelete(movie);
+        setShowDeleteMovieModal(true);
+    };
+
+    const handleConfirmDeleteMovie = () => {
+        if (!movieToDelete) return;
+        
+        const movieRef = ref(db, `${getMoviesPath(uid)}/${movieToDelete.id}`);
         remove(movieRef)
             .then(() => {
                 console.log('Movie removed successfully!');
-                setMovies(movies.filter(movie => movie.id !== movieId));
+                setMovies(movies.filter(movie => movie.id !== movieToDelete.id));
+                setShowDeleteMovieModal(false);
+                setMovieToDelete(null);
             })
             .catch((error) => {
                 console.error('Error removing movie:', error);
@@ -429,7 +440,7 @@ const Movies = () => {
                                                     <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
                                                 </ul>
                                             </div>
-                                            <button className="btn btn-outline-danger" onClick={() => handleRemoveMovie(movie.id)}>X</button>
+                                            <button className="btn btn-outline-danger" onClick={() => handleDeleteClick(movie)}>X</button>
                                         </div>
                                     </li>
                                 ))}
@@ -579,6 +590,26 @@ const Movies = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowSitesModal(false)}>Cancel</button>
                                 <button type="button" className="btn btn-primary" onClick={handleSaveSites}>Save Sites</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteMovieModal && movieToDelete && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Remove Movie</h5>
+                                <button type="button" className="btn-close" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Are you sure you want to remove "<strong>{movieToDelete.name}</strong>" from your watchlist?</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}>Cancel</button>
+                                <button type="button" className="btn btn-danger" onClick={handleConfirmDeleteMovie}>Remove</button>
                             </div>
                         </div>
                     </div>
