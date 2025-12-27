@@ -173,6 +173,11 @@ const Movies = () => {
         }
     };
 
+    const getProviderLogo = (providerName) => {
+        const provider = availableProviders.find(p => p.provider_name === providerName);
+        return provider?.logo_path ? `https://image.tmdb.org/t/p/w45${provider.logo_path}` : null;
+    };
+
     const openStreamingModal = () => {
         setEditingProviders([...selectedProviders]);
         setShowStreamingModal(true);
@@ -512,7 +517,24 @@ const Movies = () => {
                                                     ? movie.providers.filter(p => selectedProviders.includes(p))
                                                     : movie.providers;
                                                 return filteredProviders.length > 0 && (
-                                                    <p style={{ wordBreak: 'break-word' }}>Stream On: {filteredProviders.join(', ')}</p>
+                                                    <div className="d-flex align-items-center flex-wrap gap-1 mt-1">
+                                                        <span className="small text-muted">Available On:</span>
+                                                        {filteredProviders.map((provider, idx) => {
+                                                            const logo = getProviderLogo(provider);
+                                                            return logo ? (
+                                                                <img 
+                                                                    key={idx}
+                                                                    src={logo} 
+                                                                    alt={provider}
+                                                                    title={provider}
+                                                                    className="rounded"
+                                                                    style={{ width: '24px', height: '24px' }}
+                                                                />
+                                                            ) : (
+                                                                <span key={idx} className="badge bg-secondary small">{provider}</span>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 );
                                             })()}
                                         </div>
