@@ -12,7 +12,6 @@ import firebase from './utils/firebase'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Movies from "./pages/Movies";
-import Manga from "./pages/Manga";
 import Anime from "./pages/Anime";
 import Tvshows from "./pages/Tvshows";
 import SearchMovie from './pages/SearchMovie';
@@ -20,7 +19,6 @@ import RecommendedMovies from './pages/RecommendedMovies';
 import RecommendedShows from './pages/RecommendedShows';
 import SearchTV from './pages/SearchTV';
 import SearchAnime from './pages/SearchAnime'
-import SearchManga from './pages/SearchManga';
 import MovieNyte from './pages/MovieNyte';
 
 
@@ -40,9 +38,6 @@ export default function All() {
 
         <Route path="anime" element={<Anime />} />
         <Route path="searchanime" element={<SearchAnime />} />
-
-        <Route path="manga" element={<Manga />} />
-        <Route path="searchmanga" element={<SearchManga />} />
 
         <Route path="movienyte" element={<MovieNyte />} />
 

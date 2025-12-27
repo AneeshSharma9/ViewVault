@@ -84,7 +84,6 @@ const Navbar = () => {
             case 'movies': return '🎬';
             case 'tvshows': return '📺';
             case 'anime': return '🎌';
-            case 'manga': return '📚';
             default: return '📋';
         }
     };
@@ -128,9 +127,6 @@ const Navbar = () => {
                     <li className="nav-item p-2">
                         <a className="nav-link" href="/searchanime">Anime</a>
                     </li>
-                    <li className="nav-item p-2">
-                        <a className="nav-link" href="/searchmanga">Manga</a>
-                    </li>
                     <li className="nav-item p-2 dropdown">
                         <button className="nav-link dropdown-toggle btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ textDecoration: 'none' }}>
                             My Watchlists
@@ -139,7 +135,6 @@ const Navbar = () => {
                             <li><a className="dropdown-item" href="/movies">Movies</a></li>
                             <li><a className="dropdown-item" href="/tvshows">TV Shows</a></li>
                             <li><a className="dropdown-item" href="/anime">Anime</a></li>
-                            <li><a className="dropdown-item" href="/manga">Manga</a></li>
                             {customWatchlists.length > 0 && (
                                 <>
                                     <li><hr className="dropdown-divider" /></li>
@@ -209,7 +204,6 @@ const Navbar = () => {
                                         <option value="movies">Movies</option>
                                         <option value="tvshows">TV Shows</option>
                                         <option value="anime">Anime</option>
-                                        <option value="manga">Manga</option>
                                     </select>
                                 </div>
                             </div>
