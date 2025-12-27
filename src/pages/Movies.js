@@ -371,8 +371,8 @@ const Movies = () => {
                             </div>
                             <div className="list-group list-group-light">
                                 {movies.map((movie) => (
-                                    <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center" style={{ overflow: 'hidden' }}>
-                                        <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', wordWrap: 'break-word' }}>
+                                    <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                                        <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', wordWrap: 'break-word' }}>
                                             <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
                                             <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
                                             <div className="d-flex flex-wrap align-items-center">

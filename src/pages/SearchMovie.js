@@ -14,6 +14,7 @@ const SearchMovie = () => {
     const inputRef = useRef(null);
 
     useEffect(() => {
+        // Get user's already added movies
         const unsubscribe = auth.onAuthStateChanged(user => {
             if (user) {
                 const uid = user.uid;

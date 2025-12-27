@@ -1,17 +1,43 @@
-import { auth, signInWithGooglePopup } from "../utils/firebase"
+import { auth, signInWithGooglePopup, db } from "../utils/firebase"
 import { signOut } from "firebase/auth";
+import { ref, push, get } from "firebase/database";
 import { useState, useEffect } from "react";
 
 const Navbar = () => {
     const [uid, setUid] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newListName, setNewListName] = useState("");
+    const [newListType, setNewListType] = useState("movies");
+    const [customWatchlists, setCustomWatchlists] = useState([]);
+
+    const fetchCustomWatchlists = async (userId) => {
+        try {
+            const watchlistsRef = ref(db, `users/${userId}/customwatchlists`);
+            const snapshot = await get(watchlistsRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const watchlistsArray = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+                setCustomWatchlists(watchlistsArray);
+            } else {
+                setCustomWatchlists([]);
+            }
+        } catch (error) {
+            console.error('Error fetching custom watchlists:', error);
+        }
+    };
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
             if (user) {
                 const uid = user.uid;
                 setUid(uid);
+                fetchCustomWatchlists(uid);
             } else {
                 setUid(null);
+                setCustomWatchlists([]);
             }
         });
         return () => unsubscribe();
@@ -30,6 +56,35 @@ const Navbar = () => {
             .catch((error) => {
                 console.error('Error signing out:', error.message);
             });
+    };
+
+    const handleCreateWatchlist = async () => {
+        if (!newListName.trim() || !uid) return;
+        
+        try {
+            const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
+            await push(watchlistsRef, {
+                name: newListName.trim(),
+                type: newListType,
+                createdAt: Date.now()
+            });
+            setShowCreateModal(false);
+            setNewListName("");
+            setNewListType("movies");
+            fetchCustomWatchlists(uid);
+        } catch (error) {
+            console.error('Error creating watchlist:', error);
+        }
+    };
+
+    const getTypeIcon = (type) => {
+        switch(type) {
+            case 'movies': return '🎬';
+            case 'tvshows': return '📺';
+            case 'anime': return '🎌';
+            case 'manga': return '📚';
+            default: return '📋';
+        }
     };
 
     return (
@@ -53,15 +108,30 @@ const Navbar = () => {
                     <li className="nav-item p-2">
                         <a className="nav-link" href="/searchmanga">Manga</a>
                     </li>
-                    <li class="nav-item p-2 dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <li className="nav-item p-2 dropdown">
+                        <button className="nav-link dropdown-toggle btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ textDecoration: 'none' }}>
                             My Watchlists
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/movies">Movies</a></li>
-                            <li><a class="dropdown-item" href="/tvshows">TV Shows</a></li>
-                            <li><a class="dropdown-item" href="/anime">Anime</a></li>
-                            <li><a class="dropdown-item" href="/manga">Manga</a></li>
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li><a className="dropdown-item" href="/movies">Movies</a></li>
+                            <li><a className="dropdown-item" href="/tvshows">TV Shows</a></li>
+                            <li><a className="dropdown-item" href="/anime">Anime</a></li>
+                            <li><a className="dropdown-item" href="/manga">Manga</a></li>
+                            {customWatchlists.length > 0 && (
+                                <>
+                                    <li><hr className="dropdown-divider" /></li>
+                                    <li><span className="dropdown-item-text text-muted small">Custom Watchlists</span></li>
+                                    {customWatchlists.map(list => (
+                                        <li key={list.id}>
+                                            <a className="dropdown-item" href={`/${list.type}?list=${list.id}`}>
+                                                {getTypeIcon(list.type)} {list.name}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </>
+                            )}
+                            <li><hr className="dropdown-divider" /></li>
+                            <li><button className="dropdown-item" onClick={() => setShowCreateModal(true)}>+ Create New Watchlist</button></li>
                         </ul>
                     </li>
                     <li className="nav-item p-2">
@@ -79,6 +149,48 @@ const Navbar = () => {
                     }
                 </li>
             </ul>
+
+            {showCreateModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Create New Watchlist</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <label className="form-label">Watchlist Name</label>
+                                    <input 
+                                        type="text" 
+                                        className="form-control" 
+                                        value={newListName}
+                                        onChange={(e) => setNewListName(e.target.value)}
+                                        placeholder="My Watchlist"
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Type</label>
+                                    <select 
+                                        className="form-select"
+                                        value={newListType}
+                                        onChange={(e) => setNewListType(e.target.value)}
+                                    >
+                                        <option value="movies">Movies</option>
+                                        <option value="tvshows">TV Shows</option>
+                                        <option value="anime">Anime</option>
+                                        <option value="manga">Manga</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleCreateWatchlist} disabled={!newListName.trim()}>Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </nav>
     )
 };
