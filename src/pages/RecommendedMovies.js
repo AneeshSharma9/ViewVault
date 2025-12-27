@@ -12,6 +12,7 @@ const RecommendedMovies = () => {
     const [addedMovies, setAddedMovies] = useState({});
     const [uid, setUid] = useState(null);
     const location = useLocation();
+    const [customWatchlists, setCustomWatchlists] = useState([]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -29,25 +30,61 @@ const RecommendedMovies = () => {
     }, []);
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
                 setUid(uid);
                 if (uid) {
-                    const userMovieListRef = ref(db, `users/${uid}/movielist`);
-                    get(userMovieListRef).then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const movieData = snapshot.val();
-                            const movieIds = Object.values(movieData).map((movie) => movie.movieid);
-                            const addedMoviesData = {};
-                            movieIds.forEach((movieId) => {
-                                addedMoviesData[movieId] = true;
+                    const addedMoviesData = {};
+
+                    // Get movies from default watchlist
+                    try {
+                        const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
+                        const defaultSnapshot = await get(userMovieListRef);
+                        if (defaultSnapshot.exists()) {
+                            const movieData = defaultSnapshot.val();
+                            Object.values(movieData).forEach((movie) => {
+                                if (movie.movieid) {
+                                    addedMoviesData[movie.movieid] = true;
+                                }
                             });
-                            setAddedMovies(addedMoviesData);
                         }
-                    }).catch((error) => {
-                        console.error('Error fetching user movies:', error);
-                    });
+                    } catch (error) {
+                        console.error('Error fetching default movies:', error);
+                    }
+
+                    // Fetch custom watchlists of type "movies" and their items
+                    try {
+                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const watchlistsSnapshot = await get(watchlistsRef);
+                        if (watchlistsSnapshot.exists()) {
+                            const data = watchlistsSnapshot.val();
+                            const movieLists = [];
+                            
+                            for (const key of Object.keys(data)) {
+                                if (data[key].type === 'movies') {
+                                    movieLists.push({
+                                        id: key,
+                                        ...data[key]
+                                    });
+                                    
+                                    // Check items in this custom list
+                                    if (data[key].items) {
+                                        Object.values(data[key].items).forEach((movie) => {
+                                            if (movie.movieid) {
+                                                addedMoviesData[movie.movieid] = true;
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                            setCustomWatchlists(movieLists);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching custom watchlists:', error);
+                    }
+
+                    setAddedMovies(addedMoviesData);
                 }
             } else {
                 setUid(null);
@@ -71,13 +108,14 @@ const RecommendedMovies = () => {
     };
 
 
-    const handleAddMovie = async (movie) => {
+    const handleAddMovie = async (movie, listId = null) => {
         //Getting general movie details
         const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
         if (!detailsResponse.ok) {
             throw new Error('Failed to fetch movie details');
         }
         const movieDetails = await detailsResponse.json();
+        const genreString = movieDetails.genres.map(genre => genre.name).join(' / ');
 
         //Getting age rating
         const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
@@ -110,12 +148,23 @@ const RecommendedMovies = () => {
         if (movieProviders.results.US && movieProviders.results.US.flatrate) {
             const flatrateProviders = movieProviders.results.US.flatrate;
             providerNames = flatrateProviders.map(provider => provider.provider_name);
-            console.log(providerNames);
         }
+
+        //Getting imdb id from tmdb id
+        const imdbResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/external_ids?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!imdbResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const imdbData = await imdbResponse.json();
+        const imdbId = imdbData.imdb_id;
 
         const uid = auth.currentUser.uid;
         if (uid) {
-            const userMovieListRef = ref(db, `users/${uid}/movielist`);
+            // Determine the path based on whether it's a custom list or default
+            const listPath = listId 
+                ? `users/${uid}/customwatchlists/${listId}/items`
+                : `users/${uid}/defaultwatchlists/movies/items`;
+            const userMovieListRef = ref(db, listPath);
             push(userMovieListRef, {
                 movietitle: movie.title,
                 movieid: movie.id,
@@ -123,7 +172,10 @@ const RecommendedMovies = () => {
                 runtime: movieDetails.runtime,
                 providers: providerNames,
                 agerating: certificationForUS,
-                voteaverage: movie.vote_average
+                voteaverage: movie.vote_average,
+                genres: genreString,
+                releaseyear: movieDetails.release_date ? movieDetails.release_date.substring(0, 4) : "",
+                imdbid: imdbId
             })
                 .then(() => {
                     console.log('Movie added successfully!');
@@ -160,9 +212,24 @@ const RecommendedMovies = () => {
                                 <p className="fw-normal">{movie.overview}</p>
                             </div>
                             {addedMovies[movie.id] ? (
-                                <button className="btn btn-success me-2" type="button">✓</button>
+                                <button className="btn btn-success me-2 flex-shrink-0" type="button">✓</button>
                             ) : (
-                                <button className="btn btn-primary me-2" type="button" onClick={() => { handleAddMovie(movie) }}>+</button>
+                                <div className="dropdown flex-shrink-0">
+                                    <button className="btn btn-primary me-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        +
+                                    </button>
+                                    <ul className="dropdown-menu dropdown-menu-end">
+                                        <li><button className="dropdown-item" onClick={() => handleAddMovie(movie)}>Movies (Default)</button></li>
+                                        {customWatchlists.length > 0 && <li><hr className="dropdown-divider" /></li>}
+                                        {customWatchlists.map(list => (
+                                            <li key={list.id}>
+                                                <button className="dropdown-item" onClick={() => handleAddMovie(movie, list.id)}>
+                                                    {list.name}
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             )}
                         </li>
                     ))}
