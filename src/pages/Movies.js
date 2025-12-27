@@ -34,6 +34,8 @@ const Movies = () => {
     const [availableProviders, setAvailableProviders] = useState([]);
     const [selectedProviders, setSelectedProviders] = useState([]);
     const [editingProviders, setEditingProviders] = useState([]);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [refreshStatus, setRefreshStatus] = useState("");
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -462,6 +464,73 @@ const Movies = () => {
         }
     };
 
+    const handleRefreshWatchlist = async () => {
+        if (movies.length === 0 || isRefreshing) return;
+        
+        setIsRefreshing(true);
+        setRefreshStatus("Starting refresh...");
+        
+        for (let i = 0; i < movies.length; i++) {
+            const movie = movies[i];
+            setRefreshStatus(`Refreshing ${i + 1}/${movies.length}: ${movie.name}`);
+            
+            try {
+                // Fetch movie details
+                const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}?api_key=${process.env.REACT_APP_API_KEY}`);
+                const movieDetails = await detailsResponse.json();
+                const genreString = movieDetails.genres.map(genre => genre.name).join(' / ');
+                
+                // Get age rating
+                const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
+                const movieRating = await ratingResponse.json();
+                let certificationForUS = null;
+                for (const result of movieRating.results) {
+                    if (result.iso_3166_1 === "US") {
+                        for (const releaseDate of result.release_dates) {
+                            if (releaseDate.certification) {
+                                certificationForUS = releaseDate.certification;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                // Get streaming providers
+                const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
+                const movieProviders = await providersResponse.json();
+                let providerNames = [];
+                if (movieProviders.results.US && movieProviders.results.US.flatrate) {
+                    providerNames = movieProviders.results.US.flatrate.map(provider => provider.provider_name);
+                }
+                
+                // Get IMDB ID
+                const imdbResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}/external_ids?api_key=${process.env.REACT_APP_API_KEY}`);
+                const imdbData = await imdbResponse.json();
+                
+                // Update in database
+                const movieRef = ref(db, `${getMoviesPath(uid)}/${movie.id}`);
+                await update(movieRef, {
+                    movietitle: movieDetails.title,
+                    runtime: movieDetails.runtime,
+                    providers: providerNames,
+                    agerating: certificationForUS,
+                    voteaverage: movieDetails.vote_average,
+                    genres: genreString,
+                    releaseyear: movieDetails.release_date ? movieDetails.release_date.substring(0, 4) : "",
+                    imdbid: imdbData.imdb_id
+                });
+            } catch (error) {
+                console.error(`Error refreshing "${movie.name}":`, error);
+            }
+        }
+        
+        setRefreshStatus("Done! Refreshing list...");
+        await fetchMovies(uid);
+        setIsRefreshing(false);
+        setRefreshStatus("");
+    };
+
     return (
         <div className="">
             <Navbar />
@@ -492,6 +561,11 @@ const Movies = () => {
                                             <li><button className="dropdown-item" onClick={openStreamingModal}>Edit Streaming Services</button></li>
                                             <li><button className="dropdown-item" onClick={openEditSitesModal}>Edit Watch Sites</button></li>
                                             <li><hr className="dropdown-divider" /></li>
+                                            <li>
+                                                <button className="dropdown-item" onClick={handleRefreshWatchlist} disabled={isRefreshing || movies.length === 0}>
+                                                    {isRefreshing ? refreshStatus : "Refresh Watchlist"}
+                                                </button>
+                                            </li>
                                             <li><button className="dropdown-item text-danger" onClick={() => setShowClearModal(true)}>Clear Watchlist</button></li>
                                         </ul>
                                     </div>
