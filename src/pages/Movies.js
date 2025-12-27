@@ -18,6 +18,12 @@ const Movies = () => {
     const [importStatus, setImportStatus] = useState("");
     const [isImporting, setIsImporting] = useState(false);
     const [showClearModal, setShowClearModal] = useState(false);
+    const [showSitesModal, setShowSitesModal] = useState(false);
+    const [watchSites, setWatchSites] = useState([
+        { name: "Lookmovie", url: "https://lookmovie.foundation/movies/search/?q=", format: "%20" },
+        { name: "DopeBox", url: "https://dopebox.to/search/", format: "-" }
+    ]);
+    const [editingSites, setEditingSites] = useState([]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -25,6 +31,7 @@ const Movies = () => {
                 const uid = user.uid;
                 setUid(uid);
                 fetchMovies(uid);
+                fetchWatchSites(uid);
             } else {
                 setUid(null);
                 setLoading(false);
@@ -59,6 +66,19 @@ const Movies = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching movies:', error);
+        }
+    };
+
+    const fetchWatchSites = async (uid) => {
+        try {
+            const sitesRef = ref(db, `users/${uid}/movielist/watchsites`);
+            const snapshot = await get(sitesRef);
+            if (snapshot.exists()) {
+                const sitesData = snapshot.val();
+                setWatchSites(sitesData);
+            }
+        } catch (error) {
+            console.error('Error fetching watch sites:', error);
         }
     };
 
@@ -134,16 +154,31 @@ const Movies = () => {
         navigate('/recommendedmovies', { state: movie });
     };
 
-    const toLookmovie = (movieName) => {
-        const formattedMovieName = movieName.replace(/ /g, '%20');
-        const lookmovieUrl = `https://lookmovie.foundation/movies/search/?q=${formattedMovieName}`;
-        window.open(lookmovieUrl, '_blank');
+    const openWatchSite = (movieName, site) => {
+        const formattedMovieName = movieName.replace(/ /g, site.format);
+        const url = `${site.url}${formattedMovieName}`;
+        window.open(url, '_blank');
     };
 
-    const toDopebox = (movieName) => {
-        const formattedMovieName = movieName.replace(/ /g, '-');
-        const dopeboxUrl = `https://dopebox.to/search/${formattedMovieName}`;
-        window.open(dopeboxUrl, '_blank');
+    const openEditSitesModal = () => {
+        setEditingSites(JSON.parse(JSON.stringify(watchSites)));
+        setShowSitesModal(true);
+    };
+
+    const handleSiteChange = (index, field, value) => {
+        const updated = [...editingSites];
+        updated[index][field] = value;
+        setEditingSites(updated);
+    };
+
+    const handleSaveSites = async () => {
+        try {
+            await update(ref(db, `users/${uid}/movielist`), { watchsites: editingSites });
+            setWatchSites(editingSites);
+            setShowSitesModal(false);
+        } catch (error) {
+            console.error('Error saving watch sites:', error);
+        }
     };
     
     const toImdbParentsGuide = (imdbId) => {
@@ -326,6 +361,8 @@ const Movies = () => {
                                             <li><button className="dropdown-item" onClick={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}>Import Watchlist</button></li>
                                             <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
                                             <li><hr className="dropdown-divider" /></li>
+                                            <li><button className="dropdown-item" onClick={openEditSitesModal}>Edit Watch Sites</button></li>
+                                            <li><hr className="dropdown-divider" /></li>
                                             <li><button className="dropdown-item text-danger" onClick={() => setShowClearModal(true)}>Clear Watchlist</button></li>
                                         </ul>
                                     </div>
@@ -355,8 +392,9 @@ const Movies = () => {
                                                 <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
                                                 <ul className="dropdown-menu">
                                                     <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
-                                                    <li><button className="dropdown-item" onClick={() => { toDopebox(movie.name) }}>Stream on DopeBox</button></li>
-                                                    <li><button className="dropdown-item" onClick={() => { toLookmovie(movie.name) }}>Stream on Lookmovie</button></li>
+                                                    {watchSites.map((site, index) => (
+                                                        <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
+                                                    ))}
                                                     <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
                                                 </ul>
                                             </div>
@@ -447,6 +485,69 @@ const Movies = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowClearModal(false)}>Cancel</button>
                                 <button type="button" className="btn btn-danger" onClick={handleClearWatchlist}>Clear Watchlist</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showSitesModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered modal-lg">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Edit Watch Sites</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowSitesModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                {editingSites.map((site, index) => (
+                                    <div key={index} className="card mb-3">
+                                        <div className="card-header fw-bold">Site {index + 1}</div>
+                                        <div className="card-body">
+                                            <div className="mb-3">
+                                                <label className="form-label">Name</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control" 
+                                                    value={site.name}
+                                                    onChange={(e) => handleSiteChange(index, 'name', e.target.value)}
+                                                    placeholder="Site Name"
+                                                />
+                                            </div>
+                                            <div className="mb-3">
+                                                <label className="form-label">URL (movie name will be appended)</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control" 
+                                                    value={site.url}
+                                                    onChange={(e) => handleSiteChange(index, 'url', e.target.value)}
+                                                    placeholder="https://example.com/search/"
+                                                />
+                                            </div>
+                                            <div className="mb-3">
+                                                <label className="form-label">Space Replacement Format</label>
+                                                <select 
+                                                    className="form-select"
+                                                    value={site.format}
+                                                    onChange={(e) => handleSiteChange(index, 'format', e.target.value)}
+                                                >
+                                                    <option value="%20">%20 (URL encoded space)</option>
+                                                    <option value="-">- (dash)</option>
+                                                    <option value="_">_ (underscore)</option>
+                                                    <option value="+">+ (plus)</option>
+                                                    <option value=" ">(keep spaces)</option>
+                                                </select>
+                                            </div>
+                                            <div className="text-muted small">
+                                                Preview: <code>{site.url}The{site.format}Movie{site.format}Name</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowSitesModal(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveSites}>Save Sites</button>
                             </div>
                         </div>
                     </div>
