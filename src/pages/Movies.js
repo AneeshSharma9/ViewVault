@@ -30,6 +30,10 @@ const Movies = () => {
         { name: "DopeBox", url: "https://dopebox.to/search/", format: "-" }
     ]);
     const [editingSites, setEditingSites] = useState([]);
+    const [showStreamingModal, setShowStreamingModal] = useState(false);
+    const [availableProviders, setAvailableProviders] = useState([]);
+    const [selectedProviders, setSelectedProviders] = useState([]);
+    const [editingProviders, setEditingProviders] = useState([]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -38,10 +42,13 @@ const Movies = () => {
                 setUid(uid);
                 fetchMovies(uid);
                 fetchWatchSites(uid);
+                fetchAvailableProviders();
+                fetchSelectedProviders(uid);
                 if (listId) {
-                    fetchListName(uid);
+                    fetchListName(uid, 'custom');
                 } else {
-                    setListName("Movie Watchlist");
+                    initializeDefaultWatchlist(uid);
+                    fetchListName(uid, 'default');
                 }
             } else {
                 setUid(null);
@@ -56,16 +63,38 @@ const Movies = () => {
         if (listId) {
             return `users/${uid}/customwatchlists/${listId}/items`;
         }
-        return `users/${uid}/movielist`;
+        return `users/${uid}/defaultwatchlists/movies/items`;
     };
 
-    const fetchListName = async (uid) => {
+    const initializeDefaultWatchlist = async (uid) => {
         try {
-            const listRef = ref(db, `users/${uid}/customwatchlists/${listId}`);
+            const defaultListRef = ref(db, `users/${uid}/defaultwatchlists/movies`);
+            const snapshot = await get(defaultListRef);
+            if (!snapshot.exists() || !snapshot.val().name) {
+                // Initialize with name, type, and createdAt if not exists
+                await update(defaultListRef, {
+                    name: "Movies",
+                    type: "movies",
+                    createdAt: snapshot.exists() ? (snapshot.val().createdAt || Date.now()) : Date.now()
+                });
+            }
+        } catch (error) {
+            console.error('Error initializing default watchlist:', error);
+        }
+    };
+
+    const fetchListName = async (uid, listType) => {
+        try {
+            const listPath = listType === 'custom' 
+                ? `users/${uid}/customwatchlists/${listId}`
+                : `users/${uid}/defaultwatchlists/movies`;
+            const listRef = ref(db, listPath);
             const snapshot = await get(listRef);
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                setListName(data.name || "Custom Watchlist");
+                setListName(data.name || (listType === 'custom' ? "Custom Watchlist" : "Movie Watchlist"));
+            } else {
+                setListName(listType === 'custom' ? "Custom Watchlist" : "Movie Watchlist");
             }
         } catch (error) {
             console.error('Error fetching list name:', error);
@@ -104,7 +133,7 @@ const Movies = () => {
 
     const fetchWatchSites = async (uid) => {
         try {
-            const sitesRef = ref(db, `users/${uid}/movielist/watchsites`);
+            const sitesRef = ref(db, `users/${uid}/settings/movies/watchsites`);
             const snapshot = await get(sitesRef);
             if (snapshot.exists()) {
                 const sitesData = snapshot.val();
@@ -112,6 +141,58 @@ const Movies = () => {
             }
         } catch (error) {
             console.error('Error fetching watch sites:', error);
+        }
+    };
+
+    const fetchAvailableProviders = async () => {
+        try {
+            const response = await axios.get(`https://api.themoviedb.org/3/watch/providers/movie`, {
+                params: {
+                    api_key: process.env.REACT_APP_API_KEY,
+                    watch_region: 'US'
+                }
+            });
+            const providers = response.data.results || [];
+            // Sort alphabetically by provider name
+            providers.sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+            setAvailableProviders(providers);
+        } catch (error) {
+            console.error('Error fetching available providers:', error);
+        }
+    };
+
+    const fetchSelectedProviders = async (uid) => {
+        try {
+            const providersRef = ref(db, `users/${uid}/settings/movies/streamingservices`);
+            const snapshot = await get(providersRef);
+            if (snapshot.exists()) {
+                setSelectedProviders(snapshot.val() || []);
+            }
+        } catch (error) {
+            console.error('Error fetching selected providers:', error);
+        }
+    };
+
+    const openStreamingModal = () => {
+        setEditingProviders([...selectedProviders]);
+        setShowStreamingModal(true);
+    };
+
+    const handleProviderToggle = (providerName) => {
+        if (editingProviders.includes(providerName)) {
+            setEditingProviders(editingProviders.filter(name => name !== providerName));
+        } else {
+            setEditingProviders([...editingProviders, providerName]);
+        }
+    };
+
+    const handleSaveProviders = async () => {
+        try {
+            await update(ref(db, `users/${uid}/settings/movies`), { streamingservices: editingProviders });
+            setSelectedProviders(editingProviders);
+            setShowStreamingModal(false);
+        } catch (error) {
+            console.error('Error saving streaming services:', error);
         }
     };
 
@@ -215,7 +296,7 @@ const Movies = () => {
 
     const handleSaveSites = async () => {
         try {
-            await update(ref(db, `users/${uid}/movielist`), { watchsites: editingSites });
+            await update(ref(db, `users/${uid}/settings/movies`), { watchsites: editingSites });
             setWatchSites(editingSites);
             setShowSitesModal(false);
         } catch (error) {
@@ -403,6 +484,7 @@ const Movies = () => {
                                             <li><button className="dropdown-item" onClick={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}>Import Watchlist</button></li>
                                             <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
                                             <li><hr className="dropdown-divider" /></li>
+                                            <li><button className="dropdown-item" onClick={openStreamingModal}>Edit Streaming Services</button></li>
                                             <li><button className="dropdown-item" onClick={openEditSitesModal}>Edit Watch Sites</button></li>
                                             <li><hr className="dropdown-divider" /></li>
                                             <li><button className="dropdown-item text-danger" onClick={() => setShowClearModal(true)}>Clear Watchlist</button></li>
@@ -425,9 +507,14 @@ const Movies = () => {
                                                 <span className="m-1 fst-italic">{convertMinToHrMin(movie.runtime)}</span>
                                             </div>
                                             <p className="m-1 badge bg-light text-dark border border-info" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{movie.genres}</p>
-                                            {movie.providers && movie.providers.length > 0 && (
-                                                <p style={{ wordBreak: 'break-word' }}>Stream On: {movie.providers.join(', ')}</p>
-                                            )}
+                                            {movie.providers && movie.providers.length > 0 && (() => {
+                                                const filteredProviders = selectedProviders.length > 0 
+                                                    ? movie.providers.filter(p => selectedProviders.includes(p))
+                                                    : movie.providers;
+                                                return filteredProviders.length > 0 && (
+                                                    <p style={{ wordBreak: 'break-word' }}>Stream On: {filteredProviders.join(', ')}</p>
+                                                );
+                                            })()}
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between flex-shrink-0 mt-2 mt-md-0">
                                             <div className="btn-group dropstart m-2">
@@ -527,6 +614,59 @@ const Movies = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowClearModal(false)}>Cancel</button>
                                 <button type="button" className="btn btn-danger" onClick={handleClearWatchlist}>Clear Watchlist</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showStreamingModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Edit Streaming Services</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowStreamingModal(false)}></button>
+                            </div>
+                            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                                <p className="text-muted small mb-3">Select the streaming services you have access to. This will be used to show which movies are available on your services.</p>
+                                <div className="row">
+                                    {availableProviders.map(provider => (
+                                        <div key={provider.provider_id} className="col-6 col-md-4 mb-2">
+                                            <div 
+                                                className={`form-check p-2 rounded ${editingProviders.includes(provider.provider_name) ? 'bg-primary bg-opacity-10 border border-primary' : 'border'}`}
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => handleProviderToggle(provider.provider_name)}
+                                            >
+                                                <input 
+                                                    className="form-check-input" 
+                                                    type="checkbox" 
+                                                    checked={editingProviders.includes(provider.provider_name)}
+                                                    onChange={() => handleProviderToggle(provider.provider_name)}
+                                                    id={`provider-${provider.provider_id}`}
+                                                />
+                                                <label className="form-check-label w-100" htmlFor={`provider-${provider.provider_id}`} style={{ cursor: 'pointer' }}>
+                                                    <div className="d-flex align-items-center">
+                                                        {provider.logo_path && (
+                                                            <img 
+                                                                src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`} 
+                                                                alt={provider.provider_name}
+                                                                className="me-2 rounded"
+                                                                style={{ width: '24px', height: '24px' }}
+                                                            />
+                                                        )}
+                                                        <span className="small">{provider.provider_name}</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <span className="text-muted small me-auto">{editingProviders.length} selected</span>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowStreamingModal(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveProviders}>Save</button>
                             </div>
                         </div>
                     </div>

@@ -25,7 +25,7 @@ const SearchMovie = () => {
 
                     // Get movies from default watchlist
                     try {
-                        const userMovieListRef = ref(db, `users/${uid}/movielist`);
+                        const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
                         const defaultSnapshot = await get(userMovieListRef);
                         if (defaultSnapshot.exists()) {
                             const movieData = defaultSnapshot.val();
@@ -159,7 +159,7 @@ const SearchMovie = () => {
             // Determine the path based on whether it's a custom list or default
             const listPath = listId 
                 ? `users/${uid}/customwatchlists/${listId}/items`
-                : `users/${uid}/movielist`;
+                : `users/${uid}/defaultwatchlists/movies/items`;
             const userMovieListRef = ref(db, listPath);
             push(userMovieListRef, {
                 movietitle: movie.title,
