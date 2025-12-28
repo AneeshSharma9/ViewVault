@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
 import Footer from "./Footer";
+import MovieCardGrid from "../components/MovieCardGrid";
 
 
 const SearchMovie = () => {
@@ -15,7 +16,6 @@ const SearchMovie = () => {
     const [customWatchlists, setCustomWatchlists] = useState([]);
     const [genres, setGenres] = useState([]);
     const [movieRatings, setMovieRatings] = useState({});
-    const [selectedMovieDescription, setSelectedMovieDescription] = useState(null);
 
     useEffect(() => {
         // Get user's already added movies from all watchlists
@@ -252,16 +252,6 @@ const SearchMovie = () => {
         }
     };
 
-    const getBackgroundColor = (voteAverage) => {
-        if (voteAverage * 10 >= 70) {
-            return "bg-success";
-        } else if (voteAverage * 10 >= 50) {
-            return "bg-warning text-dark";
-        } else {
-            return "bg-danger";
-        }
-    };
-
     const handleInputFocus = () => {
         inputRef.current.select();
     };
@@ -270,7 +260,7 @@ const SearchMovie = () => {
         <div className="">
             <Navbar></Navbar>
             <div className="container">
-                <h1 className="text-center p-5 fw-bold">Find Movies</h1>
+                <h1 className="text-center p-5 fw-bold">Search for Movies</h1>
                 <div className="input-group p-3 bg-white">
                     <input type="text" className="form-control" placeholder="Search for a movie..." ref={inputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} onFocus={handleInputFocus} />
                     <div className="input-group-append">
@@ -278,117 +268,15 @@ const SearchMovie = () => {
                     </div>
                 </div>
 
-                {searchResults.length > 0 && (
-                    <div className="row mt-4">
-                        {searchResults.map((movie) => (
-                            <div key={movie.id} className="col-12 col-md-6 col-lg-4 mb-3">
-                                <div className="card h-100 shadow-sm">
-                                    {movie.poster_path && (
-                                        <img 
-                                            src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`} 
-                                            className="card-img-top" 
-                                            alt={movie.title}
-                                            style={{ objectFit: 'cover', height: '300px' }}
-                                        />
-                                    )}
-                                    <div className="card-body d-flex flex-column">
-                                        <div className="flex-grow-1">
-                                            <h5 className="card-title">
-                                                {movie.title}
-                                                <span className={`ms-2 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>
-                                                    {(movie.vote_average * 10).toFixed(0)}%
-                                                </span>
-                                            </h5>
-                                            <p className="card-text text-muted small mb-1">
-                                                {movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'}
-                                                {movieRatings[movie.id] && (
-                                                    <span className="badge bg-secondary ms-2">{movieRatings[movie.id]}</span>
-                                                )}
-                                            </p>
-                                            <p className="card-text small text-secondary mb-2">
-                                                {movie.genre_ids?.map(id => genres.find(g => g.id === id)?.name).filter(Boolean).join(' / ') || 'N/A'}
-                                            </p>
-                                            <div>
-                                                <p className="card-text small" style={{ 
-                                                    overflow: 'hidden', 
-                                                    display: '-webkit-box', 
-                                                    WebkitLineClamp: 3, 
-                                                    WebkitBoxOrient: 'vertical' 
-                                                }}>
-                                                    {movie.overview || 'No description available.'}
-                                                </p>
-                                                {movie.overview && movie.overview.length > 150 && (
-                                                    <button 
-                                                        className="btn btn-link btn-sm p-0 text-primary"
-                                                        onClick={() => setSelectedMovieDescription(movie)}
-                                                        style={{ fontSize: '0.875rem', textDecoration: 'none' }}
-                                                    >
-                                                        See more
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="mt-auto pt-2">
-                                            {addedMovies[movie.id] ? (
-                                                <button className="btn btn-success btn-sm w-100" type="button" disabled>✓ Added</button>
-                                            ) : (
-                                                <div className="dropdown">
-                                                    <button className="btn btn-primary btn-sm w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        + Add to Watchlist
-                                                    </button>
-                                                    <ul className="dropdown-menu dropdown-menu-end">
-                                                        <li><button className="dropdown-item" onClick={() => handleAddMovie(movie)}>Movies (Default)</button></li>
-                                                        {customWatchlists.length > 0 && <li><hr className="dropdown-divider" /></li>}
-                                                        {customWatchlists.map(list => (
-                                                            <li key={list.id}>
-                                                                <button className="dropdown-item" onClick={() => handleAddMovie(movie, list.id)}>
-                                                                    {list.name}
-                                                                </button>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                <MovieCardGrid 
+                    movies={searchResults}
+                    genres={genres}
+                    movieRatings={movieRatings}
+                    addedMovies={addedMovies}
+                    customWatchlists={customWatchlists}
+                    handleAddMovie={handleAddMovie}
+                />
             </div>
-
-            {/* Movie Description Modal */}
-            {selectedMovieDescription && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">{selectedMovieDescription.title}</h5>
-                                <button 
-                                    type="button" 
-                                    className="btn-close" 
-                                    onClick={() => setSelectedMovieDescription(null)}
-                                    aria-label="Close"
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>{selectedMovieDescription.overview || 'No description available.'}</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button 
-                                    type="button" 
-                                    className="btn btn-secondary" 
-                                    onClick={() => setSelectedMovieDescription(null)}
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <Footer></Footer>
         </div>
     );
