@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
+import { auth, db } from "../utils/firebase";
+import { ref, push, get } from "firebase/database";
 
 const MovieNyte = () => {
     const initialPersonState = { id: 1, name: "Person 1", preferences: { genre: [], rating: [], year: '', runtime: '', country: 'US' } };
@@ -25,6 +27,11 @@ const MovieNyte = () => {
     const [searchParams, setSearchParams] = useState(null); // Store params for load more
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [movieRatings, setMovieRatings] = useState({}); // Store age ratings by movie ID
+    const [filteredMovies, setFilteredMovies] = useState([]); // Movies filtered by selected ratings
+    const [excludeAnimated, setExcludeAnimated] = useState(false); // Toggle to exclude animated movies
+    const [addedMovies, setAddedMovies] = useState({}); // Track movies already in watchlists
+    const [customWatchlists, setCustomWatchlists] = useState([]); // Custom movie watchlists
+    const [uid, setUid] = useState(null); // User ID
 
     useEffect(() => {
         // Fetch genres and countries from TMDB API
@@ -53,6 +60,71 @@ const MovieNyte = () => {
             }
         };
         getOptions();
+    }, []);
+
+    useEffect(() => {
+        // Get user's already added movies from all watchlists
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const uid = user.uid;
+                setUid(uid);
+                if (uid) {
+                    const addedMoviesData = {};
+
+                    // Get movies from default watchlist
+                    try {
+                        const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
+                        const defaultSnapshot = await get(userMovieListRef);
+                        if (defaultSnapshot.exists()) {
+                            const movieData = defaultSnapshot.val();
+                            Object.values(movieData).forEach((movie) => {
+                                if (movie.movieid) {
+                                    addedMoviesData[movie.movieid] = true;
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error fetching default movies:', error);
+                    }
+
+                    // Fetch custom watchlists of type "movies" and their items
+                    try {
+                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const watchlistsSnapshot = await get(watchlistsRef);
+                        if (watchlistsSnapshot.exists()) {
+                            const data = watchlistsSnapshot.val();
+                            const movieLists = [];
+                            
+                            for (const key of Object.keys(data)) {
+                                if (data[key].type === 'movies') {
+                                    movieLists.push({
+                                        id: key,
+                                        ...data[key]
+                                    });
+                                    
+                                    // Check items in this custom list
+                                    if (data[key].items) {
+                                        Object.values(data[key].items).forEach((movie) => {
+                                            if (movie.movieid) {
+                                                addedMoviesData[movie.movieid] = true;
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                            setCustomWatchlists(movieLists);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching custom watchlists:', error);
+                    }
+
+                    setAddedMovies(addedMoviesData);
+                }
+            } else {
+                setUid(null);
+            }
+        });
+        return () => unsubscribe();
     }, []);
 
     const addPerson = () => {
@@ -119,12 +191,16 @@ const MovieNyte = () => {
         }
     }, [currentPerson]);
 
-    // Fetch age ratings for recommended movies
+    // Fetch age ratings for recommended movies and filter by selected ratings
     useEffect(() => {
         const fetchRatings = async () => {
             // Get movies that don't have ratings yet
             const moviesToFetch = recommendedMovies.filter(m => !movieRatings[m.id]);
-            if (moviesToFetch.length === 0) return;
+            if (moviesToFetch.length === 0) {
+                // If no new movies to fetch, just filter existing ones
+                filterMoviesByRatings(recommendedMovies, movieRatings);
+                return;
+            }
 
             const newRatings = { ...movieRatings };
             
@@ -153,17 +229,73 @@ const MovieNyte = () => {
             }
             
             setMovieRatings(newRatings);
+            // Filter movies after ratings are updated
+            filterMoviesByRatings(recommendedMovies, newRatings);
+        };
+        
+        const filterMoviesByRatings = (movies, ratings) => {
+            // Get all selected ratings from all people
+            const selectedRatings = [...new Set(people.flatMap(p => p.preferences.rating))];
+            
+            // Get each person's selected genre IDs
+            const peopleGenreIds = people.map(p => {
+                const personGenres = p.preferences.genre || [];
+                return personGenres.map(name => genres.find(g => g.name === name)?.id).filter(Boolean);
+            });
+            
+            // Filter movies by ratings and genres
+            const filtered = movies.filter(movie => {
+                // Check rating filter
+                const movieRating = ratings[movie.id];
+                const ratingMatch = selectedRatings.length === 0 || (movieRating && selectedRatings.includes(movieRating));
+                
+                if (!ratingMatch) return false;
+                
+                // Check if animated movies should be excluded
+                if (excludeAnimated) {
+                    const movieGenreIds = movie.genre_ids || [];
+                    const animationGenreId = 16; // TMDB Animation genre ID
+                    if (movieGenreIds.includes(animationGenreId)) {
+                        return false;
+                    }
+                }
+                
+                // Check genre filter - ALL people must have at least one genre matching the movie
+                if (peopleGenreIds.length === 0) return true; // No genre preferences, show all
+                
+                const movieGenreIds = movie.genre_ids || [];
+                
+                // Check if every person has at least one genre that matches the movie
+                const allPeopleHaveMatchingGenre = peopleGenreIds.every(personGenres => {
+                    // If person has no genres selected, skip them (show all)
+                    if (personGenres.length === 0) return true;
+                    // Check if person has at least one genre that matches movie
+                    return personGenres.some(genreId => movieGenreIds.includes(genreId));
+                });
+                
+                return allPeopleHaveMatchingGenre;
+            });
+            
+            setFilteredMovies(filtered);
+            if (filtered.length === 0 && movies.length > 0) {
+                setSearchMessage("No movies found matching the selected ratings and genres. Try selecting different preferences!");
+            } else if (filtered.length > 0) {
+                setSearchMessage(`Found ${filtered.length} movies matching your selected preferences!`);
+            } else if (movies.length === 0) {
+                setSearchMessage("No movies found matching everyone's preferences. Try loosening some restrictions!");
+            }
         };
         
         if (recommendedMovies.length > 0) {
             fetchRatings();
         }
-    }, [recommendedMovies]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [recommendedMovies, movieRatings, people, excludeAnimated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const findMovies = async () => {
         setIsSearching(true);
         setSearchMessage("Finding movies for everyone...");
         setRecommendedMovies([]);
+        setFilteredMovies([]);
         setCurrentPage(1);
         setTotalPages(0);
 
@@ -244,7 +376,7 @@ const MovieNyte = () => {
             if (response.data.results.length === 0) {
                 setSearchMessage("No movies found matching everyone's preferences. Try loosening some restrictions!");
             } else {
-                setSearchMessage(`Found ${response.data.total_results} movies for your group!`);
+                setSearchMessage("Fetching movie ratings and filtering...");
             }
             setRecommendedMovies(response.data.results);
         } catch (error) {
@@ -273,6 +405,91 @@ const MovieNyte = () => {
         }
         
         setIsLoadingMore(false);
+    };
+
+    const handleAddMovie = async (movie, listId = null) => {
+        //Getting general movie details
+        const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!detailsResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const movieDetails = await detailsResponse.json();
+        const genreString = movieDetails.genres
+          .map(genre => genre.name)
+          .join(' / ');
+
+        //Getting age rating
+        const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!ratingResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const movieRating = await ratingResponse.json();
+        let certificationForUS = null;
+        const results = movieRating.results;
+        for (const result of results) {
+            if (result.iso_3166_1 === "US") {
+                const releaseDates = result.release_dates;
+                for (const releaseDate of releaseDates) {
+                    if (releaseDate.certification) {
+                        certificationForUS = releaseDate.certification;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        //Getting streaming providers
+        const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!providersResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const movieProviders = await providersResponse.json();
+        let providerNames = [];
+        if (movieProviders.results.US && movieProviders.results.US.flatrate) {
+            const flatrateProviders = movieProviders.results.US.flatrate;
+            providerNames = flatrateProviders.map(provider => provider.provider_name);
+        }
+
+        //Getting imdb id from tmdb id
+        const imdbResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/external_ids?api_key=${process.env.REACT_APP_API_KEY}`);
+        if (!imdbResponse.ok) {
+            throw new Error('Failed to fetch movie details');
+        }
+        const imdbData = await imdbResponse.json();
+        const imdbId = imdbData.imdb_id;
+
+        //Saving movie to user's database
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+            // Determine the path based on whether it's a custom list or default
+            const listPath = listId 
+                ? `users/${uid}/customwatchlists/${listId}/items`
+                : `users/${uid}/defaultwatchlists/movies/items`;
+            const userMovieListRef = ref(db, listPath);
+            push(userMovieListRef, {
+                movietitle: movie.title,
+                movieid: movie.id,
+                watched: false,
+                runtime: movieDetails.runtime,
+                providers: providerNames,
+                agerating: certificationForUS,
+                voteaverage: movie.vote_average,
+                genres: genreString,
+                releaseyear: movieDetails.release_date?.substring(0, 4) || '',
+                imdbid: imdbId,
+                poster_path: movie.poster_path || ''
+            })
+                .then(() => {
+                    console.log('Movie added successfully!');
+                    setAddedMovies({ ...addedMovies, [movie.id]: true });
+                })
+                .catch((error) => {
+                    console.error('Error adding movie:', error);
+                });
+        } else {
+            console.error('User is not signed in!');
+        }
     };
 
     const getBackgroundColor = (voteAverage) => {
@@ -312,7 +529,7 @@ const MovieNyte = () => {
                                 </div>
                             </div>
                         ))}
-                        <div className="d-flex gap-2 mb-4">
+                        <div className="d-flex gap-2 mb-4 align-items-center">
                             <button className="btn btn-outline-primary" onClick={addPerson}>+ Add Person</button>
                             <button 
                                 className="btn btn-success" 
@@ -321,19 +538,31 @@ const MovieNyte = () => {
                             >
                                 {isSearching ? "Finding Movies..." : "🎬 Find Movies for Everyone"}
                             </button>
+                            <div className="form-check ms-3">
+                                <input 
+                                    className="form-check-input" 
+                                    type="checkbox" 
+                                    id="excludeAnimated"
+                                    checked={excludeAnimated}
+                                    onChange={(e) => setExcludeAnimated(e.target.checked)}
+                                />
+                                <label className="form-check-label" htmlFor="excludeAnimated">
+                                    Exclude Animated Movies
+                                </label>
+                            </div>
                         </div>
 
                         {searchMessage && (
-                            <div className={`alert ${recommendedMovies.length > 0 ? 'alert-success' : 'alert-info'} mb-4`}>
+                            <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} mb-4`}>
                                 {searchMessage}
                             </div>
                         )}
 
-                        {recommendedMovies.length > 0 && (
+                        {filteredMovies.length > 0 && (
                             <div className="mb-4">
                                 <h3 className="mb-3">Recommended Movies</h3>
                                 <div className="row">
-                                    {recommendedMovies.map(movie => (
+                                    {filteredMovies.map(movie => (
                                         <div key={movie.id} className="col-12 col-md-6 col-lg-4 mb-3">
                                             <div className="card h-100 shadow-sm">
                                                 {movie.poster_path && (
@@ -344,30 +573,54 @@ const MovieNyte = () => {
                                                         style={{ objectFit: 'cover', height: '300px' }}
                                                     />
                                                 )}
-                                                <div className="card-body">
-                                                    <h5 className="card-title">
-                                                        {movie.title}
-                                                        <span className={`ms-2 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>
-                                                            {(movie.vote_average * 10).toFixed(0)}%
-                                                        </span>
-                                                    </h5>
-                                                    <p className="card-text text-muted small mb-1">
-                                                        {movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'}
-                                                        {movieRatings[movie.id] && (
-                                                            <span className="badge bg-secondary ms-2">{movieRatings[movie.id]}</span>
+                                                <div className="card-body d-flex flex-column">
+                                                    <div className="flex-grow-1">
+                                                        <h5 className="card-title">
+                                                            {movie.title}
+                                                            <span className={`ms-2 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>
+                                                                {(movie.vote_average * 10).toFixed(0)}%
+                                                            </span>
+                                                        </h5>
+                                                        <p className="card-text text-muted small mb-1">
+                                                            {movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'}
+                                                            {movieRatings[movie.id] && (
+                                                                <span className="badge bg-secondary ms-2">{movieRatings[movie.id]}</span>
+                                                            )}
+                                                        </p>
+                                                        <p className="card-text small text-secondary mb-2">
+                                                            {movie.genre_ids?.map(id => genres.find(g => g.id === id)?.name).filter(Boolean).join(' / ') || 'N/A'}
+                                                        </p>
+                                                        <p className="card-text small" style={{ 
+                                                            overflow: 'hidden', 
+                                                            display: '-webkit-box', 
+                                                            WebkitLineClamp: 3, 
+                                                            WebkitBoxOrient: 'vertical' 
+                                                        }}>
+                                                            {movie.overview}
+                                                        </p>
+                                                    </div>
+                                                    <div className="mt-auto pt-2">
+                                                        {addedMovies[movie.id] ? (
+                                                            <button className="btn btn-success btn-sm w-100" type="button" disabled>✓ Added</button>
+                                                        ) : (
+                                                            <div className="dropdown">
+                                                                <button className="btn btn-primary btn-sm w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    + Add to Watchlist
+                                                                </button>
+                                                                <ul className="dropdown-menu dropdown-menu-end">
+                                                                    <li><button className="dropdown-item" onClick={() => handleAddMovie(movie)}>Movies (Default)</button></li>
+                                                                    {customWatchlists.length > 0 && <li><hr className="dropdown-divider" /></li>}
+                                                                    {customWatchlists.map(list => (
+                                                                        <li key={list.id}>
+                                                                            <button className="dropdown-item" onClick={() => handleAddMovie(movie, list.id)}>
+                                                                                {list.name}
+                                                                            </button>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
                                                         )}
-                                                    </p>
-                                                    <p className="card-text small text-secondary mb-2">
-                                                        {movie.genre_ids?.map(id => genres.find(g => g.id === id)?.name).filter(Boolean).join(' / ') || 'N/A'}
-                                                    </p>
-                                                    <p className="card-text small" style={{ 
-                                                        overflow: 'hidden', 
-                                                        display: '-webkit-box', 
-                                                        WebkitLineClamp: 3, 
-                                                        WebkitBoxOrient: 'vertical' 
-                                                    }}>
-                                                        {movie.overview}
-                                                    </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -428,7 +681,7 @@ const MovieNyte = () => {
                                 <div className="form-group mb-4">
                                     <label className="fw-bold mb-2">Age Rating</label>
                                     <div className="d-flex gap-2">
-                                        {['G', 'PG', 'PG-13', 'R'].map(rating => (
+                                        {['G', 'PG', 'PG-13', 'R', 'NR'].map(rating => (
                                             <div 
                                                 key={rating}
                                                 onClick={() => handlePreferenceChange({ target: { name: 'rating', value: rating, checked: !tempPreferences.rating.includes(rating) } })}
