@@ -3,10 +3,10 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
 import { auth, db } from "../utils/firebase";
-import { ref, push, get } from "firebase/database";
+import { ref, push, get, set, remove } from "firebase/database";
 
 const MovieNyte = () => {
-    const initialPersonState = { id: 1, name: "Person 1", preferences: { genre: [], rating: [], year: '', runtime: '', country: 'US' } };
+    const initialPersonState = { id: 1, name: "Person 1", enabled: true, preferences: { genre: [], rating: [], year: '', runtime: '', country: 'US' } };
     const [people, setPeople] = useState([initialPersonState]);
     const [genres, setGenres] = useState([]);
     const [countries, setCountries] = useState([]);
@@ -28,7 +28,7 @@ const MovieNyte = () => {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [movieRatings, setMovieRatings] = useState({}); // Store age ratings by movie ID
     const [filteredMovies, setFilteredMovies] = useState([]); // Movies filtered by selected ratings
-    const [excludeAnimated, setExcludeAnimated] = useState(false); // Toggle to exclude animated movies
+    const [excludeAnimated, setExcludeAnimated] = useState(true); // Toggle to exclude animated movies
     const [addedMovies, setAddedMovies] = useState({}); // Track movies already in watchlists
     const [customWatchlists, setCustomWatchlists] = useState([]); // Custom movie watchlists
     const [uid, setUid] = useState(null); // User ID
@@ -127,18 +127,91 @@ const MovieNyte = () => {
         return () => unsubscribe();
     }, []);
 
-    const addPerson = () => {
-        const newPerson = {
-            id: people.length + 1,
-            name: `Person ${people.length + 1}`,
-            preferences: { ...initialPersonState.preferences }
+    // Load profiles from Firebase
+    useEffect(() => {
+        const loadProfiles = async () => {
+            if (!uid) return;
+            
+            try {
+                const profilesRef = ref(db, `users/${uid}/movienyte/profiles`);
+                const snapshot = await get(profilesRef);
+                if (snapshot.exists()) {
+                    const profilesData = snapshot.val();
+                    const profilesArray = Object.keys(profilesData).map(key => ({
+                        id: key,
+                        enabled: profilesData[key].enabled !== undefined ? profilesData[key].enabled : true,
+                        ...profilesData[key]
+                    }));
+                    if (profilesArray.length > 0) {
+                        setPeople(profilesArray);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profiles:', error);
+            }
         };
-        setPeople([...people, newPerson]);
+        
+        if (uid) {
+            loadProfiles();
+        }
+    }, [uid]);
+
+    // Save profiles to Firebase
+    const saveProfilesToFirebase = async (profiles) => {
+        if (!uid) return;
+        
+        try {
+            const profilesRef = ref(db, `users/${uid}/movienyte/profiles`);
+            const profilesObject = {};
+            profiles.forEach((profile, index) => {
+                profilesObject[profile.id] = {
+                    name: profile.name,
+                    enabled: profile.enabled !== undefined ? profile.enabled : true,
+                    preferences: profile.preferences
+                };
+            });
+            await set(profilesRef, profilesObject);
+        } catch (error) {
+            console.error('Error saving profiles:', error);
+        }
     };
 
-    const deletePerson = (index) => {
+    const addPerson = async () => {
+        const newId = Date.now().toString(); // Use timestamp as unique ID
+        const newPerson = {
+            id: newId,
+            name: `Person ${people.length + 1}`,
+            enabled: true,
+            preferences: { ...initialPersonState.preferences }
+        };
+        const updatedPeople = [...people, newPerson];
+        setPeople(updatedPeople);
+        await saveProfilesToFirebase(updatedPeople);
+    };
+
+    const deletePerson = async (index) => {
+        const personToDelete = people[index];
         const newPeople = people.filter((_, i) => i !== index);
         setPeople(newPeople);
+        
+        // Remove from Firebase
+        if (uid && personToDelete.id) {
+            try {
+                const profileRef = ref(db, `users/${uid}/movienyte/profiles/${personToDelete.id}`);
+                await remove(profileRef);
+            } catch (error) {
+                console.error('Error deleting profile:', error);
+            }
+        }
+        
+        await saveProfilesToFirebase(newPeople);
+    };
+
+    const toggleProfileEnabled = async (index) => {
+        const updatedPeople = [...people];
+        updatedPeople[index].enabled = !updatedPeople[index].enabled;
+        setPeople(updatedPeople);
+        await saveProfilesToFirebase(updatedPeople);
     };
 
     const handlePreferenceChange = (event) => {
@@ -167,7 +240,7 @@ const MovieNyte = () => {
         });
     };
 
-    const handleSavePreferences = () => {
+    const handleSavePreferences = async () => {
         if (currentPerson !== null) {
             const updatedPeople = [...people];
             updatedPeople[currentPerson] = {
@@ -176,6 +249,7 @@ const MovieNyte = () => {
                 preferences: { ...tempPreferences }
             };
             setPeople(updatedPeople);
+            await saveProfilesToFirebase(updatedPeople);
         }
         handleCloseModal();
     };
@@ -234,11 +308,14 @@ const MovieNyte = () => {
         };
         
         const filterMoviesByRatings = (movies, ratings) => {
-            // Get all selected ratings from all people
-            const selectedRatings = [...new Set(people.flatMap(p => p.preferences.rating))];
+            // Filter to only enabled profiles
+            const enabledPeople = people.filter(p => p.enabled !== false);
             
-            // Get each person's selected genre IDs
-            const peopleGenreIds = people.map(p => {
+            // Get all selected ratings from all enabled people
+            const selectedRatings = [...new Set(enabledPeople.flatMap(p => p.preferences.rating))];
+            
+            // Get each enabled person's selected genre IDs
+            const peopleGenreIds = enabledPeople.map(p => {
                 const personGenres = p.preferences.genre || [];
                 return personGenres.map(name => genres.find(g => g.name === name)?.id).filter(Boolean);
             });
@@ -300,15 +377,24 @@ const MovieNyte = () => {
         setTotalPages(0);
 
         try {
+            // Filter to only enabled profiles
+            const enabledPeople = people.filter(p => p.enabled !== false);
+            
+            if (enabledPeople.length === 0) {
+                setSearchMessage("No enabled profiles. Please enable at least one profile to search for movies.");
+                setIsSearching(false);
+                return;
+            }
+            
             // 1. Combine genres (union - any genre that anyone picked, for more results)
-            const allGenres = [...new Set(people.flatMap(p => p.preferences.genre))];
+            const allGenres = [...new Set(enabledPeople.flatMap(p => p.preferences.genre))];
             const genreIds = allGenres.map(name => 
                 genres.find(g => g.name === name)?.id
             ).filter(Boolean);
 
             // 2. Age rating - find most restrictive rating that everyone can watch
             const ratingOrder = ['G', 'PG', 'PG-13', 'R'];
-            const allRatings = people.flatMap(p => p.preferences.rating);
+            const allRatings = enabledPeople.flatMap(p => p.preferences.rating);
             let maxRating = 'R'; // Default to R if no preferences
             if (allRatings.length > 0) {
                 // Find the lowest rated content anyone is willing to watch as the max
@@ -316,7 +402,7 @@ const MovieNyte = () => {
                 const indices = uniqueRatings.map(r => ratingOrder.indexOf(r)).filter(i => i >= 0);
                 if (indices.length > 0) {
                     // Get the highest rating that appears in everyone's preferences (if they set any)
-                    const peopleWithRatings = people.filter(p => p.preferences.rating.length > 0);
+                    const peopleWithRatings = enabledPeople.filter(p => p.preferences.rating.length > 0);
                     if (peopleWithRatings.length > 0) {
                         // Find common ratings
                         let commonRatings = [...ratingOrder];
@@ -338,15 +424,15 @@ const MovieNyte = () => {
             }
 
             // 3. Min release year - use highest (most recent requirement)
-            const years = people.map(p => parseInt(p.preferences.year)).filter(y => !isNaN(y) && y > 0);
+            const years = enabledPeople.map(p => parseInt(p.preferences.year)).filter(y => !isNaN(y) && y > 0);
             const minYear = years.length > 0 ? Math.max(...years) : null;
 
             // 4. Max runtime - use lowest (shortest requirement), convert hours to minutes
-            const runtimes = people.map(p => parseFloat(p.preferences.runtime) * 60).filter(r => !isNaN(r) && r > 0);
+            const runtimes = enabledPeople.map(p => parseFloat(p.preferences.runtime) * 60).filter(r => !isNaN(r) && r > 0);
             const maxRuntime = runtimes.length > 0 ? Math.min(...runtimes) : null;
 
             // 5. Country of origin - combine all selected countries (union for more results)
-            const allCountries = [...new Set(people.map(p => p.preferences.country).filter(c => c && c !== ''))];
+            const allCountries = [...new Set(enabledPeople.map(p => p.preferences.country).filter(c => c && c !== ''))];
 
             // 6. Build API params
             const params = {
@@ -508,20 +594,34 @@ const MovieNyte = () => {
                         {people?.map((person, index) => (
                             <div key={index} className="mb-4">
                                 <div className="card shadow">
-                                    <div className="card-body">
+                                    <div className="card-body" style={{ paddingRight: '50px' }}>
                                         <button
                                             type="button" className="btn btn-outline-danger"
                                             onClick={() => deletePerson(index)}
                                             style={{ position: 'absolute', right: '10px', top: '10px' }}>
                                             <span aria-hidden="true">&times;</span>
                                         </button>
-                                        <h3 className="card-title">{person.name}</h3>
+                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                            <h3 className="card-title mb-0">{person.name}</h3>
+                                            <div className="form-check form-switch">
+                                                <input 
+                                                    className="form-check-input" 
+                                                    type="checkbox" 
+                                                    id={`enable-${index}`}
+                                                    checked={person.enabled !== false}
+                                                    onChange={() => toggleProfileEnabled(index)}
+                                                />
+                                                <label className="form-check-label" htmlFor={`enable-${index}`}>
+                                                    {person.enabled !== false ? 'Enabled' : 'Disabled'}
+                                                </label>
+                                            </div>
+                                        </div>
                                         <h6>Preferences</h6>
                                         <ul className="list-group list-group-flush">
-                                            <li className="list-group-item">Genres: {person.preferences.genre.join(', ')}</li>
-                                            <li className="list-group-item">Age Rating: {person.preferences.rating.join(', ')}</li>
-                                            <li className="list-group-item">Min. Release Year: {person.preferences.year}</li>
-                                            <li className="list-group-item">Runtime (hrs): {person.preferences.runtime}</li>
+                                            <li className="list-group-item">Genres: {person.preferences.genre.join(', ') || 'None'}</li>
+                                            <li className="list-group-item">Age Rating: {person.preferences.rating.join(', ') || 'None'}</li>
+                                            <li className="list-group-item">Min. Release Year: {person.preferences.year || 'None'}</li>
+                                            <li className="list-group-item">Runtime (hrs): {person.preferences.runtime || 'None'}</li>
                                             <li className="list-group-item">Country of Origin: {person.preferences.country ? countries.find(c => c.iso_3166_1 === person.preferences.country)?.english_name || person.preferences.country : 'Any'}</li>
                                         </ul>
                                         <button type="button" className="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" onClick={() => setCurrentPerson(index)}>Edit</button>
