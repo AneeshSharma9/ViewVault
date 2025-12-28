@@ -32,6 +32,7 @@ const MovieNyte = () => {
     const [addedMovies, setAddedMovies] = useState({}); // Track movies already in watchlists
     const [customWatchlists, setCustomWatchlists] = useState([]); // Custom movie watchlists
     const [uid, setUid] = useState(null); // User ID
+    const [selectedMovieDescription, setSelectedMovieDescription] = useState(null); // Movie for description modal
 
     useEffect(() => {
         // Fetch genres and countries from TMDB API
@@ -690,14 +691,25 @@ const MovieNyte = () => {
                                                         <p className="card-text small text-secondary mb-2">
                                                             {movie.genre_ids?.map(id => genres.find(g => g.id === id)?.name).filter(Boolean).join(' / ') || 'N/A'}
                                                         </p>
-                                                        <p className="card-text small" style={{ 
-                                                            overflow: 'hidden', 
-                                                            display: '-webkit-box', 
-                                                            WebkitLineClamp: 3, 
-                                                            WebkitBoxOrient: 'vertical' 
-                                                        }}>
-                                                            {movie.overview}
-                                                        </p>
+                                                        <div>
+                                                            <p className="card-text small" style={{ 
+                                                                overflow: 'hidden', 
+                                                                display: '-webkit-box', 
+                                                                WebkitLineClamp: 3, 
+                                                                WebkitBoxOrient: 'vertical' 
+                                                            }}>
+                                                                {movie.overview || 'No description available.'}
+                                                            </p>
+                                                            {movie.overview && movie.overview.length > 150 && (
+                                                                <button 
+                                                                    className="btn btn-link btn-sm p-0 text-primary"
+                                                                    onClick={() => setSelectedMovieDescription(movie)}
+                                                                    style={{ fontSize: '0.875rem', textDecoration: 'none' }}
+                                                                >
+                                                                    See more
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div className="mt-auto pt-2">
                                                         {addedMovies[movie.id] ? (
@@ -826,6 +838,37 @@ const MovieNyte = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Movie Description Modal */}
+            {selectedMovieDescription && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">{selectedMovieDescription.title}</h5>
+                                <button 
+                                    type="button" 
+                                    className="btn-close" 
+                                    onClick={() => setSelectedMovieDescription(null)}
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>{selectedMovieDescription.overview || 'No description available.'}</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button 
+                                    type="button" 
+                                    className="btn btn-secondary" 
+                                    onClick={() => setSelectedMovieDescription(null)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <Footer />
         </div>
