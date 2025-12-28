@@ -594,7 +594,7 @@ const MovieNyte = () => {
                         {people?.map((person, index) => (
                             <div key={index} className="mb-4">
                                 <div className="card shadow">
-                                    <div className="card-body" style={{ paddingRight: '50px' }}>
+                                    <div className="card-body" style={{ paddingRight: '70px' }}>
                                         <button
                                             type="button" className="btn btn-outline-danger"
                                             onClick={() => deletePerson(index)}
@@ -624,7 +624,7 @@ const MovieNyte = () => {
                                             <li className="list-group-item">Runtime (hrs): {person.preferences.runtime || 'None'}</li>
                                             <li className="list-group-item">Country of Origin: {person.preferences.country ? countries.find(c => c.iso_3166_1 === person.preferences.country)?.english_name || person.preferences.country : 'Any'}</li>
                                         </ul>
-                                        <button type="button" className="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" onClick={() => setCurrentPerson(index)}>Edit</button>
+                                        <button type="button" className="btn btn-outline-primary mt-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop" onClick={() => setCurrentPerson(index)}>Edit</button>
                                     </div>
                                 </div>
                             </div>
