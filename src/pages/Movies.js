@@ -120,7 +120,8 @@ const Movies = () => {
                     vote_average: movieData[key].voteaverage,
                     genres: movieData[key].genres,
                     releaseyear: movieData[key].releaseyear,
-                    imdbid: movieData[key].imdbid
+                    imdbid: movieData[key].imdbid,
+                    poster_path: movieData[key].poster_path
                 }));
                 setMovies(movieArray);
             } else {
@@ -518,7 +519,8 @@ const Movies = () => {
                     voteaverage: movieDetails.vote_average,
                     genres: genreString,
                     releaseyear: movieDetails.release_date ? movieDetails.release_date.substring(0, 4) : "",
-                    imdbid: imdbData.imdb_id
+                    imdbid: imdbData.imdb_id,
+                    poster_path: movieDetails.poster_path || ""
                 });
             } catch (error) {
                 console.error(`Error refreshing "${movie.name}":`, error);
@@ -533,6 +535,24 @@ const Movies = () => {
 
     return (
         <div className="">
+            <style>{`
+                .poster-dropdown::before,
+                .poster-dropdown::after {
+                    display: none !important;
+                    content: "" !important;
+                    border: none !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                button.poster-dropdown.dropdown-toggle::before,
+                button.poster-dropdown.dropdown-toggle::after {
+                    display: none !important;
+                    content: "" !important;
+                    border: none !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+            `}</style>
             <Navbar />
             <div className="container-fluid">
                 <div className="container">
@@ -576,8 +596,8 @@ const Movies = () => {
                                 {movies.map((movie) => (
                                     <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                                         <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', wordWrap: 'break-word' }}>
-                                            <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
-                                            <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
+                                                <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
+                                                <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
                                             <div className="d-flex flex-wrap align-items-center">
                                                 <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
@@ -613,17 +633,44 @@ const Movies = () => {
                                             })()}
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between flex-shrink-0 mt-2 mt-md-0">
-                                            <div className="btn-group dropstart m-2">
-                                                <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
-                                                <ul className="dropdown-menu">
-                                                    <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
-                                                    {watchSites.map((site, index) => (
-                                                        <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
-                                                    ))}
-                                                    <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
-                                                </ul>
-                                            </div>
-                                            <button className="btn btn-outline-danger" onClick={() => handleDeleteClick(movie)}>X</button>
+                                            {movie.poster_path && movie.poster_path.trim() !== '' ? (
+                                                <div className="btn-group dropstart">
+                                                    <button 
+                                                        type="button"
+                                                        className="btn p-0 border-0 dropdown-toggle poster-dropdown"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                        style={{ padding: 0 }}
+                                                    >
+                                                        <img 
+                                                            src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w185${movie.poster_path.startsWith('/') ? movie.poster_path : '/' + movie.poster_path}`}
+                                                            alt={movie.name}
+                                                            className="rounded flex-shrink-0"
+                                                            style={{ width: '100px', height: '150px', objectFit: 'cover', cursor: 'pointer', display: 'block' }}
+                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                        />
+                                                    </button>
+                                                    <ul className="dropdown-menu">
+                                                        <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
+                                                        {watchSites.map((site, index) => (
+                                                            <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
+                                                        ))}
+                                                        <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
+                                                    </ul>
+                                                </div>
+                                            ) : (
+                                                <div className="btn-group dropstart">
+                                                    <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
+                                                    <ul className="dropdown-menu">
+                                                        <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
+                                                        {watchSites.map((site, index) => (
+                                                            <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
+                                                        ))}
+                                                        <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            <button className="btn btn-outline-danger ms-2" onClick={() => handleDeleteClick(movie)}>X</button>
                                         </div>
                                     </li>
                                 ))}

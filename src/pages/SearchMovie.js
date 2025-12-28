@@ -170,8 +170,9 @@ const SearchMovie = () => {
                 agerating: certificationForUS,
                 voteaverage: movie.vote_average,
                 genres: genreString,
-                releaseyear: movieDetails.release_date.substring(0, 4),
-                imdbid: imdbId
+                releaseyear: movieDetails.release_date?.substring(0, 4) || '',
+                imdbid: imdbId,
+                poster_path: movie.poster_path || ''
             })
                 .then(() => {
                     console.log('Movie added successfully!');
@@ -220,12 +221,22 @@ const SearchMovie = () => {
                 <ul className="list-group mt-4">
                     {searchResults.map((movie) => (
                         <li key={movie.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
-                            <div className="">
-                                <p className="fw-bold">{movie.title}
-                                    <span className="m-1 fw-light">({movie.release_date.substring(0, 4)})</span>
-                                    <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
-                                </p>
-                                <p className="fw-normal">{movie.overview}</p>
+                            <div className="d-flex align-items-start">
+                                {movie.poster_path && (
+                                    <img 
+                                        src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
+                                        alt={movie.title}
+                                        className="rounded me-3 flex-shrink-0"
+                                        style={{ width: '60px', height: '90px', objectFit: 'cover' }}
+                                    />
+                                )}
+                                <div>
+                                    <p className="fw-bold mb-1">{movie.title}
+                                        <span className="m-1 fw-light">({movie.release_date?.substring(0, 4) || 'N/A'})</span>
+                                        <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
+                                    </p>
+                                    <p className="fw-normal mb-0 small">{movie.overview}</p>
+                                </div>
                             </div>
                             {addedMovies[movie.id] ? (
                                 <button className="btn btn-success mx-3 flex-shrink-0" type="button">✓</button>
