@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, get, remove, update, push } from "firebase/database";
@@ -36,6 +36,7 @@ const Movies = () => {
     const [editingProviders, setEditingProviders] = useState([]);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [refreshStatus, setRefreshStatus] = useState("");
+    const [streamingFilter, setStreamingFilter] = useState([]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -242,23 +243,38 @@ const Movies = () => {
 
     const handleSortBy = (value) => {
         setSortBy(value);
-        if (value === "To Watch") {
-            const sortedMovies = movies.slice().sort((a, b) => {
-                return a.watched - b.watched;
-            });
-            setMovies(sortedMovies);
-        } else if (value === "Watched") {
-            const sortedMovies = movies.slice().sort((a, b) => {
-                return b.watched - a.watched;
-            });
-            setMovies(sortedMovies);
-        } else if (value === "Runtime") {
-            const sortedMovies = movies.slice().sort((a, b) => {
-                return a.runtime - b.runtime;
-            });
-            setMovies(sortedMovies);
+        // Sorting is now handled in the filteredMovies useMemo
+    };
+
+    const handleStreamingFilterToggle = (provider) => {
+        setStreamingFilter(prev => {
+            if (prev.includes(provider)) {
+                return prev.filter(p => p !== provider);
+            } else {
+                return [...prev, provider];
+            }
+        });
+    };
+
+    const handleSelectAllStreaming = () => {
+        if (streamingFilter.length === 0 || streamingFilter.length === selectedProviders.length) {
+            // If all are selected or none are selected, clear the filter (show all)
+            setStreamingFilter([]);
         } else {
-            fetchMovies(uid);
+            // Otherwise, select all providers
+            setStreamingFilter([...selectedProviders]);
+        }
+    };
+
+    const getStreamingFilterButtonText = () => {
+        if (streamingFilter.length === 0) {
+            return "All";
+        } else if (streamingFilter.length === selectedProviders.length) {
+            return "All";
+        } else if (streamingFilter.length === 1) {
+            return streamingFilter[0];
+        } else {
+            return `${streamingFilter.length} selected`;
         }
     };
 
@@ -533,6 +549,38 @@ const Movies = () => {
         setRefreshStatus("");
     };
 
+    // Filter and sort movies based on streaming service and sort option
+    const filteredMovies = useMemo(() => {
+        let result = movies;
+        
+        // Apply streaming filter
+        if (streamingFilter.length > 0) {
+            result = result.filter(movie => 
+                movie.providers && 
+                movie.providers.length > 0 && 
+                streamingFilter.some(provider => movie.providers.includes(provider))
+            );
+        }
+        
+        // Apply sorting
+        if (sortBy === "To Watch") {
+            result = result.slice().sort((a, b) => {
+                return a.watched - b.watched;
+            });
+        } else if (sortBy === "Watched") {
+            result = result.slice().sort((a, b) => {
+                return b.watched - a.watched;
+            });
+        } else if (sortBy === "Runtime") {
+            result = result.slice().sort((a, b) => {
+                return a.runtime - b.runtime;
+            });
+        }
+        // "Default" - no sorting needed, keep original order
+        
+        return result;
+    }, [movies, streamingFilter, sortBy]);
+
     return (
         <div className="">
             <style>{`
@@ -560,15 +608,53 @@ const Movies = () => {
                         <h1 className="text-center m-4 fw-bold">{listName}</h1>
                         <div className="pt-2 pb-4">
                             <div className="dropdown mb-2 d-flex justify-content-between">
-                                <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                                    {sortBy}
-                                </button>
-                                <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
-                                    <li><button className="dropdown-item" onClick={() => handleSortBy("Default")}>Default</button></li>
-                                    <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
-                                    <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
-                                    <li><button className="dropdown-item" onClick={() => handleSortBy("Runtime")}>Runtime</button></li>
-                                </ul>
+                                <div className="d-flex gap-2">
+                                    <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                        {sortBy}
+                                    </button>
+                                    <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
+                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Default")}>Default</button></li>
+                                        <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
+                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
+                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Runtime")}>Runtime</button></li>
+                                    </ul>
+                                    <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                                        {getStreamingFilterButtonText()}
+                                    </button>
+                                    <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton2" style={{ minWidth: '200px', maxHeight: '300px', overflowY: 'auto' }}>
+                                        <li>
+                                            <label className="dropdown-item" style={{ cursor: 'pointer' }}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="form-check-input me-2" 
+                                                    checked={streamingFilter.length === 0 || (streamingFilter.length === selectedProviders.length && selectedProviders.length > 0)}
+                                                    onChange={handleSelectAllStreaming}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                                All
+                                            </label>
+                                        </li>
+                                        {selectedProviders.length > 0 && <li><hr className="dropdown-divider" /></li>}
+                                        {selectedProviders.length > 0 ? (
+                                            selectedProviders.map((provider) => (
+                                                <li key={provider}>
+                                                    <label className="dropdown-item" style={{ cursor: 'pointer' }}>
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="form-check-input me-2" 
+                                                            checked={streamingFilter.includes(provider)}
+                                                            onChange={() => handleStreamingFilterToggle(provider)}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        />
+                                                        {provider}
+                                                    </label>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            <li><span className="dropdown-item-text text-muted">No streaming services enabled</span></li>
+                                        )}
+                                    </ul>
+                                </div>
                                 <div className="d-flex gap-2">
                                     <div className="dropdown">
                                         <button className="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -593,7 +679,7 @@ const Movies = () => {
                                 </div>
                             </div>
                             <div className="list-group list-group-light">
-                                {movies.map((movie) => (
+                                {filteredMovies.map((movie) => (
                                     <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                                         <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', wordWrap: 'break-word' }}>
                                                 <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
