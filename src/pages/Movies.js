@@ -666,12 +666,34 @@ const Movies = () => {
                     margin: 0 !important;
                     padding: 0 !important;
                 }
+                @keyframes skeleton-loading {
+                    0% { background-color: #f0f0f0; }
+                    50% { background-color: #e0e0e0; }
+                    100% { background-color: #f0f0f0; }
+                }
+                .skeleton-box {
+                    animation: skeleton-loading 1.5s infinite ease-in-out;
+                    background-color: #f0f0f0;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .fade-in {
+                    animation: fadeIn 0.5s ease-in;
+                }
             `}</style>
             <Navbar />
             <div className="container-fluid">
                 <div className="container">
                     <div className="p-4">
-                        <h1 className="text-center m-4 fw-bold">{listName}</h1>
+                        {loading ? (
+                            <div className="text-center m-4 d-flex justify-content-center">
+                                <div className="skeleton-box rounded" style={{ width: '300px', height: '48px' }}></div>
+                            </div>
+                        ) : (
+                            <h1 className="text-center m-4 fw-bold fade-in">{listName}</h1>
+                        )}
                         <div className="pt-2 pb-4">
                             <div className="dropdown mb-2 d-flex justify-content-between">
                                 <div className="d-flex gap-2">
@@ -746,92 +768,119 @@ const Movies = () => {
                                 </div>
                             </div>
                             <div className="list-group list-group-light">
-                                {filteredMovies.map((movie) => (
-                                    <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-                                        <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', wordWrap: 'break-word' }}>
-                                            <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie, movie.watched)} />
-                                            <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
-                                            <div className="d-flex flex-wrap align-items-center">
-                                                <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
-                                                {' '}
-                                                <span className="m-1 badge bg-light text-dark border border-danger">{movie.agerating}</span>
-                                                {' '}
-                                                <span className="m-1 fst-italic">{convertMinToHrMin(movie.runtime)}</span>
+                                {loading ? (
+                                    // Skeleton Loader
+                                    Array(5).fill(0).map((_, index) => (
+                                        <div key={index} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                                            <div style={{ width: '100%' }}>
+                                                <div className="d-flex align-items-center mb-2">
+                                                    <div className="skeleton-box rounded me-2" style={{ width: '20px', height: '20px' }}></div>
+                                                    <div className="skeleton-box rounded" style={{ width: '200px', height: '24px' }}></div>
+                                                </div>
+                                                <div className="d-flex gap-2 mb-2">
+                                                    <div className="skeleton-box rounded-pill" style={{ width: '60px', height: '24px' }}></div>
+                                                    <div className="skeleton-box rounded" style={{ width: '40px', height: '24px' }}></div>
+                                                    <div className="skeleton-box" style={{ width: '80px', height: '24px' }}></div>
+                                                </div>
+                                                <div className="skeleton-box rounded" style={{ width: '100%', maxWidth: '300px', height: '20px' }}></div>
+                                                <div className="d-flex gap-2 mt-2">
+                                                    <div className="skeleton-box rounded" style={{ width: '24px', height: '24px' }}></div>
+                                                    <div className="skeleton-box rounded" style={{ width: '24px', height: '24px' }}></div>
+                                                </div>
                                             </div>
-                                            <p className="m-1 badge bg-light text-dark border border-info" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{movie.genres}</p>
-                                            {movie.providers && movie.providers.length > 0 && (() => {
-                                                const filteredProviders = selectedProviders.length > 0
-                                                    ? movie.providers.filter(p => selectedProviders.includes(p))
-                                                    : movie.providers;
-                                                return filteredProviders.length > 0 && (
-                                                    <div className="d-flex align-items-center flex-wrap gap-1 mt-1">
-                                                        <span className="small text-muted">Available On:</span>
-                                                        {filteredProviders.map((provider, idx) => {
-                                                            const logo = getProviderLogo(provider);
-                                                            return logo ? (
-                                                                <img
-                                                                    key={idx}
-                                                                    src={logo}
-                                                                    alt={provider}
-                                                                    title={provider}
-                                                                    className="rounded"
-                                                                    style={{ width: '24px', height: '24px' }}
-                                                                />
-                                                            ) : (
-                                                                <span key={idx} className="badge bg-secondary small">{provider}</span>
-                                                            );
-                                                        })}
+                                            <div className="mt-2 mt-md-0">
+                                                <div className="skeleton-box rounded" style={{ width: '100px', height: '150px' }}></div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    filteredMovies.map((movie) => (
+                                        <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center fade-in">
+                                            <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', wordWrap: 'break-word' }}>
+                                                <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie, movie.watched)} />
+                                                <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
+                                                <div className="d-flex flex-wrap align-items-center">
+                                                    <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
+                                                    {' '}
+                                                    <span className="m-1 badge bg-light text-dark border border-danger">{movie.agerating}</span>
+                                                    {' '}
+                                                    <span className="m-1 fst-italic">{convertMinToHrMin(movie.runtime)}</span>
+                                                </div>
+                                                <p className="m-1 badge bg-light text-dark border border-info" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{movie.genres}</p>
+                                                {movie.providers && movie.providers.length > 0 && (() => {
+                                                    const filteredProviders = selectedProviders.length > 0
+                                                        ? movie.providers.filter(p => selectedProviders.includes(p))
+                                                        : movie.providers;
+                                                    return filteredProviders.length > 0 && (
+                                                        <div className="d-flex align-items-center flex-wrap gap-1 mt-1">
+                                                            <span className="small text-muted">Available On:</span>
+                                                            {filteredProviders.map((provider, idx) => {
+                                                                const logo = getProviderLogo(provider);
+                                                                return logo ? (
+                                                                    <img
+                                                                        key={idx}
+                                                                        src={logo}
+                                                                        alt={provider}
+                                                                        title={provider}
+                                                                        className="rounded"
+                                                                        style={{ width: '24px', height: '24px' }}
+                                                                    />
+                                                                ) : (
+                                                                    <span key={idx} className="badge bg-secondary small">{provider}</span>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                            <div className="d-flex align-items-center justify-content-between flex-shrink-0 mt-2 mt-md-0">
+                                                {movie.watched && movie.user_rating !== undefined && movie.user_rating !== null && (
+                                                    <span className="me-2 fw-bold text-warning" style={{ fontSize: '1.2em' }}>
+                                                        {movie.user_rating} ★
+                                                    </span>
+                                                )}
+                                                {movie.poster_path && movie.poster_path.trim() !== '' ? (
+                                                    <div className="btn-group dropstart">
+                                                        <button
+                                                            type="button"
+                                                            className="btn p-0 border-0 dropdown-toggle poster-dropdown"
+                                                            data-bs-toggle="dropdown"
+                                                            aria-expanded="false"
+                                                            style={{ padding: 0 }}
+                                                        >
+                                                            <img
+                                                                src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w185${movie.poster_path.startsWith('/') ? movie.poster_path : '/' + movie.poster_path}`}
+                                                                alt={movie.name}
+                                                                className="rounded flex-shrink-0"
+                                                                style={{ width: '100px', height: '150px', objectFit: 'cover', cursor: 'pointer', display: 'block' }}
+                                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                                            />
+                                                        </button>
+                                                        <ul className="dropdown-menu">
+                                                            <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
+                                                            {watchSites.map((site, index) => (
+                                                                <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
+                                                            ))}
+                                                            <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
+                                                        </ul>
                                                     </div>
-                                                );
-                                            })()}
-                                        </div>
-                                        <div className="d-flex align-items-center justify-content-between flex-shrink-0 mt-2 mt-md-0">
-                                            {movie.watched && movie.user_rating !== undefined && movie.user_rating !== null && (
-                                                <span className="me-2 fw-bold text-warning" style={{ fontSize: '1.2em' }}>
-                                                    {movie.user_rating} ★
-                                                </span>
-                                            )}
-                                            {movie.poster_path && movie.poster_path.trim() !== '' ? (
-                                                <div className="btn-group dropstart">
-                                                    <button
-                                                        type="button"
-                                                        className="btn p-0 border-0 dropdown-toggle poster-dropdown"
-                                                        data-bs-toggle="dropdown"
-                                                        aria-expanded="false"
-                                                        style={{ padding: 0 }}
-                                                    >
-                                                        <img
-                                                            src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w185${movie.poster_path.startsWith('/') ? movie.poster_path : '/' + movie.poster_path}`}
-                                                            alt={movie.name}
-                                                            className="rounded flex-shrink-0"
-                                                            style={{ width: '100px', height: '150px', objectFit: 'cover', cursor: 'pointer', display: 'block' }}
-                                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                                        />
-                                                    </button>
-                                                    <ul className="dropdown-menu">
-                                                        <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
-                                                        {watchSites.map((site, index) => (
-                                                            <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
-                                                        ))}
-                                                        <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
-                                                    </ul>
-                                                </div>
-                                            ) : (
-                                                <div className="btn-group dropstart">
-                                                    <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
-                                                    <ul className="dropdown-menu">
-                                                        <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
-                                                        {watchSites.map((site, index) => (
-                                                            <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
-                                                        ))}
-                                                        <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
-                                                    </ul>
-                                                </div>
-                                            )}
-                                            <button className="btn btn-outline-danger ms-2" onClick={() => handleDeleteClick(movie)}>X</button>
-                                        </div>
-                                    </li>
-                                ))}
+                                                ) : (
+                                                    <div className="btn-group dropstart">
+                                                        <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
+                                                        <ul className="dropdown-menu">
+                                                            <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
+                                                            {watchSites.map((site, index) => (
+                                                                <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
+                                                            ))}
+                                                            <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                                <button className="btn btn-outline-danger ms-2" onClick={() => handleDeleteClick(movie)}>X</button>
+                                            </div>
+                                        </li>
+                                    ))
+                                )}
                             </div>
                         </div>
                         <div className="text-center mb-5 ">
