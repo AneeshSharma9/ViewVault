@@ -12,6 +12,8 @@ const Navbar = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [listToDelete, setListToDelete] = useState(null);
 
+    const [loading, setLoading] = useState(true);
+
     const fetchCustomWatchlists = async (userId) => {
         try {
             const watchlistsRef = ref(db, `users/${userId}/customwatchlists`);
@@ -41,6 +43,7 @@ const Navbar = () => {
                 setUid(null);
                 setCustomWatchlists([]);
             }
+            setLoading(false);
         });
         return () => unsubscribe();
     }, []);
@@ -62,7 +65,7 @@ const Navbar = () => {
 
     const handleCreateWatchlist = async () => {
         if (!newListName.trim() || !uid) return;
-        
+
         try {
             const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
             await push(watchlistsRef, {
@@ -80,7 +83,7 @@ const Navbar = () => {
     };
 
     const getTypeIcon = (type) => {
-        switch(type) {
+        switch (type) {
             case 'movies': return '🎬';
             case 'tvshows': return '📺';
             case 'anime': return '🎌';
@@ -97,7 +100,7 @@ const Navbar = () => {
 
     const handleConfirmDelete = async () => {
         if (!listToDelete || !uid) return;
-        
+
         try {
             const listRef = ref(db, `users/${uid}/customwatchlists/${listToDelete.id}`);
             await remove(listRef);
@@ -111,6 +114,15 @@ const Navbar = () => {
 
     return (
         <nav className="navbar sticky-top navbar-expand-lg navbar-dark bg-dark p-3 shadow">
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .fade-in {
+                    animation: fadeIn 0.5s ease-in;
+                }
+            `}</style>
             <a className="navbar-brand fw-bold" href="/">ViewVault</a>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
@@ -144,8 +156,8 @@ const Navbar = () => {
                                             <a className="dropdown-item flex-grow-1" href={`/${list.type}?list=${list.id}`}>
                                                 {getTypeIcon(list.type)} {list.name}
                                             </a>
-                                            <button 
-                                                className="btn btn-sm btn-outline-danger me-2" 
+                                            <button
+                                                className="btn btn-sm btn-outline-danger me-2"
                                                 onClick={(e) => handleDeleteClick(e, list)}
                                                 style={{ padding: '2px 6px', fontSize: '12px' }}
                                             >
@@ -167,11 +179,13 @@ const Navbar = () => {
             </div>
             <ul className="navbar-nav ml-auto">
                 <li className="nav-item">
-                    {uid ?
-                        <button className="btn btn-outline-danger my-2 my-sm-0" onClick={handleSignOut}>Logout</button>
-                        :
-                        <button className="btn btn-outline-success my-2 my-sm-0" onClick={handleLogin}>Login</button>
-                    }
+                    {loading ? (
+                        null
+                    ) : uid ? (
+                        <button className="btn btn-outline-danger my-2 my-sm-0 fade-in" onClick={handleSignOut}>Logout</button>
+                    ) : (
+                        <button className="btn btn-outline-success my-2 my-sm-0 fade-in" onClick={handleLogin}>Login</button>
+                    )}
                 </li>
             </ul>
 
@@ -186,9 +200,9 @@ const Navbar = () => {
                             <div className="modal-body">
                                 <div className="mb-3">
                                     <label className="form-label">Watchlist Name</label>
-                                    <input 
-                                        type="text" 
-                                        className="form-control" 
+                                    <input
+                                        type="text"
+                                        className="form-control"
                                         value={newListName}
                                         onChange={(e) => setNewListName(e.target.value)}
                                         placeholder="My Watchlist"
@@ -196,7 +210,7 @@ const Navbar = () => {
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label">Type</label>
-                                    <select 
+                                    <select
                                         className="form-select"
                                         value={newListType}
                                         onChange={(e) => setNewListType(e.target.value)}
