@@ -9,7 +9,7 @@ import axios from "axios";
 const Movies = () => {
     const [searchParams] = useSearchParams();
     const listId = searchParams.get('list');
-    
+
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uid, setUid] = useState(null);
@@ -37,6 +37,11 @@ const Movies = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [refreshStatus, setRefreshStatus] = useState("");
     const [streamingFilter, setStreamingFilter] = useState([]);
+
+    // Rating Modal State
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [ratingInput, setRatingInput] = useState("");
+    const [movieToRate, setMovieToRate] = useState(null);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -88,7 +93,7 @@ const Movies = () => {
 
     const fetchListName = async (uid, listType) => {
         try {
-            const listPath = listType === 'custom' 
+            const listPath = listType === 'custom'
                 ? `users/${uid}/customwatchlists/${listId}`
                 : `users/${uid}/defaultwatchlists/movies`;
             const listRef = ref(db, listPath);
@@ -122,7 +127,8 @@ const Movies = () => {
                     genres: movieData[key].genres,
                     releaseyear: movieData[key].releaseyear,
                     imdbid: movieData[key].imdbid,
-                    poster_path: movieData[key].poster_path
+                    poster_path: movieData[key].poster_path,
+                    user_rating: movieData[key].user_rating
                 }));
                 setMovies(movieArray);
             } else {
@@ -212,7 +218,7 @@ const Movies = () => {
 
     const handleConfirmDeleteMovie = () => {
         if (!movieToDelete) return;
-        
+
         const movieRef = ref(db, `${getMoviesPath(uid)}/${movieToDelete.id}`);
         remove(movieRef)
             .then(() => {
@@ -226,18 +232,72 @@ const Movies = () => {
             });
     };
 
-    const handleToggleWatched = async (movieId, watched) => {
+    const handleToggleWatched = async (movie_obj, watched) => {
+        // If we are marking as watched (current status is unwatched/false), open the modal
+        if (!watched) {
+            setMovieToRate(movie_obj);
+            setRatingInput(""); // Reset input
+            setShowRatingModal(true);
+        } else {
+            // Unmarking as watched (watched -> unwatched)
+            // Just carry out the normal update to set watched = false and remove rating
+            try {
+                const movieRef = ref(db, `${getMoviesPath(uid)}/${movie_obj.id}`);
+                await update(movieRef, { watched: false, user_rating: null });
+                setMovies(movies.map(movie => {
+                    if (movie.id === movie_obj.id) {
+                        return { ...movie, watched: false, user_rating: null };
+                    }
+                    return movie;
+                }));
+            } catch (error) {
+                console.error('Error updating watched status:', error);
+            }
+        }
+    };
+
+    const handleRatingChange = (e) => {
+        const val = e.target.value;
+        if (val === "") {
+            setRatingInput("");
+            return;
+        }
+        const num = parseFloat(val);
+        if (val.includes("-")) return;
+        if (num < 0 || num > 10) return;
+
+        // Check decimals
+        const parts = val.split('.');
+        if (parts.length === 2 && parts[1].length > 1) return;
+
+        setRatingInput(val);
+    };
+
+    const handleSaveRating = async () => {
+        if (!movieToRate) return;
+
+        let ratingVal = parseFloat(ratingInput);
+        if (isNaN(ratingVal) || ratingVal < 0) ratingVal = 0;
+        if (ratingVal > 10) ratingVal = 10;
+
+        // Round to 1 decimal place
+        ratingVal = Math.round(ratingVal * 10) / 10;
+
         try {
-            const movieRef = ref(db, `${getMoviesPath(uid)}/${movieId}`);
-            await update(movieRef, { watched: !watched });
+            const movieRef = ref(db, `${getMoviesPath(uid)}/${movieToRate.id}`);
+            await update(movieRef, { watched: true, user_rating: ratingVal });
+
             setMovies(movies.map(movie => {
-                if (movie.id === movieId) {
-                    return { ...movie, watched: !watched };
+                if (movie.id === movieToRate.id) {
+                    return { ...movie, watched: true, user_rating: ratingVal };
                 }
                 return movie;
             }));
+
+            setShowRatingModal(false);
+            setMovieToRate(null);
         } catch (error) {
-            console.error('Error updating watched status:', error);
+            console.error('Error saving rating:', error);
         }
     };
 
@@ -327,7 +387,7 @@ const Movies = () => {
             console.error('Error saving watch sites:', error);
         }
     };
-    
+
     const toImdbParentsGuide = (imdbId) => {
         const imdbUrl = `https://www.imdb.com/title/${imdbId}/parentalguide/#nudity`;
         window.open(imdbUrl, '_blank');
@@ -356,29 +416,29 @@ const Movies = () => {
 
     const handleImportWatchlist = async () => {
         if (!importText.trim()) return;
-        
+
         setIsImporting(true);
         setImportStatus("Starting import...");
-        
+
         const lines = importText.split("\n").filter(line => line.trim());
         const existingMovieIds = movies.map(m => m.movieid);
         let added = 0;
         let skipped = 0;
         let notFound = 0;
-        
+
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             setImportStatus(`Processing ${i + 1}/${lines.length}: ${line}`);
-            
+
             // Parse "Title (Year) [x]" or "Title (Year) []" format
             // Also handles "Title (Year)" without watched status (defaults to not watched)
             const match = line.match(/^(.+?)\s*(?:\((\d{4})\))?\s*(?:\[(x?)\])?$/);
             if (!match) continue;
-            
+
             const title = match[1].trim();
             const year = match[2];
             const isWatched = match[3] === 'x';
-            
+
             try {
                 // Search TMDB
                 const response = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
@@ -388,27 +448,27 @@ const Movies = () => {
                         year: year || undefined
                     }
                 });
-                
+
                 const results = response.data.results;
                 if (results.length === 0) {
                     notFound++;
                     continue;
                 }
-                
+
                 // Get the first matching result
                 const movie = results[0];
-                
+
                 // Check if already in watchlist
                 if (existingMovieIds.includes(movie.id)) {
                     skipped++;
                     continue;
                 }
-                
+
                 // Fetch movie details
                 const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieDetails = await detailsResponse.json();
                 const genreString = movieDetails.genres.map(genre => genre.name).join(' / ');
-                
+
                 // Get age rating
                 const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieRating = await ratingResponse.json();
@@ -424,7 +484,7 @@ const Movies = () => {
                         break;
                     }
                 }
-                
+
                 // Get streaming providers
                 const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieProviders = await providersResponse.json();
@@ -432,11 +492,11 @@ const Movies = () => {
                 if (movieProviders.results.US && movieProviders.results.US.flatrate) {
                     providerNames = movieProviders.results.US.flatrate.map(provider => provider.provider_name);
                 }
-                
+
                 // Get IMDB ID
                 const imdbResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/external_ids?api_key=${process.env.REACT_APP_API_KEY}`);
                 const imdbData = await imdbResponse.json();
-                
+
                 // Add to database
                 const userMovieListRef = ref(db, getMoviesPath(uid));
                 await push(userMovieListRef, {
@@ -451,19 +511,19 @@ const Movies = () => {
                     releaseyear: movieDetails.release_date ? movieDetails.release_date.substring(0, 4) : "",
                     imdbid: imdbData.imdb_id
                 });
-                
+
                 existingMovieIds.push(movie.id);
                 added++;
-                
+
             } catch (error) {
                 console.error(`Error importing "${line}":`, error);
                 notFound++;
             }
         }
-        
+
         setImportStatus(`Done! Added: ${added}, Skipped (already in list): ${skipped}, Not found: ${notFound}`);
         setIsImporting(false);
-        
+
         // Refresh the movie list
         if (added > 0) {
             fetchMovies(uid);
@@ -483,20 +543,20 @@ const Movies = () => {
 
     const handleRefreshWatchlist = async () => {
         if (movies.length === 0 || isRefreshing) return;
-        
+
         setIsRefreshing(true);
         setRefreshStatus("Starting refresh...");
-        
+
         for (let i = 0; i < movies.length; i++) {
             const movie = movies[i];
             setRefreshStatus(`Refreshing ${i + 1}/${movies.length}: ${movie.name}`);
-            
+
             try {
                 // Fetch movie details
                 const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieDetails = await detailsResponse.json();
                 const genreString = movieDetails.genres.map(genre => genre.name).join(' / ');
-                
+
                 // Get age rating
                 const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieRating = await ratingResponse.json();
@@ -512,7 +572,7 @@ const Movies = () => {
                         break;
                     }
                 }
-                
+
                 // Get streaming providers
                 const providersResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieProviders = await providersResponse.json();
@@ -520,11 +580,11 @@ const Movies = () => {
                 if (movieProviders.results.US && movieProviders.results.US.flatrate) {
                     providerNames = movieProviders.results.US.flatrate.map(provider => provider.provider_name);
                 }
-                
+
                 // Get IMDB ID
                 const imdbResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}/external_ids?api_key=${process.env.REACT_APP_API_KEY}`);
                 const imdbData = await imdbResponse.json();
-                
+
                 // Update in database
                 const movieRef = ref(db, `${getMoviesPath(uid)}/${movie.id}`);
                 await update(movieRef, {
@@ -542,7 +602,7 @@ const Movies = () => {
                 console.error(`Error refreshing "${movie.name}":`, error);
             }
         }
-        
+
         setRefreshStatus("Done! Refreshing list...");
         await fetchMovies(uid);
         setIsRefreshing(false);
@@ -552,16 +612,16 @@ const Movies = () => {
     // Filter and sort movies based on streaming service and sort option
     const filteredMovies = useMemo(() => {
         let result = movies;
-        
+
         // Apply streaming filter
         if (streamingFilter.length > 0) {
-            result = result.filter(movie => 
-                movie.providers && 
-                movie.providers.length > 0 && 
+            result = result.filter(movie =>
+                movie.providers &&
+                movie.providers.length > 0 &&
                 streamingFilter.some(provider => movie.providers.includes(provider))
             );
         }
-        
+
         // Apply sorting
         if (sortBy === "To Watch") {
             result = result.slice().sort((a, b) => {
@@ -575,9 +635,15 @@ const Movies = () => {
             result = result.slice().sort((a, b) => {
                 return a.runtime - b.runtime;
             });
+        } else if (sortBy === "User Rating") {
+            result = result.slice().sort((a, b) => {
+                const ratingA = a.user_rating || -1;
+                const ratingB = b.user_rating || -1;
+                return ratingB - ratingA;
+            });
         }
         // "Default" - no sorting needed, keep original order
-        
+
         return result;
     }, [movies, streamingFilter, sortBy]);
 
@@ -617,6 +683,7 @@ const Movies = () => {
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("Runtime")}>Runtime</button></li>
+                                        <li><button className="dropdown-item" onClick={() => handleSortBy("User Rating")}>User Rating</button></li>
                                     </ul>
                                     <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
                                         {getStreamingFilterButtonText()}
@@ -624,9 +691,9 @@ const Movies = () => {
                                     <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton2" style={{ minWidth: '200px', maxHeight: '300px', overflowY: 'auto' }}>
                                         <li>
                                             <label className="dropdown-item" style={{ cursor: 'pointer' }}>
-                                                <input 
-                                                    type="checkbox" 
-                                                    className="form-check-input me-2" 
+                                                <input
+                                                    type="checkbox"
+                                                    className="form-check-input me-2"
                                                     checked={streamingFilter.length === 0 || (streamingFilter.length === selectedProviders.length && selectedProviders.length > 0)}
                                                     onChange={handleSelectAllStreaming}
                                                     onClick={(e) => e.stopPropagation()}
@@ -639,9 +706,9 @@ const Movies = () => {
                                             selectedProviders.map((provider) => (
                                                 <li key={provider}>
                                                     <label className="dropdown-item" style={{ cursor: 'pointer' }}>
-                                                        <input 
-                                                            type="checkbox" 
-                                                            className="form-check-input me-2" 
+                                                        <input
+                                                            type="checkbox"
+                                                            className="form-check-input me-2"
                                                             checked={streamingFilter.includes(provider)}
                                                             onChange={() => handleStreamingFilterToggle(provider)}
                                                             onClick={(e) => e.stopPropagation()}
@@ -682,8 +749,8 @@ const Movies = () => {
                                 {filteredMovies.map((movie) => (
                                     <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                                         <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', wordWrap: 'break-word' }}>
-                                                <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie.id, movie.watched)} />
-                                                <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
+                                            <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie, movie.watched)} />
+                                            <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
                                             <div className="d-flex flex-wrap align-items-center">
                                                 <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
                                                 {' '}
@@ -693,7 +760,7 @@ const Movies = () => {
                                             </div>
                                             <p className="m-1 badge bg-light text-dark border border-info" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{movie.genres}</p>
                                             {movie.providers && movie.providers.length > 0 && (() => {
-                                                const filteredProviders = selectedProviders.length > 0 
+                                                const filteredProviders = selectedProviders.length > 0
                                                     ? movie.providers.filter(p => selectedProviders.includes(p))
                                                     : movie.providers;
                                                 return filteredProviders.length > 0 && (
@@ -702,9 +769,9 @@ const Movies = () => {
                                                         {filteredProviders.map((provider, idx) => {
                                                             const logo = getProviderLogo(provider);
                                                             return logo ? (
-                                                                <img 
+                                                                <img
                                                                     key={idx}
-                                                                    src={logo} 
+                                                                    src={logo}
                                                                     alt={provider}
                                                                     title={provider}
                                                                     className="rounded"
@@ -719,16 +786,21 @@ const Movies = () => {
                                             })()}
                                         </div>
                                         <div className="d-flex align-items-center justify-content-between flex-shrink-0 mt-2 mt-md-0">
+                                            {movie.watched && movie.user_rating !== undefined && movie.user_rating !== null && (
+                                                <span className="me-2 fw-bold text-warning" style={{ fontSize: '1.2em' }}>
+                                                    {movie.user_rating} ★
+                                                </span>
+                                            )}
                                             {movie.poster_path && movie.poster_path.trim() !== '' ? (
                                                 <div className="btn-group dropstart">
-                                                    <button 
+                                                    <button
                                                         type="button"
                                                         className="btn p-0 border-0 dropdown-toggle poster-dropdown"
                                                         data-bs-toggle="dropdown"
                                                         aria-expanded="false"
                                                         style={{ padding: 0 }}
                                                     >
-                                                        <img 
+                                                        <img
                                                             src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w185${movie.poster_path.startsWith('/') ? movie.poster_path : '/' + movie.poster_path}`}
                                                             alt={movie.name}
                                                             className="rounded flex-shrink-0"
@@ -778,10 +850,10 @@ const Movies = () => {
                                 <button type="button" className="btn-close" onClick={() => setShowExportModal(false)}></button>
                             </div>
                             <div className="modal-body">
-                                <textarea 
-                                    className="form-control" 
-                                    rows="10" 
-                                    value={exportText} 
+                                <textarea
+                                    className="form-control"
+                                    rows="10"
+                                    value={exportText}
                                     readOnly
                                 />
                             </div>
@@ -803,9 +875,9 @@ const Movies = () => {
                             </div>
                             <div className="modal-body">
                                 <p className="text-muted small mb-2">Enter one movie per line in the format: <code>Title (Year) [x]</code> for watched or <code>Title (Year) []</code> for not watched</p>
-                                <textarea 
-                                    className="form-control" 
-                                    rows="10" 
+                                <textarea
+                                    className="form-control"
+                                    rows="10"
                                     value={importText}
                                     onChange={(e) => setImportText(e.target.value)}
                                     placeholder="The Shawshank Redemption (1994) [x]&#10;Inception (2010) []&#10;The Dark Knight (2008)"
@@ -822,6 +894,37 @@ const Movies = () => {
                                 <button type="button" className="btn btn-primary" onClick={handleImportWatchlist} disabled={isImporting || !importText.trim()}>
                                     {isImporting ? "Importing..." : "Import"}
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showRatingModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Rate Movie</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowRatingModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Rate <strong>{movieToRate?.name}</strong> from 0 to 10.</p>
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    value={ratingInput}
+                                    onChange={handleRatingChange}
+                                    min="0"
+                                    max="10"
+                                    step="0.1"
+                                    placeholder="Enter rating (e.g. 7.5)"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowRatingModal(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveRating}>Save as Watched</button>
                             </div>
                         </div>
                     </div>
@@ -862,14 +965,14 @@ const Movies = () => {
                                 <div className="row">
                                     {availableProviders.map(provider => (
                                         <div key={provider.provider_id} className="col-6 col-md-4 mb-2">
-                                            <div 
+                                            <div
                                                 className={`p-2 rounded d-flex align-items-center ${editingProviders.includes(provider.provider_name) ? 'bg-primary text-white' : 'bg-light border'}`}
                                                 style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
                                                 onClick={() => handleProviderToggle(provider.provider_name)}
                                             >
                                                 {provider.logo_path && (
-                                                    <img 
-                                                        src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`} 
+                                                    <img
+                                                        src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
                                                         alt={provider.provider_name}
                                                         className="me-2 rounded"
                                                         style={{ width: '24px', height: '24px' }}
@@ -906,9 +1009,9 @@ const Movies = () => {
                                         <div className="card-body">
                                             <div className="mb-3">
                                                 <label className="form-label">Name</label>
-                                                <input 
-                                                    type="text" 
-                                                    className="form-control" 
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
                                                     value={site.name}
                                                     onChange={(e) => handleSiteChange(index, 'name', e.target.value)}
                                                     placeholder="Site Name"
@@ -916,9 +1019,9 @@ const Movies = () => {
                                             </div>
                                             <div className="mb-3">
                                                 <label className="form-label">URL (movie name will be appended)</label>
-                                                <input 
-                                                    type="text" 
-                                                    className="form-control" 
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
                                                     value={site.url}
                                                     onChange={(e) => handleSiteChange(index, 'url', e.target.value)}
                                                     placeholder="https://example.com/search/"
@@ -926,7 +1029,7 @@ const Movies = () => {
                                             </div>
                                             <div className="mb-3">
                                                 <label className="form-label">Space Replacement Format</label>
-                                                <select 
+                                                <select
                                                     className="form-select"
                                                     value={site.format}
                                                     onChange={(e) => handleSiteChange(index, 'format', e.target.value)}
