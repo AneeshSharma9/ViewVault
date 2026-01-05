@@ -695,9 +695,9 @@ const Movies = () => {
                             <h1 className="text-center m-4 fw-bold fade-in">{listName}</h1>
                         )}
                         <div className="pt-2 pb-4">
-                            <div className="dropdown mb-2 d-flex justify-content-between">
-                                <div className="d-flex gap-2">
-                                    <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div className="mb-3 d-flex flex-column flex-md-row justify-content-between gap-3">
+                                <div className="d-flex gap-2 flex-wrap">
+                                    <button className="btn btn-outline-secondary dropdown-toggle flex-fill" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                                         {sortBy}
                                     </button>
                                     <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
@@ -707,7 +707,7 @@ const Movies = () => {
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("Runtime")}>Runtime</button></li>
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("User Rating")}>User Rating</button></li>
                                     </ul>
-                                    <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button className="btn btn-outline-secondary dropdown-toggle flex-fill" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
                                         {getStreamingFilterButtonText()}
                                     </button>
                                     <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton2" style={{ minWidth: '200px', maxHeight: '300px', overflowY: 'auto' }}>
@@ -743,10 +743,8 @@ const Movies = () => {
                                             <li><span className="dropdown-item-text text-muted">No streaming services enabled</span></li>
                                         )}
                                     </ul>
-                                </div>
-                                <div className="d-flex gap-2">
-                                    <div className="dropdown">
-                                        <button className="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div className="dropdown flex-fill">
+                                        <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             ⋯
                                         </button>
                                         <ul className="dropdown-menu dropdown-menu-end">
@@ -764,7 +762,9 @@ const Movies = () => {
                                             <li><button className="dropdown-item text-danger" onClick={() => setShowClearModal(true)}>Clear Watchlist</button></li>
                                         </ul>
                                     </div>
-                                    <a className="btn btn-primary" href="./searchmovie">Add Movie</a>
+                                </div>
+                                <div className="d-flex gap-2 flex-wrap">
+                                    <a className="btn btn-primary flex-fill" href="./searchmovie">Add Movie</a>
                                 </div>
                             </div>
                             <div className="list-group list-group-light">
@@ -890,244 +890,258 @@ const Movies = () => {
                 </div>
             </div>
 
-            {showExportModal && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Export Watchlist</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowExportModal(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                <textarea
-                                    className="form-control"
-                                    rows="10"
-                                    value={exportText}
-                                    readOnly
-                                />
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Close</button>
+            {
+                showExportModal && (
+                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Export Watchlist</h5>
+                                    <button type="button" className="btn-close" onClick={() => setShowExportModal(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <textarea
+                                        className="form-control"
+                                        rows="10"
+                                        value={exportText}
+                                        readOnly
+                                    />
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Close</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {showImportModal && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Import Watchlist</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowImportModal(false)} disabled={isImporting}></button>
+            {
+                showImportModal && (
+                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Import Watchlist</h5>
+                                    <button type="button" className="btn-close" onClick={() => setShowImportModal(false)} disabled={isImporting}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <p className="text-muted small mb-2">Enter one movie per line in the format: <code>Title (Year) [x]</code> for watched or <code>Title (Year) []</code> for not watched</p>
+                                    <textarea
+                                        className="form-control"
+                                        rows="10"
+                                        value={importText}
+                                        onChange={(e) => setImportText(e.target.value)}
+                                        placeholder="The Shawshank Redemption (1994) [x]&#10;Inception (2010) []&#10;The Dark Knight (2008)"
+                                        disabled={isImporting}
+                                    />
+                                    {importStatus && (
+                                        <div className={`mt-2 small ${importStatus.startsWith("Done") ? "text-success" : "text-info"}`}>
+                                            {importStatus}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowImportModal(false)} disabled={isImporting}>Close</button>
+                                    <button type="button" className="btn btn-primary" onClick={handleImportWatchlist} disabled={isImporting || !importText.trim()}>
+                                        {isImporting ? "Importing..." : "Import"}
+                                    </button>
+                                </div>
                             </div>
-                            <div className="modal-body">
-                                <p className="text-muted small mb-2">Enter one movie per line in the format: <code>Title (Year) [x]</code> for watched or <code>Title (Year) []</code> for not watched</p>
-                                <textarea
-                                    className="form-control"
-                                    rows="10"
-                                    value={importText}
-                                    onChange={(e) => setImportText(e.target.value)}
-                                    placeholder="The Shawshank Redemption (1994) [x]&#10;Inception (2010) []&#10;The Dark Knight (2008)"
-                                    disabled={isImporting}
-                                />
-                                {importStatus && (
-                                    <div className={`mt-2 small ${importStatus.startsWith("Done") ? "text-success" : "text-info"}`}>
-                                        {importStatus}
+                        </div>
+                    </div>
+                )
+            }
+
+            {
+                showRatingModal && (
+                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Rate Movie</h5>
+                                    <button type="button" className="btn-close" onClick={() => setShowRatingModal(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <p>Rate <strong>{movieToRate?.name}</strong> from 0 to 10.</p>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        value={ratingInput}
+                                        onChange={handleRatingChange}
+                                        min="0"
+                                        max="10"
+                                        step="0.1"
+                                        placeholder="Enter rating (e.g. 7.5)"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowRatingModal(false)}>Cancel</button>
+                                    <button type="button" className="btn btn-primary" onClick={handleSaveRating}>Save as Watched</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {
+                showClearModal && (
+                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Clear Watchlist</h5>
+                                    <button type="button" className="btn-close" onClick={() => setShowClearModal(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <p>Are you sure you want to clear your entire watchlist?</p>
+                                    <p className="text-danger fw-bold">This action cannot be undone.</p>
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowClearModal(false)}>Cancel</button>
+                                    <button type="button" className="btn btn-danger" onClick={handleClearWatchlist}>Clear Watchlist</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {
+                showStreamingModal && (
+                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Edit Streaming Services</h5>
+                                    <button type="button" className="btn-close" onClick={() => setShowStreamingModal(false)}></button>
+                                </div>
+                                <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                                    <p className="text-muted small mb-3">Select the streaming services you have access to. This will be used to show which movies are available on your services.</p>
+                                    <div className="row">
+                                        {availableProviders.map(provider => (
+                                            <div key={provider.provider_id} className="col-6 col-md-4 mb-2">
+                                                <div
+                                                    className={`p-2 rounded d-flex align-items-center ${editingProviders.includes(provider.provider_name) ? 'bg-primary text-white' : 'bg-light border'}`}
+                                                    style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
+                                                    onClick={() => handleProviderToggle(provider.provider_name)}
+                                                >
+                                                    {provider.logo_path && (
+                                                        <img
+                                                            src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                                                            alt={provider.provider_name}
+                                                            className="me-2 rounded"
+                                                            style={{ width: '24px', height: '24px' }}
+                                                        />
+                                                    )}
+                                                    <span className="small">{provider.provider_name}</span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                )}
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowImportModal(false)} disabled={isImporting}>Close</button>
-                                <button type="button" className="btn btn-primary" onClick={handleImportWatchlist} disabled={isImporting || !importText.trim()}>
-                                    {isImporting ? "Importing..." : "Import"}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showRatingModal && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Rate Movie</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowRatingModal(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>Rate <strong>{movieToRate?.name}</strong> from 0 to 10.</p>
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    value={ratingInput}
-                                    onChange={handleRatingChange}
-                                    min="0"
-                                    max="10"
-                                    step="0.1"
-                                    placeholder="Enter rating (e.g. 7.5)"
-                                    autoFocus
-                                />
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowRatingModal(false)}>Cancel</button>
-                                <button type="button" className="btn btn-primary" onClick={handleSaveRating}>Save as Watched</button>
+                                </div>
+                                <div className="modal-footer">
+                                    <span className="text-muted small me-auto">{editingProviders.length} selected</span>
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowStreamingModal(false)}>Cancel</button>
+                                    <button type="button" className="btn btn-primary" onClick={handleSaveProviders}>Save</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {showClearModal && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Clear Watchlist</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowClearModal(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>Are you sure you want to clear your entire watchlist?</p>
-                                <p className="text-danger fw-bold">This action cannot be undone.</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowClearModal(false)}>Cancel</button>
-                                <button type="button" className="btn btn-danger" onClick={handleClearWatchlist}>Clear Watchlist</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showStreamingModal && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Edit Streaming Services</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowStreamingModal(false)}></button>
-                            </div>
-                            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                                <p className="text-muted small mb-3">Select the streaming services you have access to. This will be used to show which movies are available on your services.</p>
-                                <div className="row">
-                                    {availableProviders.map(provider => (
-                                        <div key={provider.provider_id} className="col-6 col-md-4 mb-2">
-                                            <div
-                                                className={`p-2 rounded d-flex align-items-center ${editingProviders.includes(provider.provider_name) ? 'bg-primary text-white' : 'bg-light border'}`}
-                                                style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
-                                                onClick={() => handleProviderToggle(provider.provider_name)}
-                                            >
-                                                {provider.logo_path && (
-                                                    <img
-                                                        src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
-                                                        alt={provider.provider_name}
-                                                        className="me-2 rounded"
-                                                        style={{ width: '24px', height: '24px' }}
+            {
+                showSitesModal && (
+                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <div className="modal-dialog modal-dialog-centered modal-lg">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Edit Watch Sites</h5>
+                                    <button type="button" className="btn-close" onClick={() => setShowSitesModal(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    {editingSites.map((site, index) => (
+                                        <div key={index} className="card mb-3">
+                                            <div className="card-header fw-bold">Site {index + 1}</div>
+                                            <div className="card-body">
+                                                <div className="mb-3">
+                                                    <label className="form-label">Name</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        value={site.name}
+                                                        onChange={(e) => handleSiteChange(index, 'name', e.target.value)}
+                                                        placeholder="Site Name"
                                                     />
-                                                )}
-                                                <span className="small">{provider.provider_name}</span>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label">URL (movie name will be appended)</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        value={site.url}
+                                                        onChange={(e) => handleSiteChange(index, 'url', e.target.value)}
+                                                        placeholder="https://example.com/search/"
+                                                    />
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label">Space Replacement Format</label>
+                                                    <select
+                                                        className="form-select"
+                                                        value={site.format}
+                                                        onChange={(e) => handleSiteChange(index, 'format', e.target.value)}
+                                                    >
+                                                        <option value="%20">%20 (URL encoded space)</option>
+                                                        <option value="-">- (dash)</option>
+                                                        <option value="_">_ (underscore)</option>
+                                                        <option value="+">+ (plus)</option>
+                                                        <option value=" ">(keep spaces)</option>
+                                                    </select>
+                                                </div>
+                                                <div className="text-muted small">
+                                                    Preview: <code>{site.url}The{site.format}Movie{site.format}Name</code>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                            <div className="modal-footer">
-                                <span className="text-muted small me-auto">{editingProviders.length} selected</span>
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowStreamingModal(false)}>Cancel</button>
-                                <button type="button" className="btn btn-primary" onClick={handleSaveProviders}>Save</button>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowSitesModal(false)}>Cancel</button>
+                                    <button type="button" className="btn btn-primary" onClick={handleSaveSites}>Save Sites</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {showSitesModal && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Edit Watch Sites</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowSitesModal(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                {editingSites.map((site, index) => (
-                                    <div key={index} className="card mb-3">
-                                        <div className="card-header fw-bold">Site {index + 1}</div>
-                                        <div className="card-body">
-                                            <div className="mb-3">
-                                                <label className="form-label">Name</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={site.name}
-                                                    onChange={(e) => handleSiteChange(index, 'name', e.target.value)}
-                                                    placeholder="Site Name"
-                                                />
-                                            </div>
-                                            <div className="mb-3">
-                                                <label className="form-label">URL (movie name will be appended)</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={site.url}
-                                                    onChange={(e) => handleSiteChange(index, 'url', e.target.value)}
-                                                    placeholder="https://example.com/search/"
-                                                />
-                                            </div>
-                                            <div className="mb-3">
-                                                <label className="form-label">Space Replacement Format</label>
-                                                <select
-                                                    className="form-select"
-                                                    value={site.format}
-                                                    onChange={(e) => handleSiteChange(index, 'format', e.target.value)}
-                                                >
-                                                    <option value="%20">%20 (URL encoded space)</option>
-                                                    <option value="-">- (dash)</option>
-                                                    <option value="_">_ (underscore)</option>
-                                                    <option value="+">+ (plus)</option>
-                                                    <option value=" ">(keep spaces)</option>
-                                                </select>
-                                            </div>
-                                            <div className="text-muted small">
-                                                Preview: <code>{site.url}The{site.format}Movie{site.format}Name</code>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowSitesModal(false)}>Cancel</button>
-                                <button type="button" className="btn btn-primary" onClick={handleSaveSites}>Save Sites</button>
+            {
+                showDeleteMovieModal && movieToDelete && (
+                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Remove Movie</h5>
+                                    <button type="button" className="btn-close" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <p>Are you sure you want to remove "<strong>{movieToDelete.name}</strong>" from your watchlist?</p>
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}>Cancel</button>
+                                    <button type="button" className="btn btn-danger" onClick={handleConfirmDeleteMovie}>Remove</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {showDeleteMovieModal && movieToDelete && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Remove Movie</h5>
-                                <button type="button" className="btn-close" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>Are you sure you want to remove "<strong>{movieToDelete.name}</strong>" from your watchlist?</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}>Cancel</button>
-                                <button type="button" className="btn btn-danger" onClick={handleConfirmDeleteMovie}>Remove</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             <Footer></Footer>
-        </div>
+        </div >
     )
 };
 
