@@ -63,14 +63,14 @@ const RecommendedMovies = () => {
                         if (watchlistsSnapshot.exists()) {
                             const data = watchlistsSnapshot.val();
                             const movieLists = [];
-                            
+
                             for (const key of Object.keys(data)) {
                                 if (data[key].type === 'movies') {
                                     movieLists.push({
                                         id: key,
                                         ...data[key]
                                     });
-                                    
+
                                     // Check items in this custom list
                                     if (data[key].items) {
                                         Object.values(data[key].items).forEach((movie) => {
@@ -120,7 +120,7 @@ const RecommendedMovies = () => {
             if (moviesToFetch.length === 0) return;
 
             const newRatings = { ...movieRatings };
-            
+
             // Fetch ratings in parallel (batch of 5 at a time to avoid rate limiting)
             for (let i = 0; i < moviesToFetch.length; i += 5) {
                 const batch = moviesToFetch.slice(i, i + 5);
@@ -140,14 +140,14 @@ const RecommendedMovies = () => {
                         return { id: movie.id, rating: 'NR' };
                     }
                 });
-                
+
                 const results = await Promise.all(promises);
                 results.forEach(r => { newRatings[r.id] = r.rating; });
             }
-            
+
             setMovieRatings(newRatings);
         };
-        
+
         if (searchResults.length > 0) {
             fetchRatings();
         }
@@ -221,7 +221,7 @@ const RecommendedMovies = () => {
         const uid = auth.currentUser.uid;
         if (uid) {
             // Determine the path based on whether it's a custom list or default
-            const listPath = listId 
+            const listPath = listId
                 ? `users/${uid}/customwatchlists/${listId}/items`
                 : `users/${uid}/defaultwatchlists/movies/items`;
             const userMovieListRef = ref(db, listPath);
@@ -255,13 +255,14 @@ const RecommendedMovies = () => {
             <Navbar></Navbar>
             <div className="container">
                 <h1 className="text-center m-5">Movies like {location.state.name}</h1>
-                <MovieCardGrid 
+                <MovieCardGrid
                     movies={searchResults}
                     genres={genres}
                     movieRatings={movieRatings}
                     addedMovies={addedMovies}
                     customWatchlists={customWatchlists}
                     handleAddMovie={handleAddMovie}
+                    defaultWatchlistName="Movies (Default)"
                 />
             </div>
             <Footer></Footer>

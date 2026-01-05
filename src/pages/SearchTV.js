@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
 import Footer from "./Footer";
+import MovieCardGrid from "../components/MovieCardGrid";
 
 
 const SearchTV = () => {
@@ -12,28 +13,66 @@ const SearchTV = () => {
     const [addedShows, setAddedShows] = useState({});
     const [uid, setUid] = useState(null);
     const inputRef = useRef(null);
-
+    const [customWatchlists, setCustomWatchlists] = useState([]);
+    const [genres, setGenres] = useState([]);
+    const [tvRatings, setTvRatings] = useState({});
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
                 setUid(uid);
                 if (uid) {
-                    const userShowListRef = ref(db, `users/${uid}/tvlist`);
-                    get(userShowListRef).then((snapshot) => {
+                    const addedShowsData = {};
+
+                    // Get shows from default watchlist (tvlist)
+                    try {
+                        const userShowListRef = ref(db, `users/${uid}/defaultwatchlists/tvshows/items`);
+                        const snapshot = await get(userShowListRef);
                         if (snapshot.exists()) {
                             const showsData = snapshot.val();
-                            const showIds = Object.values(showsData).map((tvshow) => tvshow.tvshowid);
-                            const addedShowsData = {};
-                            showIds.forEach((showId) => {
-                                addedShowsData[showId] = true;
+                            Object.values(showsData).forEach((show) => {
+                                if (show.tvshowid) {
+                                    addedShowsData[show.tvshowid] = true;
+                                }
                             });
-                            setAddedShows(addedShowsData);
                         }
-                    }).catch((error) => {
+                    } catch (error) {
                         console.error('Error fetching user tv shows:', error);
-                    });
+                    }
+
+                    // Fetch custom watchlists of type "tvshows"
+                    try {
+                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const watchlistsSnapshot = await get(watchlistsRef);
+                        if (watchlistsSnapshot.exists()) {
+                            const data = watchlistsSnapshot.val();
+                            const tvLists = [];
+
+                            for (const key of Object.keys(data)) {
+                                if (data[key].type === 'tvshows') {
+                                    tvLists.push({
+                                        id: key,
+                                        ...data[key]
+                                    });
+
+                                    // Check items in this custom list
+                                    if (data[key].items) {
+                                        Object.values(data[key].items).forEach((show) => {
+                                            if (show.tvshowid) {
+                                                addedShowsData[show.tvshowid] = true;
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                            setCustomWatchlists(tvLists);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching custom watchlists:', error);
+                    }
+
+                    setAddedShows(addedShowsData);
                 }
             } else {
                 setUid(null);
@@ -41,6 +80,59 @@ const SearchTV = () => {
         });
         return () => unsubscribe();
     }, []);
+
+    // Fetch genres
+    useEffect(() => {
+        const fetchGenres = async () => {
+            try {
+                const response = await axios.get(`https://api.themoviedb.org/3/genre/tv/list?language=en`, {
+                    params: {
+                        api_key: process.env.REACT_APP_API_KEY,
+                    }
+                });
+                setGenres(response.data.genres);
+            } catch (error) {
+                console.error('Error fetching genres:', error);
+            }
+        };
+        fetchGenres();
+    }, []);
+
+    // Fetch ratings for TV shows
+    useEffect(() => {
+        const fetchRatings = async () => {
+            const showsToFetch = searchResults.filter(s => !tvRatings[s.id]);
+            if (showsToFetch.length === 0) return;
+
+            const newRatings = { ...tvRatings };
+
+            // Fetch ratings in parallel
+            for (let i = 0; i < showsToFetch.length; i += 5) {
+                const batch = showsToFetch.slice(i, i + 5);
+                const promises = batch.map(async (show) => {
+                    try {
+                        const response = await axios.get(
+                            `https://api.themoviedb.org/3/tv/${show.id}/content_ratings`,
+                            { params: { api_key: process.env.REACT_APP_API_KEY } }
+                        );
+                        const usRating = response.data.results.find(r => r.iso_3166_1 === 'US');
+                        return { id: show.id, rating: usRating ? usRating.rating : 'NR' };
+                    } catch {
+                        return { id: show.id, rating: 'NR' };
+                    }
+                });
+
+                const results = await Promise.all(promises);
+                results.forEach(r => { newRatings[r.id] = r.rating; });
+            }
+
+            setTvRatings(newRatings);
+        };
+
+        if (searchResults.length > 0) {
+            fetchRatings();
+        }
+    }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const searchTV = async () => {
         try {
@@ -62,14 +154,17 @@ const SearchTV = () => {
     };
 
 
-    const handleAddShow = async (tvshow) => {
+    const handleAddTVShow = async (tvshow, listId = null) => {
         //Getting general tv show details
         const detailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${tvshow.id}?api_key=${process.env.REACT_APP_API_KEY}`);
         if (!detailsResponse.ok) {
             throw new Error('Failed to fetch tvshow details');
         }
         const showDetails = await detailsResponse.json();
-        console.log(showDetails)
+
+        const genreString = showDetails.genres
+            .map(genre => genre.name)
+            .join(' • ');
 
         //Getting age rating
         const ratingResponse = await fetch(`https://api.themoviedb.org/3/tv/${tvshow.id}/content_ratings?api_key=${process.env.REACT_APP_API_KEY}`);
@@ -101,7 +196,10 @@ const SearchTV = () => {
         //Saving show to user's database
         const uid = auth.currentUser.uid;
         if (uid) {
-            const userShowListRef = ref(db, `users/${uid}/tvlist`);
+            const listPath = listId
+                ? `users/${uid}/customwatchlists/${listId}/items`
+                : `users/${uid}/defaultwatchlists/tvshows/items`;
+            const userShowListRef = ref(db, listPath);
             push(userShowListRef, {
                 tvshowtitle: tvshow.name,
                 tvshowid: tvshow.id,
@@ -109,7 +207,10 @@ const SearchTV = () => {
                 providers: providerNames,
                 agerating: certificationForUS,
                 voteaverage: tvshow.vote_average,
-                numepisodes: showDetails.number_of_episodes
+                numepisodes: showDetails.number_of_episodes,
+                genres: genreString,
+                first_air_date: showDetails.first_air_date,
+                poster_path: tvshow.poster_path || ''
             })
                 .then(() => {
                     console.log('tvshow added successfully!');
@@ -126,16 +227,6 @@ const SearchTV = () => {
     const handleKeyDown = (event) => {
         if (event.key === 'Enter') {
             searchTV();
-        }
-    };
-
-    const getBackgroundColor = (voteAverage) => {
-        if (voteAverage * 10 >= 70) {
-            return "bg-success";
-        } else if (voteAverage * 10 >= 50) {
-            return "bg-warning text-dark";
-        } else {
-            return "bg-danger";
         }
     };
 
@@ -156,22 +247,15 @@ const SearchTV = () => {
                     </div>
                 </div>
 
-                <ul className="list-group mt-4">
-                    {searchResults.map((tvshow) => (
-
-                        <li key={tvshow.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
-                            <div className="">
-                                <p className="fw-bold">{tvshow.name} <span className="fw-light">({tvshow.first_air_date.substring(0, 4)})</span> <span className={`badge rounded-pill ${getBackgroundColor(tvshow.vote_average)}`}>{(tvshow.vote_average * 10).toFixed(2)}%</span> </p>
-                                <p className="fw-normal">{tvshow.overview}</p>
-                            </div>
-                            {addedShows[tvshow.id] ? (
-                                <button className="btn btn-success mx-3" type="button">✓</button>
-                            ) : (
-                                <button className="btn btn-primary mx-3" type="button" onClick={() => { handleAddShow(tvshow) }}>+</button>
-                            )}
-                        </li>
-                    ))}
-                </ul>
+                <MovieCardGrid
+                    movies={searchResults}
+                    genres={genres}
+                    movieRatings={tvRatings}
+                    addedMovies={addedShows}
+                    customWatchlists={customWatchlists}
+                    handleAddMovie={handleAddTVShow}
+                    defaultWatchlistName="TV Shows (Default)"
+                />
             </div>
             <Footer></Footer>
         </div>

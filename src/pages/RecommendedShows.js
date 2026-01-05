@@ -5,14 +5,16 @@ import axios from "axios";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
 import Footer from "./Footer";
-
+import MovieCardGrid from "../components/MovieCardGrid";
 
 const RecommendedShows = () => {
-    const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [addedShows, setAddedShows] = useState({});
     const [uid, setUid] = useState(null);
     const location = useLocation();
+    const [customWatchlists, setCustomWatchlists] = useState([]);
+    const [genres, setGenres] = useState([]);
+    const [tvRatings, setTvRatings] = useState({});
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -30,25 +32,61 @@ const RecommendedShows = () => {
     }, []);
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
                 setUid(uid);
                 if (uid) {
-                    const userShowListRef = ref(db, `users/${uid}/tvlist`);
-                    get(userShowListRef).then((snapshot) => {
+                    const addedShowsData = {};
+
+                    // Get shows from default watchlist
+                    try {
+                        const userShowListRef = ref(db, `users/${uid}/defaultwatchlists/tvshows/items`);
+                        const snapshot = await get(userShowListRef);
                         if (snapshot.exists()) {
-                            const showData = snapshot.val();
-                            const showIds = Object.values(showData).map((show) => show.tvshowid);
-                            const addedShowsData = {};
-                            showIds.forEach((showId) => {
-                                addedShowsData[showId] = true;
+                            const showsData = snapshot.val();
+                            Object.values(showsData).forEach((show) => {
+                                if (show.tvshowid) {
+                                    addedShowsData[show.tvshowid] = true;
+                                }
                             });
-                            setAddedShows(addedShowsData);
                         }
-                    }).catch((error) => {
-                        console.error('Error fetching user shows:', error);
-                    });
+                    } catch (error) {
+                        console.error('Error fetching user tv shows:', error);
+                    }
+
+                    // Fetch custom watchlists of type "tvshows"
+                    try {
+                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const watchlistsSnapshot = await get(watchlistsRef);
+                        if (watchlistsSnapshot.exists()) {
+                            const data = watchlistsSnapshot.val();
+                            const tvLists = [];
+
+                            for (const key of Object.keys(data)) {
+                                if (data[key].type === 'tvshows') {
+                                    tvLists.push({
+                                        id: key,
+                                        ...data[key]
+                                    });
+
+                                    // Check items in this custom list
+                                    if (data[key].items) {
+                                        Object.values(data[key].items).forEach((show) => {
+                                            if (show.tvshowid) {
+                                                addedShowsData[show.tvshowid] = true;
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                            setCustomWatchlists(tvLists);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching custom watchlists:', error);
+                    }
+
+                    setAddedShows(addedShowsData);
                 }
             } else {
                 setUid(null);
@@ -57,117 +95,120 @@ const RecommendedShows = () => {
         return () => unsubscribe();
     }, []);
 
+    // Fetch genres
+    useEffect(() => {
+        const fetchGenres = async () => {
+            try {
+                const response = await axios.get(`https://api.themoviedb.org/3/genre/tv/list?language=en`, {
+                    params: { api_key: process.env.REACT_APP_API_KEY }
+                });
+                setGenres(response.data.genres);
+            } catch (error) {
+                console.error('Error fetching genres:', error);
+            }
+        };
+        fetchGenres();
+    }, []);
+
+    // Fetch ratings for recommended shows
+    useEffect(() => {
+        const fetchRatings = async () => {
+            const showsToFetch = searchResults.filter(s => !tvRatings[s.id]);
+            if (showsToFetch.length === 0) return;
+
+            const newRatings = { ...tvRatings };
+            for (let i = 0; i < showsToFetch.length; i += 5) {
+                const batch = showsToFetch.slice(i, i + 5);
+                const promises = batch.map(async (show) => {
+                    try {
+                        const response = await axios.get(
+                            `https://api.themoviedb.org/3/tv/${show.id}/content_ratings`,
+                            { params: { api_key: process.env.REACT_APP_API_KEY } }
+                        );
+                        const usRating = response.data.results.find(r => r.iso_3166_1 === 'US');
+                        return { id: show.id, rating: usRating ? usRating.rating : 'NR' };
+                    } catch {
+                        return { id: show.id, rating: 'NR' };
+                    }
+                });
+                const results = await Promise.all(promises);
+                results.forEach(r => { newRatings[r.id] = r.rating; });
+            }
+            setTvRatings(newRatings);
+        };
+        if (searchResults.length > 0) fetchRatings();
+    }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const searchShow = async () => {
         try {
-            const detailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${location.state.tvshowid}/recommendations?api_key=${process.env.REACT_APP_API_KEY}`);
-            if (!detailsResponse.ok) {
-                throw new Error('Failed to fetch tv show details');
-            }
-            const showDetails = await detailsResponse.json();
-            console.log(showDetails)
-            setSearchResults(showDetails.results);
+            const response = await axios.get(`https://api.themoviedb.org/3/tv/${location.state.tvshowid || location.state.id}/recommendations`, {
+                params: { api_key: process.env.REACT_APP_API_KEY }
+            });
+            setSearchResults(response.data.results);
         } catch (error) {
             console.error('Error fetching tv shows:', error);
         }
     };
 
+    const handleAddTVShow = async (tvshow, listId = null) => {
+        const detailsRes = await axios.get(`https://api.themoviedb.org/3/tv/${tvshow.id}`, {
+            params: { api_key: process.env.REACT_APP_API_KEY }
+        });
+        const showDetails = detailsRes.data;
+        const genreString = showDetails.genres.map(g => g.name).join(' • ');
 
-    const handleAddShow = async (tvshow) => {
-        //Getting general tv show details
-        const detailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${tvshow.id}?api_key=${process.env.REACT_APP_API_KEY}`);
-        if (!detailsResponse.ok) {
-            throw new Error('Failed to fetch tvshow details');
-        }
-        const showDetails = await detailsResponse.json();
-        console.log(showDetails)
+        const ratingsRes = await axios.get(`https://api.themoviedb.org/3/tv/${tvshow.id}/content_ratings`, {
+            params: { api_key: process.env.REACT_APP_API_KEY }
+        });
+        const usRating = ratingsRes.data.results.find(r => r.iso_3166_1 === "US");
 
-        //Getting age rating
-        const ratingResponse = await fetch(`https://api.themoviedb.org/3/tv/${tvshow.id}/content_ratings?api_key=${process.env.REACT_APP_API_KEY}`);
-        if (!ratingResponse.ok) {
-            throw new Error('Failed to fetch tvshow details');
-        }
-        const showRating = await ratingResponse.json();
-        let certificationForUS = null;
-        const results = showRating.results;
-        for (const result of results) {
-            if (result.iso_3166_1 === "US") {
-                certificationForUS = result.rating;
-                break;
-            }
-        }
-
-        //Getting streaming providers
-        const providersResponse = await fetch(`https://api.themoviedb.org/3/tv/${tvshow.id}/watch/providers?api_key=${process.env.REACT_APP_API_KEY}`);
-        if (!providersResponse.ok) {
-            throw new Error('Failed to fetch tvshow details');
-        }
-        const showProviders = await providersResponse.json();
+        const providersRes = await axios.get(`https://api.themoviedb.org/3/tv/${tvshow.id}/watch/providers`, {
+            params: { api_key: process.env.REACT_APP_API_KEY }
+        });
         let providerNames = [];
-        if (showProviders.results.US && showProviders.results.US.flatrate) {
-            const flatrateProviders = showProviders.results.US.flatrate;
-            providerNames = flatrateProviders.map(provider => provider.provider_name);
+        if (providersRes.data.results.US && providersRes.data.results.US.flatrate) {
+            providerNames = providersRes.data.results.US.flatrate.map(p => p.provider_name);
         }
 
-        //Saving show to user's database
         const uid = auth.currentUser.uid;
         if (uid) {
-            const userShowListRef = ref(db, `users/${uid}/tvlist`);
-            push(userShowListRef, {
+            const listPath = listId
+                ? `users/${uid}/customwatchlists/${listId}/items`
+                : `users/${uid}/defaultwatchlists/tvshows/items`;
+            await push(ref(db, listPath), {
                 tvshowtitle: tvshow.name,
                 tvshowid: tvshow.id,
                 watched: false,
                 providers: providerNames,
-                agerating: certificationForUS,
+                agerating: usRating ? usRating.rating : null,
                 voteaverage: tvshow.vote_average,
-                numepisodes: showDetails.number_of_episodes
-            })
-                .then(() => {
-                    console.log('tvshow added successfully!');
-                    setAddedShows({ ...addedShows, [tvshow.id]: true });
-                })
-                .catch((error) => {
-                    console.error('Error adding tvshow:', error);
-                });
-        } else {
-            console.error('User is not signed in!');
-        }
-    };
-
-    const getBackgroundColor = (voteAverage) => {
-        if (voteAverage * 10 >= 70) {
-            return "bg-success";
-        } else if (voteAverage * 10 >= 50) {
-            return "bg-warning text-dark";
-        } else {
-            return "bg-danger";
+                numepisodes: showDetails.number_of_episodes,
+                genres: genreString,
+                first_air_date: showDetails.first_air_date,
+                poster_path: tvshow.poster_path || ''
+            });
+            setAddedShows({ ...addedShows, [tvshow.id]: true });
         }
     };
 
     return (
         <div className="">
-            <Navbar></Navbar>
+            <Navbar />
             <div className="container">
-                <h1 className="text-center m-5">TV Shows like {location.state.title}</h1>
-                <ul className="list-group mt-4">
-                    {searchResults.map((tvshow) => (
-
-                        <li key={tvshow.id} className="list-group-item rounded mb-2 shadow p-3 bg-white d-flex justify-content-between align-items-center">
-                            <div className="">
-                                <p className="fw-bold">{tvshow.name} <span className="fw-light">({tvshow.first_air_date.substring(0, 4)})</span> <span className={`badge rounded-pill ${getBackgroundColor(tvshow.vote_average)}`}>{(tvshow.vote_average * 10).toFixed(2)}%</span> </p>
-                                <p className="fw-normal">{tvshow.overview}</p>
-                            </div>
-                            {addedShows[tvshow.id] ? (
-                                <button className="btn btn-success me-2" type="button">✓</button>
-                            ) : (
-                                <button className="btn btn-primary me-2" type="button" onClick={() => { handleAddShow(tvshow) }}>+</button>
-                            )}
-                        </li>
-                    ))}
-                </ul>
+                <h1 className="text-center p-5 fw-bold">TV Shows like {location.state.name || location.state.title}</h1>
+                <MovieCardGrid
+                    movies={searchResults}
+                    genres={genres}
+                    movieRatings={tvRatings}
+                    addedMovies={addedShows}
+                    customWatchlists={customWatchlists}
+                    handleAddMovie={handleAddTVShow}
+                    defaultWatchlistName="TV Shows (Default)"
+                />
             </div>
-            <Footer></Footer>
+            <Footer />
         </div>
-    )
+    );
 };
 
 export default RecommendedShows;
