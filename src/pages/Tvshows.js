@@ -5,6 +5,7 @@ import { ref, get, remove, update, push } from "firebase/database";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from "./Footer";
 import axios from "axios";
+import EditWatchSites from "../components/EditWatchSites";
 
 const Tvshows = () => {
     const [searchParams] = useSearchParams();
@@ -36,7 +37,6 @@ const Tvshows = () => {
         { name: "Lookmovie", url: "https://lookmovie.foundation/shows/search/?q=", format: "%20" },
         { name: "DopeBox", url: "https://dopebox.to/search/", format: "-" }
     ]);
-    const [editingSites, setEditingSites] = useState([]);
     const [showStreamingModal, setShowStreamingModal] = useState(false);
     const [availableProviders, setAvailableProviders] = useState([]);
     const [selectedProviders, setSelectedProviders] = useState([]);
@@ -240,29 +240,10 @@ const Tvshows = () => {
         }
     };
 
-    const openEditSitesModal = () => {
-        setEditingSites([...watchSites]);
-        setShowSitesModal(true);
-    };
-
-    const handleAddSite = () => {
-        setEditingSites([...editingSites, { name: "", url: "", format: "" }]);
-    };
-
-    const handleRemoveSite = (index) => {
-        setEditingSites(editingSites.filter((_, i) => i !== index));
-    };
-
-    const handleSiteChange = (index, field, value) => {
-        const newSites = [...editingSites];
-        newSites[index][field] = value;
-        setEditingSites(newSites);
-    };
-
-    const handleSaveSites = async () => {
+    const handleSaveSites = async (updatedSites) => {
         try {
-            await update(ref(db, `users/${uid}/settings/tvshows`), { watchsites: editingSites });
-            setWatchSites(editingSites);
+            await update(ref(db, `users/${uid}/settings/tvshows`), { watchsites: updatedSites });
+            setWatchSites(updatedSites);
             setShowSitesModal(false);
         } catch (error) {
             console.error('Error saving watch sites:', error);
@@ -613,7 +594,7 @@ const Tvshows = () => {
                                             <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
                                             <li><hr className="dropdown-divider" /></li>
                                             <li><button className="dropdown-item" onClick={openStreamingModal}>Edit Streaming Services</button></li>
-                                            <li><button className="dropdown-item" onClick={openEditSitesModal}>Edit Watch Sites</button></li>
+                                            <li><button className="dropdown-item" onClick={() => setShowSitesModal(true)}>Edit Watch Sites</button></li>
                                             <li><hr className="dropdown-divider" /></li>
                                             <li>
                                                 <button className="dropdown-item" onClick={handleRefreshWatchlist} disabled={isRefreshing || shows.length === 0}>
@@ -844,42 +825,12 @@ const Tvshows = () => {
                 </div>
             )}
 
-            {showSitesModal && (
-                <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Edit Watch Sites</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowSitesModal(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                {editingSites.map((site, index) => (
-                                    <div key={index} className="row g-2 mb-3 align-items-end border-bottom pb-3">
-                                        <div className="col-4">
-                                            <label className="form-label small">Name</label>
-                                            <input type="text" className="form-control" value={site.name} onChange={(e) => handleSiteChange(index, 'name', e.target.value)} />
-                                        </div>
-                                        <div className="col-5">
-                                            <label className="form-label small">Base URL</label>
-                                            <input type="text" className="form-control" value={site.url} onChange={(e) => handleSiteChange(index, 'url', e.target.value)} />
-                                        </div>
-                                        <div className="col-2">
-                                            <label className="form-label small">Format</label>
-                                            <input type="text" className="form-control" value={site.format} onChange={(e) => handleSiteChange(index, 'format', e.target.value)} />
-                                        </div>
-                                        <div className="col-1 text-end"><button className="btn btn-outline-danger" onClick={() => handleRemoveSite(index)}>×</button></div>
-                                    </div>
-                                ))}
-                                <button className="btn btn-outline-primary w-100" onClick={handleAddSite}>+ Add Site</button>
-                            </div>
-                            <div className="modal-footer">
-                                <button className="btn btn-secondary" onClick={() => setShowSitesModal(false)}>Close</button>
-                                <button className="btn btn-primary" onClick={handleSaveSites}>Save Changes</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <EditWatchSites
+                show={showSitesModal}
+                onHide={() => setShowSitesModal(false)}
+                watchSites={watchSites}
+                onSave={handleSaveSites}
+            />
 
             {showImportModal && (
                 <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
