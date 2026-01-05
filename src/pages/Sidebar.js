@@ -11,9 +11,6 @@ const Sidebar = () => {
                 <li className="nav-item">
                     <a className="nav-link text-muted" href="/tvshows">TV Shows</a>
                 </li>
-                <li className="nav-item">
-                    <a className="nav-link text-muted" href="/anime">Anime</a>
-                </li>
             </ul>
         </div>
     )

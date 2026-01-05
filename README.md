@@ -4,7 +4,7 @@
 [ViewVault](https://viewvault.netlify.app/)
 
 ## 📜 Description
-Website providing easily maintained watchlists for movies, TV shows, and anime\
+Website providing easily maintained watchlists for movies and TV shows\
 
 ## 💻 Development
 ONGOING!\

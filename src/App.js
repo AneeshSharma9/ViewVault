@@ -24,15 +24,11 @@ function App() {
             <div id="about"></div>
             <div class="section-bg" >
                 <h2 class="customh2 text-center homepage-offset " >About ViewVault</h2>
-                <p class="introtext pb-5">ViewVault is a versatile platform designed for organizing and curating watchlists of movies, TV shows, and anime. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
+                <p class="introtext pb-5">ViewVault is a versatile platform designed for organizing and curating watchlists of movies and TV shows. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
             </div>
 
             <h2 class="customh2 text-center">Why ViewVault?</h2>
             <div class="homepage-card-container">
-                <div class="card homepage-card p-5">
-                    <h5 className="card-title text-center mb-4">Inclusive Entertainment</h5>
-                    <p>ViewVault stands out by integrating anime alongside movies and TV shows, catering to diverse entertainment preferences in one consolidated platform.</p>
-                </div>
                 <div class="card homepage-card p-5">
                     <h5 className="card-title text-center mb-4">Streamlined Experience</h5>
                     <p>Unlike other websites, ViewVault simplifies complex processes, offering a user-friendly interface that enhances navigation and organization of watchlists effortlessly.</p>
