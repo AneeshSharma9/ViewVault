@@ -403,6 +403,16 @@ const Movies = () => {
         }
     };
 
+    const getAgeRatingClass = (rating) => {
+        if (!rating) return "bg-secondary";
+        const r = rating.toUpperCase();
+        if (["G", "TV-G", "TV-Y"].includes(r)) return "bg-success";
+        if (["PG", "TV-PG", "TV-Y7"].includes(r)) return "bg-primary";
+        if (["PG-13", "TV-14"].includes(r)) return "bg-warning text-dark";
+        if (["R", "NC-17", "TV-MA"].includes(r)) return "bg-danger";
+        return "bg-secondary";
+    };
+
     const exportWatchlist = () => {
         const lines = movies.map(movie => {
             const year = movie.releaseyear && movie.releaseyear !== "" ? ` (${movie.releaseyear})` : "";
@@ -845,7 +855,10 @@ const Movies = () => {
                                                 <div className="d-flex justify-content-between align-items-start">
                                                     <div>
                                                         <h5 className="mb-0 fw-bold" style={{ fontSize: '1.2rem', lineHeight: '1.2' }}>{movie.name}</h5>
-                                                        <small className="text-muted" style={{ fontSize: '0.9rem' }}>({movie.releaseyear || "N/A"})</small>
+                                                        <div className="d-flex align-items-center gap-2 mt-1">
+                                                            <small className="text-muted" style={{ fontSize: '0.9rem' }}>({movie.releaseyear || "N/A"})</small>
+                                                            <span className={`badge border ${getAgeRatingClass(movie.agerating || "N/A")}`} style={{ fontSize: '0.75rem' }}>{movie.agerating || "N/A"}</span>
+                                                        </div>
                                                     </div>
                                                     <div className="form-check ms-2">
                                                         <input
@@ -873,7 +886,6 @@ const Movies = () => {
 
                                                 {/* Meta Row */}
                                                 <div className="mb-2" style={{ fontSize: '0.95rem' }}>
-                                                    {movie.agerating && <span className="badge bg-light text-dark border me-2">{movie.agerating}</span>}
                                                     <span className="text-muted">{movie.genres}</span>
                                                 </div>
 
