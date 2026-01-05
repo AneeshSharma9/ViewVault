@@ -417,7 +417,8 @@ const Movies = () => {
         const lines = movies.map(movie => {
             const year = movie.releaseyear && movie.releaseyear !== "" ? ` (${movie.releaseyear})` : "";
             const watchedStatus = movie.watched ? " [x]" : " []";
-            return `${movie.name}${year}${watchedStatus}`;
+            const rating = (movie.watched && movie.user_rating !== undefined && movie.user_rating !== null) ? ` {${movie.user_rating}}` : "";
+            return `${movie.name}${year}${watchedStatus}${rating}`;
         });
         const content = lines.join("\n");
         setExportText(content);
@@ -440,14 +441,15 @@ const Movies = () => {
             const line = lines[i].trim();
             setImportStatus(`Processing ${i + 1}/${lines.length}: ${line}`);
 
-            // Parse "Title (Year) [x]" or "Title (Year) []" format
-            // Also handles "Title (Year)" without watched status (defaults to not watched)
-            const match = line.match(/^(.+?)\s*(?:\((\d{4})\))?\s*(?:\[(x?)\])?$/);
+            // Parse "Title (Year) [x] {Rating}" format
+            // Rating is optional and wrapped in curly braces
+            const match = line.match(/^(.+?)\s*(?:\((\d{4})\))?\s*(?:\[(x?)\])?\s*(?:\{([\d.]+)\})?$/);
             if (!match) continue;
 
             const title = match[1].trim();
             const year = match[2];
             const isWatched = match[3] === 'x';
+            const rating = match[4] ? parseFloat(match[4]) : null;
 
             try {
                 // Search TMDB
@@ -477,7 +479,7 @@ const Movies = () => {
                 // Fetch movie details
                 const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieDetails = await detailsResponse.json();
-                const genreString = movieDetails.genres.map(genre => genre.name).join(' / ');
+                const genreString = movieDetails.genres.map(genre => genre.name).join(' • ');
 
                 // Get age rating
                 const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
@@ -519,7 +521,9 @@ const Movies = () => {
                     voteaverage: movie.vote_average,
                     genres: genreString,
                     releaseyear: movieDetails.release_date ? movieDetails.release_date.substring(0, 4) : "",
-                    imdbid: imdbData.imdb_id
+                    imdbid: imdbData.imdb_id,
+                    user_rating: rating,
+                    poster_path: movie.poster_path
                 });
 
                 existingMovieIds.push(movie.id);
@@ -565,7 +569,7 @@ const Movies = () => {
                 // Fetch movie details
                 const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}?api_key=${process.env.REACT_APP_API_KEY}`);
                 const movieDetails = await detailsResponse.json();
-                const genreString = movieDetails.genres.map(genre => genre.name).join(' / ');
+                const genreString = movieDetails.genres.map(genre => genre.name).join(' • ');
 
                 // Get age rating
                 const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.movieid}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
@@ -651,6 +655,12 @@ const Movies = () => {
                 const ratingB = b.user_rating || -1;
                 return ratingB - ratingA;
             });
+        } else if (sortBy === "Release Year") {
+            result = result.slice().sort((a, b) => {
+                const yearA = parseInt(a.releaseyear) || 9999;
+                const yearB = parseInt(b.releaseyear) || 9999;
+                return yearA - yearB; // Older first
+            });
         }
         // "Default" - no sorting needed, keep original order
 
@@ -716,6 +726,7 @@ const Movies = () => {
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("Runtime")}>Runtime</button></li>
                                         <li><button className="dropdown-item" onClick={() => handleSortBy("User Rating")}>User Rating</button></li>
+                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Release Year")}>Release Year</button></li>
                                     </ul>
                                     <button className="btn btn-outline-secondary dropdown-toggle flex-fill" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
                                         {getStreamingFilterButtonText()}
@@ -966,13 +977,13 @@ const Movies = () => {
                                     <button type="button" className="btn-close" onClick={() => setShowImportModal(false)} disabled={isImporting}></button>
                                 </div>
                                 <div className="modal-body">
-                                    <p className="text-muted small mb-2">Enter one movie per line in the format: <code>Title (Year) [x]</code> for watched or <code>Title (Year) []</code> for not watched</p>
+                                    <p className="text-muted small mb-2">Enter one movie per line in the format: <code>Title (Year) [x] {'{Rating}'}</code> for watched or <code>Title (Year) []</code> for not watched</p>
                                     <textarea
                                         className="form-control"
                                         rows="10"
                                         value={importText}
                                         onChange={(e) => setImportText(e.target.value)}
-                                        placeholder="The Shawshank Redemption (1994) [x]&#10;Inception (2010) []&#10;The Dark Knight (2008)"
+                                        placeholder="The Shawshank Redemption (1994) [x] {10}&#10;Inception (2010) []&#10;The Dark Knight (2008) [x] {9.5}"
                                         disabled={isImporting}
                                     />
                                     {importStatus && (

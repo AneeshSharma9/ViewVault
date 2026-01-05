@@ -42,7 +42,7 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customWatchl
                                         )}
                                     </p>
                                     <p className="card-text small text-secondary mb-2">
-                                        {movie.genre_ids?.map(id => genres?.find(g => g.id === id)?.name).filter(Boolean).join(' / ') || 'N/A'}
+                                        {movie.genre_ids?.map(id => genres?.find(g => g.id === id)?.name).filter(Boolean).join(' • ') || 'N/A'}
                                     </p>
                                     <div>
                                         <p className="card-text small" style={{ 

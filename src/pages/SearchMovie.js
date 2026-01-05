@@ -168,7 +168,7 @@ const SearchMovie = () => {
         console.log(movieDetails);
         const genreString = movieDetails.genres
           .map(genre => genre.name)
-          .join(' / ');
+          .join(' • ');
         console.log(genreString);
 
         //Getting age rating
