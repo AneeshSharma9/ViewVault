@@ -393,13 +393,13 @@ const Movies = () => {
         window.open(imdbUrl, '_blank');
     };
 
-    const getBackgroundColor = (voteAverage) => {
+    const getTextColorClass = (voteAverage) => {
         if (voteAverage * 10 >= 70) {
-            return "bg-success";
+            return "text-success";
         } else if (voteAverage * 10 >= 50) {
-            return "bg-warning text-dark";
+            return "text-warning";
         } else {
-            return "bg-danger";
+            return "text-danger";
         }
     };
 
@@ -771,92 +771,60 @@ const Movies = () => {
                                 {loading ? (
                                     // Skeleton Loader
                                     Array(5).fill(0).map((_, index) => (
-                                        <div key={index} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-                                            <div style={{ width: '100%' }}>
-                                                <div className="d-flex align-items-center mb-2">
-                                                    <div className="skeleton-box rounded me-2" style={{ width: '20px', height: '20px' }}></div>
-                                                    <div className="skeleton-box rounded" style={{ width: '200px', height: '24px' }}></div>
+                                        <div key={index} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 bg-white d-flex align-items-start">
+                                            {/* Poster Skeleton */}
+                                            <div className="skeleton-box rounded flex-shrink-0" style={{ width: '100px', height: '150px' }}></div>
+
+                                            {/* Content Skeleton */}
+                                            <div className="flex-grow-1 ms-3" style={{ minWidth: 0 }}>
+                                                {/* Header Row */}
+                                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                                    <div className="skeleton-box rounded" style={{ width: '60%', height: '28px' }}></div>
+                                                    <div className="skeleton-box rounded" style={{ width: '24px', height: '24px' }}></div>
                                                 </div>
+
+                                                {/* Meta Row */}
                                                 <div className="d-flex gap-2 mb-2">
-                                                    <div className="skeleton-box rounded-pill" style={{ width: '60px', height: '24px' }}></div>
-                                                    <div className="skeleton-box rounded" style={{ width: '40px', height: '24px' }}></div>
-                                                    <div className="skeleton-box" style={{ width: '80px', height: '24px' }}></div>
+                                                    <div className="skeleton-box rounded" style={{ width: '30%', height: '22px' }}></div>
+                                                    <div className="skeleton-box rounded" style={{ width: '20%', height: '22px' }}></div>
                                                 </div>
-                                                <div className="skeleton-box rounded" style={{ width: '100%', maxWidth: '300px', height: '20px' }}></div>
-                                                <div className="d-flex gap-2 mt-2">
-                                                    <div className="skeleton-box rounded" style={{ width: '24px', height: '24px' }}></div>
-                                                    <div className="skeleton-box rounded" style={{ width: '24px', height: '24px' }}></div>
+
+                                                {/* Genre Row */}
+                                                <div className="skeleton-box rounded mb-2" style={{ width: '50%', height: '18px' }}></div>
+
+                                                {/* Actions Row */}
+                                                <div className="d-flex justify-content-end mt-2">
+                                                    <div className="skeleton-box rounded" style={{ width: '20%', height: '18px' }}></div>
                                                 </div>
-                                            </div>
-                                            <div className="mt-2 mt-md-0">
-                                                <div className="skeleton-box rounded" style={{ width: '100px', height: '150px' }}></div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     filteredMovies.map((movie) => (
-                                        <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow p-3 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center fade-in">
-                                            <div className="form-check" style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden', wordWrap: 'break-word' }}>
-                                                <input className="form-check-input" type="checkbox" value={movie.watched} id={`checkboxExample${movie.id}`} checked={movie.watched} onChange={() => handleToggleWatched(movie, movie.watched)} />
-                                                <label className="form-check-label ml-2" htmlFor={`checkboxExample${movie.id}`}><span className="fw-bold">{movie.name}</span> ({movie.releaseyear || "N/A"})</label>
-                                                <div className="d-flex flex-wrap align-items-center">
-                                                    <span className={`m-1 badge rounded-pill ${getBackgroundColor(movie.vote_average)}`}>{(movie.vote_average * 10).toFixed(2)}%</span>
-                                                    {' '}
-                                                    <span className="m-1 badge bg-light text-dark border border-danger">{movie.agerating}</span>
-                                                    {' '}
-                                                    <span className="m-1 fst-italic">{convertMinToHrMin(movie.runtime)}</span>
-                                                </div>
-                                                <p className="m-1 badge bg-light text-dark border border-info" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{movie.genres}</p>
-                                                {movie.providers && movie.providers.length > 0 && (() => {
-                                                    const filteredProviders = selectedProviders.length > 0
-                                                        ? movie.providers.filter(p => selectedProviders.includes(p))
-                                                        : movie.providers;
-                                                    return filteredProviders.length > 0 && (
-                                                        <div className="d-flex align-items-center flex-wrap gap-1 mt-1">
-                                                            <span className="small text-muted">Available On:</span>
-                                                            {filteredProviders.map((provider, idx) => {
-                                                                const logo = getProviderLogo(provider);
-                                                                return logo ? (
-                                                                    <img
-                                                                        key={idx}
-                                                                        src={logo}
-                                                                        alt={provider}
-                                                                        title={provider}
-                                                                        className="rounded"
-                                                                        style={{ width: '24px', height: '24px' }}
-                                                                    />
-                                                                ) : (
-                                                                    <span key={idx} className="badge bg-secondary small">{provider}</span>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    );
-                                                })()}
-                                            </div>
-                                            <div className="d-flex align-items-center justify-content-between flex-shrink-0 mt-2 mt-md-0">
-                                                {movie.watched && movie.user_rating !== undefined && movie.user_rating !== null && (
-                                                    <span className="me-2 fw-bold text-warning" style={{ fontSize: '1.2em' }}>
-                                                        {movie.user_rating} ★
-                                                    </span>
-                                                )}
+                                        <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 bg-white d-flex align-items-start fade-in">
+                                            {/* Poster Column */}
+                                            <div className="flex-shrink-0" style={{ width: '100px' }}>
                                                 {movie.poster_path && movie.poster_path.trim() !== '' ? (
-                                                    <div className="btn-group dropstart">
+                                                    <div className="btn-group dropstart w-100">
                                                         <button
                                                             type="button"
-                                                            className="btn p-0 border-0 dropdown-toggle poster-dropdown"
+                                                            className="btn p-0 border-0 w-100 position-relative"
                                                             data-bs-toggle="dropdown"
                                                             aria-expanded="false"
-                                                            style={{ padding: 0 }}
+                                                            style={{ padding: 0, overflow: 'hidden' }}
                                                         >
                                                             <img
                                                                 src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w185${movie.poster_path.startsWith('/') ? movie.poster_path : '/' + movie.poster_path}`}
                                                                 alt={movie.name}
-                                                                className="rounded flex-shrink-0"
-                                                                style={{ width: '100px', height: '150px', objectFit: 'cover', cursor: 'pointer', display: 'block' }}
-                                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                                                className="rounded w-100 shadow-sm"
+                                                                style={{ height: '150px', objectFit: 'cover' }}
+                                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/100x150?text=No+Img'; }}
                                                             />
+                                                            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-overlay" style={{ background: 'rgba(0,0,0,0.3)', transition: 'opacity 0.2s' }}>
+                                                                <span className="text-white">⋮</span>
+                                                            </div>
                                                         </button>
-                                                        <ul className="dropdown-menu">
+                                                        <ul className="dropdown-menu shadow">
                                                             <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
                                                             {watchSites.map((site, index) => (
                                                                 <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
@@ -865,18 +833,78 @@ const Movies = () => {
                                                         </ul>
                                                     </div>
                                                 ) : (
-                                                    <div className="btn-group dropstart">
-                                                        <button type="button" className="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">≡</button>
-                                                        <ul className="dropdown-menu">
-                                                            <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
-                                                            {watchSites.map((site, index) => (
-                                                                <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
-                                                            ))}
-                                                            <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
-                                                        </ul>
+                                                    <div className="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style={{ width: '100px', height: '150px' }}>
+                                                        <span className="small">No Poster</span>
                                                     </div>
                                                 )}
-                                                <button className="btn btn-outline-danger ms-2" onClick={() => handleDeleteClick(movie)}>X</button>
+                                            </div>
+
+                                            {/* Content Column */}
+                                            <div className="flex-grow-1 ms-3" style={{ minWidth: 0 }}>
+                                                {/* Title & Checkbox Row */}
+                                                <div className="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h5 className="mb-0 fw-bold" style={{ fontSize: '1.2rem', lineHeight: '1.2' }}>{movie.name}</h5>
+                                                        <small className="text-muted" style={{ fontSize: '0.9rem' }}>({movie.releaseyear || "N/A"})</small>
+                                                    </div>
+                                                    <div className="form-check ms-2">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="checkbox"
+                                                            checked={movie.watched}
+                                                            onChange={() => handleToggleWatched(movie, movie.watched)}
+                                                            style={{ cursor: 'pointer', width: '1.4em', height: '1.4em' }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Ratings & Runtime Row */}
+                                                <div className="d-flex flex-wrap align-items-center gap-2 mt-2 mb-2" style={{ fontSize: '0.95rem' }}>
+                                                    {movie.watched && movie.user_rating !== undefined && movie.user_rating !== null && (
+                                                        <span className="text-warning fw-bold">⭐ {movie.user_rating}</span>
+                                                    )}
+                                                    {movie.vote_average > 0 && (
+                                                        <span className={`${getTextColorClass(movie.vote_average)} fw-bold`}>
+                                                            {(movie.vote_average * 10).toFixed(2)}%
+                                                        </span>
+                                                    )}
+                                                    <span className="text-muted">⏱ {convertMinToHrMin(movie.runtime)}</span>
+                                                </div>
+
+                                                {/* Meta Row */}
+                                                <div className="mb-2" style={{ fontSize: '0.95rem' }}>
+                                                    {movie.agerating && <span className="badge bg-light text-dark border me-2">{movie.agerating}</span>}
+                                                    <span className="text-muted">{movie.genres}</span>
+                                                </div>
+
+                                                {/* Providers (Compact) */}
+                                                {movie.providers && movie.providers.length > 0 && (() => {
+                                                    const filteredProviders = selectedProviders.length > 0
+                                                        ? movie.providers.filter(p => selectedProviders.includes(p))
+                                                        : movie.providers;
+                                                    return filteredProviders.length > 0 && (
+                                                        <div className="d-flex flex-wrap gap-1 mt-2">
+                                                            {filteredProviders.slice(0, 5).map((provider, idx) => {
+                                                                const logo = getProviderLogo(provider);
+                                                                return logo ? (
+                                                                    <img key={idx} src={logo} alt={provider} title={provider} className="rounded" style={{ width: '20px', height: '20px' }} />
+                                                                ) : null;
+                                                            })}
+                                                            {filteredProviders.length > 5 && <span className="small text-muted">+{filteredProviders.length - 5}</span>}
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* Footer Actions */}
+                                                <div className="d-flex justify-content-end mt-2">
+                                                    <button
+                                                        className="btn btn-sm btn-link text-danger text-decoration-none p-0"
+                                                        onClick={() => handleDeleteClick(movie)}
+                                                        style={{ fontSize: '0.9rem' }}
+                                                    >
+                                                        [ Remove ]
+                                                    </button>
+                                                </div>
                                             </div>
                                         </li>
                                     ))
