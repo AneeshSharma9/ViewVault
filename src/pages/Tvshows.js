@@ -7,6 +7,7 @@ import Footer from "./Footer";
 import axios from "axios";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
+import MediaCard from "../components/MediaCard";
 
 const Tvshows = () => {
     const [searchParams] = useSearchParams();
@@ -196,9 +197,9 @@ const Tvshows = () => {
     };
 
     const getStreamingFilterButtonText = () => {
-        if (streamingFilter.length === 0) return "Streaming: All";
-        if (streamingFilter.length === 1) return `Streaming: ${streamingFilter[0]}`;
-        return `Streaming: ${streamingFilter.length} Selected`;
+        if (streamingFilter.length === 0) return "All";
+        if (streamingFilter.length === 1) return `${streamingFilter[0]}`;
+        return `${streamingFilter.length} Selected`;
     };
 
     const handleStreamingFilterToggle = (providerName) => {
@@ -300,28 +301,6 @@ const Tvshows = () => {
         }
     };
 
-    const getTextColorClass = (voteAverage) => {
-        if (voteAverage * 10 >= 70) return "text-success";
-        if (voteAverage * 10 >= 50) return "text-warning";
-        return "text-danger";
-    };
-
-    const getAgeRatingClass = (rating) => {
-        if (!rating) return "bg-secondary";
-        const r = rating.toUpperCase();
-        if (["G", "TV-G", "TV-Y"].includes(r)) return "bg-success";
-        if (["PG", "TV-PG", "TV-Y7"].includes(r)) return "bg-primary";
-        if (["PG-13", "TV-14"].includes(r)) return "bg-warning text-dark";
-        if (["R", "NC-17", "TV-MA"].includes(r)) return "bg-danger";
-        return "bg-secondary";
-    };
-
-    const convertMinToHrMin = (mins) => {
-        if (!mins) return "N/A";
-        const hours = Math.floor(mins / 60);
-        const minutes = mins % 60;
-        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    };
 
     const openWatchSite = (name, site) => {
         const formattedName = name.replace(/ /g, site.format);
@@ -618,100 +597,18 @@ const Tvshows = () => {
                                     </div>
                                 ) : (
                                     filteredShows.map((show) => (
-                                        <li key={show.id} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 bg-white d-flex align-items-start fade-in border-0">
-                                            {/* Poster Column */}
-                                            <div className="flex-shrink-0" style={{ width: '100px' }}>
-                                                {show.poster_path ? (
-                                                    <div className="btn-group dropstart w-100">
-                                                        <button type="button" className="btn p-0 border-0 w-100 position-relative" data-bs-toggle="dropdown" style={{ overflow: 'hidden' }}>
-                                                            <img
-                                                                src={`https://image.tmdb.org/t/p/w185${show.poster_path}`}
-                                                                alt={show.name}
-                                                                className="rounded w-100 shadow-sm"
-                                                                style={{ height: '150px', objectFit: 'cover' }}
-                                                            />
-                                                            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-overlay" style={{ background: 'rgba(0,0,0,0.3)', transition: 'opacity 0.2s' }}>
-                                                                <span className="text-white">⋮</span>
-                                                            </div>
-                                                        </button>
-                                                        <ul className="dropdown-menu shadow">
-                                                            <li><button className="dropdown-item" onClick={() => toComponentB(show)}>More like this</button></li>
-                                                            {watchSites.map((site, idx) => (
-                                                                <li key={idx}><button className="dropdown-item" onClick={() => openWatchSite(show.name, site)}>Stream on {site.name}</button></li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                ) : (
-                                                    <div className="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style={{ width: '100px', height: '150px' }}>
-                                                        <span className="small">No Poster</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Content Column */}
-                                            <div className="flex-grow-1 ms-3" style={{ minWidth: 0 }}>
-                                                <div className="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <h5 className="mb-0 fw-bold" style={{ fontSize: '1.2rem', lineHeight: '1.2' }}>{show.name}</h5>
-                                                        <div className="d-flex align-items-center gap-2 mt-1">
-                                                            <small className="text-muted" style={{ fontSize: '0.9rem' }}>({show.first_air_date ? show.first_air_date.substring(0, 4) : "N/A"})</small>
-                                                            <span className={`badge border ${getAgeRatingClass(show.agerating || "N/A")}`} style={{ fontSize: '0.75rem' }}>{show.agerating || "N/A"}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="form-check ms-2">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="checkbox"
-                                                            checked={show.watched}
-                                                            onChange={() => handleToggleWatched(show, show.watched)}
-                                                            style={{ cursor: 'pointer', width: '1.4em', height: '1.4em' }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="d-flex flex-wrap align-items-center gap-2 mt-2 mb-2" style={{ fontSize: '0.95rem' }}>
-                                                    {show.watched && show.user_rating && (
-                                                        <span className="text-warning fw-bold">⭐ {show.user_rating}</span>
-                                                    )}
-                                                    {show.vote_average > 0 && (
-                                                        <span className={`${getTextColorClass(show.vote_average)} fw-bold`}>
-                                                            {(show.vote_average * 10).toFixed(2)}%
-                                                        </span>
-                                                    )}
-                                                    <span className="text-muted">📺 {show.num_episodes} Episodes</span>
-                                                </div>
-
-                                                <div className="mb-2" style={{ fontSize: '0.95rem' }}>
-                                                    <span className="text-muted">{show.genres || "No genres available"}</span>
-                                                </div>
-
-                                                {/* Providers (Compact) */}
-                                                {show.providers && show.providers.length > 0 && (() => {
-                                                    const filteredProviders = selectedProviders.length > 0
-                                                        ? show.providers.filter(p => selectedProviders.includes(p))
-                                                        : show.providers;
-                                                    return filteredProviders.length > 0 && (
-                                                        <div className="d-flex flex-wrap gap-1 mt-2">
-                                                            {filteredProviders.slice(0, 5).map((provider, idx) => {
-                                                                const logo = getProviderLogo(provider);
-                                                                return logo ? (
-                                                                    <img key={idx} src={logo} alt={provider} title={provider} className="rounded" style={{ width: '20px', height: '20px' }} />
-                                                                ) : (
-                                                                    <span key={idx} className="badge bg-light text-dark border p-1" style={{ fontSize: '0.7rem' }}>{provider}</span>
-                                                                );
-                                                            })}
-                                                            {filteredProviders.length > 5 && <span className="small text-muted">+{filteredProviders.length - 5}</span>}
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                                <div className="d-flex justify-content-end mt-2">
-                                                    <button className="btn btn-sm btn-link text-danger text-decoration-none p-0" onClick={() => handleDeleteClick(show)} style={{ fontSize: '0.9rem' }}>
-                                                        [ Remove ]
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </li>
+                                        <MediaCard
+                                            key={show.id}
+                                            item={show}
+                                            type="tv"
+                                            watchSites={watchSites}
+                                            selectedProviders={selectedProviders}
+                                            getProviderLogo={getProviderLogo}
+                                            handleToggleWatched={handleToggleWatched}
+                                            handleDeleteClick={handleDeleteClick}
+                                            toComponentB={toComponentB}
+                                            openWatchSite={openWatchSite}
+                                        />
                                     ))
                                 )}
                             </div>

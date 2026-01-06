@@ -7,6 +7,7 @@ import Footer from "./Footer";
 import axios from "axios";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
+import MediaCard from "../components/MediaCard";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -325,22 +326,6 @@ const Movies = () => {
         }
     };
 
-    const convertMinToHrMin = (minutes) => {
-        if (isNaN(minutes)) {
-            return "Invalid input";
-        }
-
-        const hours = Math.floor(minutes / 60);
-        const remainingMinutes = minutes % 60;
-
-        if (hours === 0) {
-            return `${remainingMinutes} mins`;
-        } else if (remainingMinutes === 0) {
-            return `${hours} hr`;
-        } else {
-            return `${hours} hr ${remainingMinutes} mins`;
-        }
-    };
 
     const navigate = useNavigate();
 
@@ -369,25 +354,6 @@ const Movies = () => {
         window.open(imdbUrl, '_blank');
     };
 
-    const getTextColorClass = (voteAverage) => {
-        if (voteAverage * 10 >= 70) {
-            return "text-success";
-        } else if (voteAverage * 10 >= 50) {
-            return "text-warning";
-        } else {
-            return "text-danger";
-        }
-    };
-
-    const getAgeRatingClass = (rating) => {
-        if (!rating) return "bg-secondary";
-        const r = rating.toUpperCase();
-        if (["G", "TV-G", "TV-Y"].includes(r)) return "bg-success";
-        if (["PG", "TV-PG", "TV-Y7"].includes(r)) return "bg-primary";
-        if (["PG-13", "TV-14"].includes(r)) return "bg-warning text-dark";
-        if (["R", "NC-17", "TV-MA"].includes(r)) return "bg-danger";
-        return "bg-secondary";
-    };
 
     const exportWatchlist = () => {
         const lines = movies.map(movie => {
@@ -798,114 +764,19 @@ const Movies = () => {
                                     ))
                                 ) : (
                                     filteredMovies.map((movie) => (
-                                        <li key={movie.id} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 bg-white d-flex align-items-start fade-in">
-                                            {/* Poster Column */}
-                                            <div className="flex-shrink-0" style={{ width: '100px' }}>
-                                                {movie.poster_path && movie.poster_path.trim() !== '' ? (
-                                                    <div className="btn-group dropstart w-100">
-                                                        <button
-                                                            type="button"
-                                                            className="btn p-0 border-0 w-100 position-relative"
-                                                            data-bs-toggle="dropdown"
-                                                            aria-expanded="false"
-                                                            style={{ padding: 0, overflow: 'hidden' }}
-                                                        >
-                                                            <img
-                                                                src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w185${movie.poster_path.startsWith('/') ? movie.poster_path : '/' + movie.poster_path}`}
-                                                                alt={movie.name}
-                                                                className="rounded w-100 shadow-sm"
-                                                                style={{ height: '150px', objectFit: 'cover' }}
-                                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/100x150?text=No+Img'; }}
-                                                            />
-                                                            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-overlay" style={{ background: 'rgba(0,0,0,0.3)', transition: 'opacity 0.2s' }}>
-                                                                <span className="text-white">⋮</span>
-                                                            </div>
-                                                        </button>
-                                                        <ul className="dropdown-menu shadow">
-                                                            <li><button className="dropdown-item" onClick={() => { toComponentB(movie) }}>More like this</button></li>
-                                                            {watchSites.map((site, index) => (
-                                                                <li key={index}><button className="dropdown-item" onClick={() => openWatchSite(movie.name, site)}>Stream on {site.name}</button></li>
-                                                            ))}
-                                                            <li><button className="dropdown-item" onClick={() => { toImdbParentsGuide(movie.imdbid) }}>IMDB Parents Guide</button></li>
-                                                        </ul>
-                                                    </div>
-                                                ) : (
-                                                    <div className="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style={{ width: '100px', height: '150px' }}>
-                                                        <span className="small">No Poster</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Content Column */}
-                                            <div className="flex-grow-1 ms-3" style={{ minWidth: 0 }}>
-                                                {/* Title & Checkbox Row */}
-                                                <div className="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <h5 className="mb-0 fw-bold" style={{ fontSize: '1.2rem', lineHeight: '1.2' }}>{movie.name}</h5>
-                                                        <div className="d-flex align-items-center gap-2 mt-1">
-                                                            <small className="text-muted" style={{ fontSize: '0.9rem' }}>({movie.releaseyear || "N/A"})</small>
-                                                            <span className={`badge border ${getAgeRatingClass(movie.agerating || "N/A")}`} style={{ fontSize: '0.75rem' }}>{movie.agerating || "N/A"}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="form-check ms-2">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="checkbox"
-                                                            checked={movie.watched}
-                                                            onChange={() => handleToggleWatched(movie, movie.watched)}
-                                                            style={{ cursor: 'pointer', width: '1.4em', height: '1.4em' }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                {/* Ratings & Runtime Row */}
-                                                <div className="d-flex flex-wrap align-items-center gap-2 mt-2 mb-2" style={{ fontSize: '0.95rem' }}>
-                                                    {movie.watched && movie.user_rating !== undefined && movie.user_rating !== null && (
-                                                        <span className="text-warning fw-bold">⭐ {movie.user_rating}</span>
-                                                    )}
-                                                    {movie.vote_average > 0 && (
-                                                        <span className={`${getTextColorClass(movie.vote_average)} fw-bold`}>
-                                                            {(movie.vote_average * 10).toFixed(2)}%
-                                                        </span>
-                                                    )}
-                                                    <span className="text-muted">⏱ {convertMinToHrMin(movie.runtime)}</span>
-                                                </div>
-
-                                                {/* Meta Row */}
-                                                <div className="mb-2" style={{ fontSize: '0.95rem' }}>
-                                                    <span className="text-muted">{movie.genres}</span>
-                                                </div>
-
-                                                {/* Providers (Compact) */}
-                                                {movie.providers && movie.providers.length > 0 && (() => {
-                                                    const filteredProviders = selectedProviders.length > 0
-                                                        ? movie.providers.filter(p => selectedProviders.includes(p))
-                                                        : movie.providers;
-                                                    return filteredProviders.length > 0 && (
-                                                        <div className="d-flex flex-wrap gap-1 mt-2">
-                                                            {filteredProviders.slice(0, 5).map((provider, idx) => {
-                                                                const logo = getProviderLogo(provider);
-                                                                return logo ? (
-                                                                    <img key={idx} src={logo} alt={provider} title={provider} className="rounded" style={{ width: '20px', height: '20px' }} />
-                                                                ) : null;
-                                                            })}
-                                                            {filteredProviders.length > 5 && <span className="small text-muted">+{filteredProviders.length - 5}</span>}
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                                {/* Footer Actions */}
-                                                <div className="d-flex justify-content-end mt-2">
-                                                    <button
-                                                        className="btn btn-sm btn-link text-danger text-decoration-none p-0"
-                                                        onClick={() => handleDeleteClick(movie)}
-                                                        style={{ fontSize: '0.9rem' }}
-                                                    >
-                                                        [ Remove ]
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </li>
+                                        <MediaCard
+                                            key={movie.id}
+                                            item={movie}
+                                            type="movie"
+                                            watchSites={watchSites}
+                                            selectedProviders={selectedProviders}
+                                            getProviderLogo={getProviderLogo}
+                                            handleToggleWatched={handleToggleWatched}
+                                            handleDeleteClick={handleDeleteClick}
+                                            toComponentB={toComponentB}
+                                            openWatchSite={openWatchSite}
+                                            toImdbParentsGuide={toImdbParentsGuide}
+                                        />
                                     ))
                                 )}
                             </div>
