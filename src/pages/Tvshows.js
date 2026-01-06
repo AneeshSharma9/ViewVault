@@ -9,6 +9,7 @@ import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import MediaCard from "../components/MediaCard";
 import ClearWatchlistModal from "../components/ClearWatchlistModal";
+import RemoveMediaModal from "../components/RemoveMediaModal";
 
 const Tvshows = () => {
     const [searchParams] = useSearchParams();
@@ -619,25 +620,13 @@ const Tvshows = () => {
             </div>
 
             {/* Modals mirror Movies.js */}
-            {showDeleteModal && (
-                <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content border-0 shadow">
-                            <div className="modal-header border-0 pb-0">
-                                <h5 className="modal-title fw-bold">Remove Show</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowDeleteModal(false)}></button>
-                            </div>
-                            <div className="modal-body py-4">
-                                Are you sure you want to remove <strong>{showToDelete?.name}</strong> from your watchlist?
-                            </div>
-                            <div className="modal-footer border-0 pt-0">
-                                <button className="btn btn-light" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                                <button className="btn btn-danger px-4" onClick={handleConfirmDelete}>Remove</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <RemoveMediaModal
+                show={showDeleteModal}
+                onHide={() => setShowDeleteModal(false)}
+                onConfirm={handleConfirmDelete}
+                itemName={showToDelete?.name}
+                type="tv"
+            />
 
             {showRatingModal && (
                 <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>

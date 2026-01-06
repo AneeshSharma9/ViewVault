@@ -9,6 +9,7 @@ import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import MediaCard from "../components/MediaCard";
 import ClearWatchlistModal from "../components/ClearWatchlistModal";
+import RemoveMediaModal from "../components/RemoveMediaModal";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -907,27 +908,13 @@ const Movies = () => {
                 onSave={handleSaveSites}
             />
 
-            {
-                showDeleteMovieModal && movieToDelete && (
-                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Remove Movie</h5>
-                                    <button type="button" className="btn-close" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}></button>
-                                </div>
-                                <div className="modal-body">
-                                    <p>Are you sure you want to remove "<strong>{movieToDelete.name}</strong>" from your watchlist?</p>
-                                </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}>Cancel</button>
-                                    <button type="button" className="btn btn-danger" onClick={handleConfirmDeleteMovie}>Remove</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <RemoveMediaModal
+                show={showDeleteMovieModal}
+                onHide={() => { setShowDeleteMovieModal(false); setMovieToDelete(null); }}
+                onConfirm={handleConfirmDeleteMovie}
+                itemName={movieToDelete?.name}
+                type="movie"
+            />
 
             <Footer></Footer>
         </div >
