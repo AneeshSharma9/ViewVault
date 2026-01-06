@@ -10,6 +10,7 @@ import EditStreamingServices from "../components/EditStreamingServices";
 import MediaCard from "../components/MediaCard";
 import ClearWatchlistModal from "../components/ClearWatchlistModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
+import RatingModal from "../components/RatingModal";
 
 const Tvshows = () => {
     const [searchParams] = useSearchParams();
@@ -33,7 +34,6 @@ const Tvshows = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToDelete, setShowToDelete] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
-    const [ratingInput, setRatingInput] = useState("");
     const [showToRate, setShowToRate] = useState(null);
 
     // Settings & Filters
@@ -262,7 +262,6 @@ const Tvshows = () => {
     const handleToggleWatched = async (show_obj, watched) => {
         if (!watched) {
             setShowToRate(show_obj);
-            setRatingInput("");
             setShowRatingModal(true);
         } else {
             try {
@@ -280,12 +279,8 @@ const Tvshows = () => {
         }
     };
 
-    const handleSaveRating = async () => {
+    const handleSaveRating = async (ratingVal) => {
         if (!showToRate) return;
-        let ratingVal = parseFloat(ratingInput);
-        if (isNaN(ratingVal) || ratingVal < 0) ratingVal = 0;
-        if (ratingVal > 10) ratingVal = 10;
-        ratingVal = Math.round(ratingVal * 10) / 10;
 
         try {
             const showRef = ref(db, `${getShowsPath(uid)}/${showToRate.id}`);
@@ -628,29 +623,13 @@ const Tvshows = () => {
                 type="tv"
             />
 
-            {showRatingModal && (
-                <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content border-0 shadow">
-                            <div className="modal-header border-0 pb-0">
-                                <h5 className="modal-title fw-bold">Rate this Show</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowRatingModal(false)}></button>
-                            </div>
-                            <div className="modal-body py-4">
-                                <p className="mb-3 text-muted">How would you rate <strong>{showToRate?.name}</strong>?</p>
-                                <div className="input-group">
-                                    <input type="number" className="form-control form-control-lg text-center fw-bold" placeholder="0.0 - 10" step="0.1" min="0" max="10" value={ratingInput} onChange={(e) => setRatingInput(e.target.value)} autoFocus />
-                                    <span className="input-group-text bg-warning text-dark border-0">/ 10</span>
-                                </div>
-                            </div>
-                            <div className="modal-footer border-0 pt-0">
-                                <button className="btn btn-light" onClick={() => setShowRatingModal(false)}>Cancel</button>
-                                <button className="btn btn-primary px-4" onClick={handleSaveRating}>Save & Mark Watched</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <RatingModal
+                show={showRatingModal}
+                onHide={() => setShowRatingModal(false)}
+                onSave={handleSaveRating}
+                itemName={showToRate?.name}
+                type="tv"
+            />
 
             <ClearWatchlistModal
                 show={showClearModal}

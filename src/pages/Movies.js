@@ -10,6 +10,7 @@ import EditStreamingServices from "../components/EditStreamingServices";
 import MediaCard from "../components/MediaCard";
 import ClearWatchlistModal from "../components/ClearWatchlistModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
+import RatingModal from "../components/RatingModal";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -43,7 +44,6 @@ const Movies = () => {
 
     // Rating Modal State
     const [showRatingModal, setShowRatingModal] = useState(false);
-    const [ratingInput, setRatingInput] = useState("");
     const [movieToRate, setMovieToRate] = useState(null);
 
     useEffect(() => {
@@ -226,7 +226,6 @@ const Movies = () => {
         // If we are marking as watched (current status is unwatched/false), open the modal
         if (!watched) {
             setMovieToRate(movie_obj);
-            setRatingInput(""); // Reset input
             setShowRatingModal(true);
         } else {
             // Unmarking as watched (watched -> unwatched)
@@ -246,32 +245,9 @@ const Movies = () => {
         }
     };
 
-    const handleRatingChange = (e) => {
-        const val = e.target.value;
-        if (val === "") {
-            setRatingInput("");
-            return;
-        }
-        const num = parseFloat(val);
-        if (val.includes("-")) return;
-        if (num < 0 || num > 10) return;
 
-        // Check decimals
-        const parts = val.split('.');
-        if (parts.length === 2 && parts[1].length > 1) return;
-
-        setRatingInput(val);
-    };
-
-    const handleSaveRating = async () => {
+    const handleSaveRating = async (ratingVal) => {
         if (!movieToRate) return;
-
-        let ratingVal = parseFloat(ratingInput);
-        if (isNaN(ratingVal) || ratingVal < 0) ratingVal = 0;
-        if (ratingVal > 10) ratingVal = 10;
-
-        // Round to 1 decimal place
-        ratingVal = Math.round(ratingVal * 10) / 10;
 
         try {
             const movieRef = ref(db, `${getMoviesPath(uid)}/${movieToRate.id}`);
@@ -853,38 +829,13 @@ const Movies = () => {
                 )
             }
 
-            {
-                showRatingModal && (
-                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Rate Movie</h5>
-                                    <button type="button" className="btn-close" onClick={() => setShowRatingModal(false)}></button>
-                                </div>
-                                <div className="modal-body">
-                                    <p>Rate <strong>{movieToRate?.name}</strong> from 0 to 10.</p>
-                                    <input
-                                        type="number"
-                                        className="form-control"
-                                        value={ratingInput}
-                                        onChange={handleRatingChange}
-                                        min="0"
-                                        max="10"
-                                        step="0.1"
-                                        placeholder="Enter rating (e.g. 7.5)"
-                                        autoFocus
-                                    />
-                                </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowRatingModal(false)}>Cancel</button>
-                                    <button type="button" className="btn btn-primary" onClick={handleSaveRating}>Save as Watched</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <RatingModal
+                show={showRatingModal}
+                onHide={() => setShowRatingModal(false)}
+                onSave={handleSaveRating}
+                itemName={movieToRate?.name}
+                type="movie"
+            />
 
             <ClearWatchlistModal
                 show={showClearModal}
