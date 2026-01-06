@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from "./Footer";
 import axios from "axios";
 import EditWatchSites from "../components/EditWatchSites";
+import EditStreamingServices from "../components/EditStreamingServices";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -33,7 +34,6 @@ const Movies = () => {
     const [showStreamingModal, setShowStreamingModal] = useState(false);
     const [availableProviders, setAvailableProviders] = useState([]);
     const [selectedProviders, setSelectedProviders] = useState([]);
-    const [editingProviders, setEditingProviders] = useState([]);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [refreshStatus, setRefreshStatus] = useState("");
     const [streamingFilter, setStreamingFilter] = useState([]);
@@ -188,23 +188,10 @@ const Movies = () => {
         return provider?.logo_path ? `https://image.tmdb.org/t/p/w45${provider.logo_path}` : null;
     };
 
-    const openStreamingModal = () => {
-        setEditingProviders([...selectedProviders]);
-        setShowStreamingModal(true);
-    };
-
-    const handleProviderToggle = (providerName) => {
-        if (editingProviders.includes(providerName)) {
-            setEditingProviders(editingProviders.filter(name => name !== providerName));
-        } else {
-            setEditingProviders([...editingProviders, providerName]);
-        }
-    };
-
-    const handleSaveProviders = async () => {
+    const handleSaveProviders = async (updatedProviders) => {
         try {
-            await update(ref(db, `users/${uid}/settings/movies`), { streamingservices: editingProviders });
-            setSelectedProviders(editingProviders);
+            await update(ref(db, `users/${uid}/settings/movies`), { streamingservices: updatedProviders });
+            setSelectedProviders(updatedProviders);
             setShowStreamingModal(false);
         } catch (error) {
             console.error('Error saving streaming services:', error);
@@ -761,7 +748,7 @@ const Movies = () => {
                                             <li><button className="dropdown-item" onClick={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}>Import Watchlist</button></li>
                                             <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
                                             <li><hr className="dropdown-divider" /></li>
-                                            <li><button className="dropdown-item" onClick={openStreamingModal}>Edit Streaming Services</button></li>
+                                            <li><button className="dropdown-item" onClick={() => setShowStreamingModal(true)}>Edit Streaming Services</button></li>
                                             <li><button className="dropdown-item" onClick={() => setShowSitesModal(true)}>Edit Watch Sites</button></li>
                                             <li><hr className="dropdown-divider" /></li>
                                             <li>
@@ -1049,49 +1036,13 @@ const Movies = () => {
                 )
             }
 
-            {
-                showStreamingModal && (
-                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Edit Streaming Services</h5>
-                                    <button type="button" className="btn-close" onClick={() => setShowStreamingModal(false)}></button>
-                                </div>
-                                <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                                    <p className="text-muted small mb-3">Select the streaming services you have access to. This will be used to show which movies are available on your services.</p>
-                                    <div className="row">
-                                        {availableProviders.map(provider => (
-                                            <div key={provider.provider_id} className="col-6 col-md-4 mb-2">
-                                                <div
-                                                    className={`p-2 rounded d-flex align-items-center ${editingProviders.includes(provider.provider_name) ? 'bg-primary text-white' : 'bg-light border'}`}
-                                                    style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
-                                                    onClick={() => handleProviderToggle(provider.provider_name)}
-                                                >
-                                                    {provider.logo_path && (
-                                                        <img
-                                                            src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
-                                                            alt={provider.provider_name}
-                                                            className="me-2 rounded"
-                                                            style={{ width: '24px', height: '24px' }}
-                                                        />
-                                                    )}
-                                                    <span className="small">{provider.provider_name}</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="modal-footer">
-                                    <span className="text-muted small me-auto">{editingProviders.length} selected</span>
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowStreamingModal(false)}>Cancel</button>
-                                    <button type="button" className="btn btn-primary" onClick={handleSaveProviders}>Save</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <EditStreamingServices
+                show={showStreamingModal}
+                onHide={() => setShowStreamingModal(false)}
+                availableProviders={availableProviders}
+                selectedProviders={selectedProviders}
+                onSave={handleSaveProviders}
+            />
 
             <EditWatchSites
                 show={showSitesModal}
