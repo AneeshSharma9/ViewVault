@@ -11,6 +11,8 @@ import MediaCard from "../components/MediaCard";
 import ClearWatchlistModal from "../components/ClearWatchlistModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
 import RatingModal from "../components/RatingModal";
+import ExportModal from "../components/ExportModal";
+import ImportModal from "../components/ImportModal";
 
 const Tvshows = () => {
     const [searchParams] = useSearchParams();
@@ -653,45 +655,24 @@ const Tvshows = () => {
                 onSave={handleSaveSites}
             />
 
-            {showImportModal && (
-                <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header border-0 pb-0">
-                                <h5 className="modal-title fw-bold">Import TV Shows</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowImportModal(false)} disabled={isImporting}></button>
-                            </div>
-                            <div className="modal-body">
-                                <p className="text-muted small mb-2">Format: <code>Title (Year) [x] {'{Rating}'}</code></p>
-                                <textarea className="form-control" rows="10" value={importText} onChange={(e) => setImportText(e.target.value)} placeholder="Breaking Bad (2008) [x] {10}&#10;Succession (2018) []" disabled={isImporting} />
-                                {importStatus && <div className={`mt-2 small ${importStatus.startsWith("Done") ? "text-success" : "text-info"}`}>{importStatus}</div>}
-                            </div>
-                            <div className="modal-footer border-0 Pt-0">
-                                <button className="btn btn-light" onClick={() => setShowImportModal(false)} disabled={isImporting}>Close</button>
-                                <button className="btn btn-primary px-4" onClick={handleImportWatchlist} disabled={isImporting || !importText.trim()}>{isImporting ? "Importing..." : "Import"}</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ImportModal
+                show={showImportModal}
+                onHide={() => setShowImportModal(false)}
+                importText={importText}
+                setImportText={setImportText}
+                onImport={handleImportWatchlist}
+                isImporting={isImporting}
+                importStatus={importStatus}
+                listName={listName}
+                type="tv"
+            />
 
-            {showExportModal && (
-                <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Export TV Shows</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowExportModal(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                <textarea className="form-control" rows="10" readOnly value={exportText} />
-                                <button className="btn btn-primary w-100 mt-3" onClick={() => { navigator.clipboard.writeText(exportText); alert("Copied to clipboard!"); }}>Copy to Clipboard</button>
-                            </div>
-                            <div className="modal-footer"><button className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Close</button></div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ExportModal
+                show={showExportModal}
+                onHide={() => setShowExportModal(false)}
+                exportText={exportText}
+                listName={listName}
+            />
 
             <Footer />
         </div>

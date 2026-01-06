@@ -8,9 +8,11 @@ import axios from "axios";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import MediaCard from "../components/MediaCard";
+import RatingModal from "../components/RatingModal";
+import ExportModal from "../components/ExportModal";
+import ImportModal from "../components/ImportModal";
 import ClearWatchlistModal from "../components/ClearWatchlistModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
-import RatingModal from "../components/RatingModal";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -766,68 +768,24 @@ const Movies = () => {
                 </div>
             </div>
 
-            {
-                showExportModal && (
-                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Export Watchlist</h5>
-                                    <button type="button" className="btn-close" onClick={() => setShowExportModal(false)}></button>
-                                </div>
-                                <div className="modal-body">
-                                    <textarea
-                                        className="form-control"
-                                        rows="10"
-                                        value={exportText}
-                                        readOnly
-                                    />
-                                </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <ExportModal
+                show={showExportModal}
+                onHide={() => setShowExportModal(false)}
+                exportText={exportText}
+                listName={listName}
+            />
 
-            {
-                showImportModal && (
-                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Import Watchlist</h5>
-                                    <button type="button" className="btn-close" onClick={() => setShowImportModal(false)} disabled={isImporting}></button>
-                                </div>
-                                <div className="modal-body">
-                                    <p className="text-muted small mb-2">Enter one movie per line in the format: <code>Title (Year) [x] {'{Rating}'}</code> for watched or <code>Title (Year) []</code> for not watched</p>
-                                    <textarea
-                                        className="form-control"
-                                        rows="10"
-                                        value={importText}
-                                        onChange={(e) => setImportText(e.target.value)}
-                                        placeholder="The Shawshank Redemption (1994) [x] {10}&#10;Inception (2010) []&#10;The Dark Knight (2008) [x] {9.5}"
-                                        disabled={isImporting}
-                                    />
-                                    {importStatus && (
-                                        <div className={`mt-2 small ${importStatus.startsWith("Done") ? "text-success" : "text-info"}`}>
-                                            {importStatus}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowImportModal(false)} disabled={isImporting}>Close</button>
-                                    <button type="button" className="btn btn-primary" onClick={handleImportWatchlist} disabled={isImporting || !importText.trim()}>
-                                        {isImporting ? "Importing..." : "Import"}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <ImportModal
+                show={showImportModal}
+                onHide={() => setShowImportModal(false)}
+                importText={importText}
+                setImportText={setImportText}
+                onImport={handleImportWatchlist}
+                isImporting={isImporting}
+                importStatus={importStatus}
+                listName={listName}
+                type="movies"
+            />
 
             <RatingModal
                 show={showRatingModal}
