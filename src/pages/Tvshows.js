@@ -8,6 +8,7 @@ import axios from "axios";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import MediaCard from "../components/MediaCard";
+import ClearWatchlistModal from "../components/ClearWatchlistModal";
 
 const Tvshows = () => {
     const [searchParams] = useSearchParams();
@@ -662,23 +663,12 @@ const Tvshows = () => {
                 </div>
             )}
 
-            {showClearModal && (
-                <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content border-0 shadow">
-                            <div className="modal-header border-0 pb-0">
-                                <h5 className="modal-title fw-bold text-danger">Clear Watchlist</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowClearModal(false)}></button>
-                            </div>
-                            <div className="modal-body py-4">Are you sure you want to permanently clear your entire TV show watchlist? This action cannot be undone.</div>
-                            <div className="modal-footer border-0 pt-0">
-                                <button className="btn btn-light" onClick={() => setShowClearModal(false)}>Cancel</button>
-                                <button className="btn btn-danger px-4" onClick={handleClearWatchlist}>Clear All</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ClearWatchlistModal
+                show={showClearModal}
+                onHide={() => setShowClearModal(false)}
+                onConfirm={handleClearWatchlist}
+                listName={listName}
+            />
 
             <EditStreamingServices
                 show={showStreamingModal}

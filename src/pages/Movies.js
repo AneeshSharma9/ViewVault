@@ -8,6 +8,7 @@ import axios from "axios";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import MediaCard from "../components/MediaCard";
+import ClearWatchlistModal from "../components/ClearWatchlistModal";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -884,28 +885,12 @@ const Movies = () => {
                 )
             }
 
-            {
-                showClearModal && (
-                    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Clear Watchlist</h5>
-                                    <button type="button" className="btn-close" onClick={() => setShowClearModal(false)}></button>
-                                </div>
-                                <div className="modal-body">
-                                    <p>Are you sure you want to clear your entire watchlist?</p>
-                                    <p className="text-danger fw-bold">This action cannot be undone.</p>
-                                </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowClearModal(false)}>Cancel</button>
-                                    <button type="button" className="btn btn-danger" onClick={handleClearWatchlist}>Clear Watchlist</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <ClearWatchlistModal
+                show={showClearModal}
+                onHide={() => setShowClearModal(false)}
+                onConfirm={handleClearWatchlist}
+                listName={listName}
+            />
 
             <EditStreamingServices
                 show={showStreamingModal}
