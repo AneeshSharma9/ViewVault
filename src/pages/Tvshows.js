@@ -13,6 +13,7 @@ import RemoveMediaModal from "../components/RemoveMediaModal";
 import RatingModal from "../components/RatingModal";
 import ExportModal from "../components/ExportModal";
 import ImportModal from "../components/ImportModal";
+import MediaFilters from "../components/MediaFilters";
 
 const Tvshows = () => {
     const [searchParams] = useSearchParams();
@@ -502,115 +503,63 @@ const Tvshows = () => {
                             <h1 className="text-center m-4 fw-bold fade-in">{listName}</h1>
                         )}
 
-                        <div className="pt-2 pb-4">
-                            <div className="mb-3 d-flex flex-column flex-md-row justify-content-between gap-3">
-                                <div className="d-flex gap-2 flex-wrap">
-                                    <button className="btn btn-outline-secondary dropdown-toggle flex-fill" type="button" data-bs-toggle="dropdown">
-                                        {sortBy}
-                                    </button>
-                                    <ul className="dropdown-menu dropdown-menu-dark">
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Default")}>Default</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Episodes")}>Episodes (High to Low)</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("User Rating")}>User Rating</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Release Year")}>Release Year</button></li>
-                                    </ul>
+                        <MediaFilters
+                            sortBy={sortBy}
+                            onSortChange={handleSortBy}
+                            sortOptions={["Default", "To Watch", "Watched", "Episodes", "User Rating", "Release Year"]}
+                            streamingFilter={streamingFilter}
+                            selectedProviders={selectedProviders}
+                            onSelectAllStreaming={handleSelectAllStreaming}
+                            onStreamingFilterToggle={handleStreamingFilterToggle}
+                            streamingFilterButtonText={getStreamingFilterButtonText()}
+                            onImport={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}
+                            onExport={exportWatchlist}
+                            onEditProviders={() => setShowStreamingModal(true)}
+                            onEditSites={() => setShowSitesModal(true)}
+                            onRefresh={handleRefreshWatchlist}
+                            isRefreshing={isRefreshing}
+                            refreshStatus={refreshStatus}
+                            onClear={() => setShowClearModal(true)}
+                            anyItems={shows.length > 0}
+                            addLabel="Add TV Show"
+                            addLink="./searchtv"
+                        />
 
-                                    <button className="btn btn-outline-secondary dropdown-toggle flex-fill" type="button" data-bs-toggle="dropdown">
-                                        {getStreamingFilterButtonText()}
-                                    </button>
-                                    <ul className="dropdown-menu dropdown-menu-dark" style={{ minWidth: '200px', maxHeight: '300px', overflowY: 'auto' }}>
-                                        <li>
-                                            <label className="dropdown-item" style={{ cursor: 'pointer' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    className="form-check-input me-2"
-                                                    checked={streamingFilter.length === 0 || (streamingFilter.length === selectedProviders.length && selectedProviders.length > 0)}
-                                                    onChange={handleSelectAllStreaming}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                />
-                                                All
-                                            </label>
-                                        </li>
-                                        {selectedProviders.length > 0 && <li><hr className="dropdown-divider" /></li>}
-                                        {selectedProviders.map((provider) => (
-                                            <li key={provider}>
-                                                <label className="dropdown-item" style={{ cursor: 'pointer' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        className="form-check-input me-2"
-                                                        checked={streamingFilter.includes(provider)}
-                                                        onChange={() => handleStreamingFilterToggle(provider)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                    {provider}
-                                                </label>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <div className="dropdown flex-fill">
-                                        <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                                            ⋯
-                                        </button>
-                                        <ul className="dropdown-menu dropdown-menu-end">
-                                            <li><button className="dropdown-item" onClick={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}>Import Watchlist</button></li>
-                                            <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
-                                            <li><hr className="dropdown-divider" /></li>
-                                            <li><button className="dropdown-item" onClick={() => setShowStreamingModal(true)}>Edit Streaming Services</button></li>
-                                            <li><button className="dropdown-item" onClick={() => setShowSitesModal(true)}>Edit Watch Sites</button></li>
-                                            <li><hr className="dropdown-divider" /></li>
-                                            <li>
-                                                <button className="dropdown-item" onClick={handleRefreshWatchlist} disabled={isRefreshing || shows.length === 0}>
-                                                    {isRefreshing ? refreshStatus : "Refresh Watchlist"}
-                                                </button>
-                                            </li>
-                                            <li><button className="dropdown-item text-danger" onClick={() => setShowClearModal(true)}>Clear Watchlist</button></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div className="d-flex gap-2 flex-wrap">
-                                    <a className="btn btn-primary flex-fill" href="./searchtv">Add TV Show</a>
-                                </div>
-                            </div>
-
-                            <div className="list-group list-group-light">
-                                {loading ? (
-                                    Array(5).fill(0).map((_, idx) => (
-                                        <div key={idx} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 bg-white d-flex align-items-start">
-                                            <div className="skeleton-box rounded flex-shrink-0" style={{ width: '100px', height: '150px' }}></div>
-                                            <div className="flex-grow-1 ms-3" style={{ minWidth: 0 }}>
-                                                <div className="d-flex justify-content-between align-items-start mb-2">
-                                                    <div className="skeleton-box rounded" style={{ width: '60%', height: '28px' }}></div>
-                                                    <div className="skeleton-box rounded" style={{ width: '24px', height: '24px' }}></div>
-                                                </div>
-                                                <div className="skeleton-box rounded mb-2" style={{ width: '40%', height: '20px' }}></div>
-                                                <div className="skeleton-box rounded" style={{ width: '50%', height: '18px' }}></div>
+                        <div className="list-group list-group-light">
+                            {loading ? (
+                                Array(5).fill(0).map((_, idx) => (
+                                    <div key={idx} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 bg-white d-flex align-items-start">
+                                        <div className="skeleton-box rounded flex-shrink-0" style={{ width: '100px', height: '150px' }}></div>
+                                        <div className="flex-grow-1 ms-3" style={{ minWidth: 0 }}>
+                                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                                <div className="skeleton-box rounded" style={{ width: '60%', height: '28px' }}></div>
+                                                <div className="skeleton-box rounded" style={{ width: '24px', height: '24px' }}></div>
                                             </div>
+                                            <div className="skeleton-box rounded mb-2" style={{ width: '40%', height: '20px' }}></div>
+                                            <div className="skeleton-box rounded" style={{ width: '50%', height: '18px' }}></div>
                                         </div>
-                                    ))
-                                ) : filteredShows.length === 0 ? (
-                                    <div className="text-center p-5 bg-white rounded shadow-sm border mt-3">
-                                        <p className="text-muted mb-0">Your TV show watchlist is empty or no shows match your filters.</p>
                                     </div>
-                                ) : (
-                                    filteredShows.map((show) => (
-                                        <MediaCard
-                                            key={show.id}
-                                            item={show}
-                                            type="tv"
-                                            watchSites={watchSites}
-                                            selectedProviders={selectedProviders}
-                                            getProviderLogo={getProviderLogo}
-                                            handleToggleWatched={handleToggleWatched}
-                                            handleDeleteClick={handleDeleteClick}
-                                            toComponentB={toComponentB}
-                                            openWatchSite={openWatchSite}
-                                        />
-                                    ))
-                                )}
-                            </div>
+                                ))
+                            ) : filteredShows.length === 0 ? (
+                                <div className="text-center p-5 bg-white rounded shadow-sm border mt-3">
+                                    <p className="text-muted mb-0">Your TV show watchlist is empty or no shows match your filters.</p>
+                                </div>
+                            ) : (
+                                filteredShows.map((show) => (
+                                    <MediaCard
+                                        key={show.id}
+                                        item={show}
+                                        type="tv"
+                                        watchSites={watchSites}
+                                        selectedProviders={selectedProviders}
+                                        getProviderLogo={getProviderLogo}
+                                        handleToggleWatched={handleToggleWatched}
+                                        handleDeleteClick={handleDeleteClick}
+                                        toComponentB={toComponentB}
+                                        openWatchSite={openWatchSite}
+                                    />
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -675,7 +624,7 @@ const Tvshows = () => {
             />
 
             <Footer />
-        </div>
+        </div >
     );
 };
 

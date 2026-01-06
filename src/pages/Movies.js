@@ -13,6 +13,7 @@ import ExportModal from "../components/ExportModal";
 import ImportModal from "../components/ImportModal";
 import ClearWatchlistModal from "../components/ClearWatchlistModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
+import MediaFilters from "../components/MediaFilters";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -637,79 +638,27 @@ const Movies = () => {
                             <h1 className="text-center m-4 fw-bold fade-in">{listName}</h1>
                         )}
                         <div className="pt-2 pb-4">
-                            <div className="mb-3 d-flex flex-column flex-md-row justify-content-between gap-3">
-                                <div className="d-flex gap-2 flex-wrap">
-                                    <button className="btn btn-outline-secondary dropdown-toggle flex-fill" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                                        {sortBy}
-                                    </button>
-                                    <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Default")}>Default</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("To Watch")}>To Watch</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Watched")}>Watched</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Runtime")}>Runtime</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("User Rating")}>User Rating</button></li>
-                                        <li><button className="dropdown-item" onClick={() => handleSortBy("Release Year")}>Release Year</button></li>
-                                    </ul>
-                                    <button className="btn btn-outline-secondary dropdown-toggle flex-fill" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
-                                        {getStreamingFilterButtonText()}
-                                    </button>
-                                    <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton2" style={{ minWidth: '200px', maxHeight: '300px', overflowY: 'auto' }}>
-                                        <li>
-                                            <label className="dropdown-item" style={{ cursor: 'pointer' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    className="form-check-input me-2"
-                                                    checked={streamingFilter.length === 0 || (streamingFilter.length === selectedProviders.length && selectedProviders.length > 0)}
-                                                    onChange={handleSelectAllStreaming}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                />
-                                                All
-                                            </label>
-                                        </li>
-                                        {selectedProviders.length > 0 && <li><hr className="dropdown-divider" /></li>}
-                                        {selectedProviders.length > 0 ? (
-                                            selectedProviders.map((provider) => (
-                                                <li key={provider}>
-                                                    <label className="dropdown-item" style={{ cursor: 'pointer' }}>
-                                                        <input
-                                                            type="checkbox"
-                                                            className="form-check-input me-2"
-                                                            checked={streamingFilter.includes(provider)}
-                                                            onChange={() => handleStreamingFilterToggle(provider)}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                        {provider}
-                                                    </label>
-                                                </li>
-                                            ))
-                                        ) : (
-                                            <li><span className="dropdown-item-text text-muted">No streaming services enabled</span></li>
-                                        )}
-                                    </ul>
-                                    <div className="dropdown flex-fill">
-                                        <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            ⋯
-                                        </button>
-                                        <ul className="dropdown-menu dropdown-menu-end">
-                                            <li><button className="dropdown-item" onClick={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}>Import Watchlist</button></li>
-                                            <li><button className="dropdown-item" onClick={exportWatchlist}>Export Watchlist</button></li>
-                                            <li><hr className="dropdown-divider" /></li>
-                                            <li><button className="dropdown-item" onClick={() => setShowStreamingModal(true)}>Edit Streaming Services</button></li>
-                                            <li><button className="dropdown-item" onClick={() => setShowSitesModal(true)}>Edit Watch Sites</button></li>
-                                            <li><hr className="dropdown-divider" /></li>
-                                            <li>
-                                                <button className="dropdown-item" onClick={handleRefreshWatchlist} disabled={isRefreshing || movies.length === 0}>
-                                                    {isRefreshing ? refreshStatus : "Refresh Watchlist"}
-                                                </button>
-                                            </li>
-                                            <li><button className="dropdown-item text-danger" onClick={() => setShowClearModal(true)}>Clear Watchlist</button></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div className="d-flex gap-2 flex-wrap">
-                                    <a className="btn btn-primary flex-fill" href="./searchmovie">Add Movie</a>
-                                </div>
-                            </div>
+                            <MediaFilters
+                                sortBy={sortBy}
+                                onSortChange={handleSortBy}
+                                sortOptions={["Default", "To Watch", "Watched", "Runtime", "User Rating", "Release Year"]}
+                                streamingFilter={streamingFilter}
+                                selectedProviders={selectedProviders}
+                                onSelectAllStreaming={handleSelectAllStreaming}
+                                onStreamingFilterToggle={handleStreamingFilterToggle}
+                                streamingFilterButtonText={getStreamingFilterButtonText()}
+                                onImport={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}
+                                onExport={exportWatchlist}
+                                onEditProviders={() => setShowStreamingModal(true)}
+                                onEditSites={() => setShowSitesModal(true)}
+                                onRefresh={handleRefreshWatchlist}
+                                isRefreshing={isRefreshing}
+                                refreshStatus={refreshStatus}
+                                onClear={() => setShowClearModal(true)}
+                                anyItems={movies.length > 0}
+                                addLabel="Add Movie"
+                                addLink="./searchmovie"
+                            />
                             <div className="list-group list-group-light">
                                 {loading ? (
                                     // Skeleton Loader
