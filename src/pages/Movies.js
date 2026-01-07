@@ -11,6 +11,7 @@ import RemoveMediaModal from "../components/RemoveMediaModal";
 import MediaFilters from "../components/MediaFilters";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
+import ScrollControls from "../components/ScrollControls";
 import useWatchlist from "../hooks/useWatchlist";
 import axios from "axios";
 import { db } from "../utils/firebase";
@@ -283,6 +284,7 @@ const Movies = () => {
             <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
             <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
             <RemoveMediaModal show={showDeleteMovieModal} onHide={() => setShowDeleteMovieModal(false)} onConfirm={handleConfirmDeleteMovie} itemName={movieToDelete?.name} type="movie" />
+            <ScrollControls />
             <Footer />
         </div>
     );

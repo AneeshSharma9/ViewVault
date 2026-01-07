@@ -52,7 +52,7 @@ const MovieNyte = () => {
                 ]);
                 setGenres(genreResponse.data.genres);
                 // Sort countries alphabetically by english_name
-                const sortedCountries = countryResponse.data.sort((a, b) => 
+                const sortedCountries = countryResponse.data.sort((a, b) =>
                     a.english_name.localeCompare(b.english_name)
                 );
                 setCountries(sortedCountries);
@@ -95,14 +95,14 @@ const MovieNyte = () => {
                         if (watchlistsSnapshot.exists()) {
                             const data = watchlistsSnapshot.val();
                             const movieLists = [];
-                            
+
                             for (const key of Object.keys(data)) {
                                 if (data[key].type === 'movies') {
                                     movieLists.push({
                                         id: key,
                                         ...data[key]
                                     });
-                                    
+
                                     // Check items in this custom list
                                     if (data[key].items) {
                                         Object.values(data[key].items).forEach((movie) => {
@@ -132,7 +132,7 @@ const MovieNyte = () => {
     useEffect(() => {
         const loadProfiles = async () => {
             if (!uid) return;
-            
+
             try {
                 const profilesRef = ref(db, `users/${uid}/movienyte/profiles`);
                 const snapshot = await get(profilesRef);
@@ -151,7 +151,7 @@ const MovieNyte = () => {
                 console.error('Error loading profiles:', error);
             }
         };
-        
+
         if (uid) {
             loadProfiles();
         }
@@ -160,7 +160,7 @@ const MovieNyte = () => {
     // Save profiles to Firebase
     const saveProfilesToFirebase = async (profiles) => {
         if (!uid) return;
-        
+
         try {
             const profilesRef = ref(db, `users/${uid}/movienyte/profiles`);
             const profilesObject = {};
@@ -194,7 +194,7 @@ const MovieNyte = () => {
         const personToDelete = people[index];
         const newPeople = people.filter((_, i) => i !== index);
         setPeople(newPeople);
-        
+
         // Remove from Firebase
         if (uid && personToDelete.id) {
             try {
@@ -204,7 +204,7 @@ const MovieNyte = () => {
                 console.error('Error deleting profile:', error);
             }
         }
-        
+
         await saveProfilesToFirebase(newPeople);
     };
 
@@ -278,7 +278,7 @@ const MovieNyte = () => {
             }
 
             const newRatings = { ...movieRatings };
-            
+
             // Fetch ratings in parallel (batch of 5 at a time to avoid rate limiting)
             for (let i = 0; i < moviesToFetch.length; i += 5) {
                 const batch = moviesToFetch.slice(i, i + 5);
@@ -298,37 +298,37 @@ const MovieNyte = () => {
                         return { id: movie.id, rating: 'NR' };
                     }
                 });
-                
+
                 const results = await Promise.all(promises);
                 results.forEach(r => { newRatings[r.id] = r.rating; });
             }
-            
+
             setMovieRatings(newRatings);
             // Filter movies after ratings are updated
             filterMoviesByRatings(recommendedMovies, newRatings);
         };
-        
+
         const filterMoviesByRatings = (movies, ratings) => {
             // Filter to only enabled profiles
             const enabledPeople = people.filter(p => p.enabled !== false);
-            
+
             // Get all selected ratings from all enabled people
             const selectedRatings = [...new Set(enabledPeople.flatMap(p => p.preferences.rating))];
-            
+
             // Get each enabled person's selected genre IDs
             const peopleGenreIds = enabledPeople.map(p => {
                 const personGenres = p.preferences.genre || [];
                 return personGenres.map(name => genres.find(g => g.name === name)?.id).filter(Boolean);
             });
-            
+
             // Filter movies by ratings and genres
             const filtered = movies.filter(movie => {
                 // Check rating filter
                 const movieRating = ratings[movie.id];
                 const ratingMatch = selectedRatings.length === 0 || (movieRating && selectedRatings.includes(movieRating));
-                
+
                 if (!ratingMatch) return false;
-                
+
                 // Check if animated movies should be excluded
                 if (excludeAnimated) {
                     const movieGenreIds = movie.genre_ids || [];
@@ -337,12 +337,12 @@ const MovieNyte = () => {
                         return false;
                     }
                 }
-                
+
                 // Check genre filter - ALL people must have at least one genre matching the movie
                 if (peopleGenreIds.length === 0) return true; // No genre preferences, show all
-                
+
                 const movieGenreIds = movie.genre_ids || [];
-                
+
                 // Check if every person has at least one genre that matches the movie
                 const allPeopleHaveMatchingGenre = peopleGenreIds.every(personGenres => {
                     // If person has no genres selected, skip them (show all)
@@ -350,10 +350,10 @@ const MovieNyte = () => {
                     // Check if person has at least one genre that matches movie
                     return personGenres.some(genreId => movieGenreIds.includes(genreId));
                 });
-                
+
                 return allPeopleHaveMatchingGenre;
             });
-            
+
             setFilteredMovies(filtered);
             if (filtered.length === 0 && movies.length > 0) {
                 setSearchMessage("No movies found matching the selected ratings and genres. Try selecting different preferences!");
@@ -363,7 +363,7 @@ const MovieNyte = () => {
                 setSearchMessage("No movies found matching everyone's preferences. Try loosening some restrictions!");
             }
         };
-        
+
         if (recommendedMovies.length > 0) {
             fetchRatings();
         }
@@ -380,16 +380,16 @@ const MovieNyte = () => {
         try {
             // Filter to only enabled profiles
             const enabledPeople = people.filter(p => p.enabled !== false);
-            
+
             if (enabledPeople.length === 0) {
                 setSearchMessage("No enabled profiles. Please enable at least one profile to search for movies.");
                 setIsSearching(false);
                 return;
             }
-            
+
             // 1. Combine genres (union - any genre that anyone picked, for more results)
             const allGenres = [...new Set(enabledPeople.flatMap(p => p.preferences.genre))];
-            const genreIds = allGenres.map(name => 
+            const genreIds = allGenres.map(name =>
                 genres.find(g => g.name === name)?.id
             ).filter(Boolean);
 
@@ -415,7 +415,7 @@ const MovieNyte = () => {
                             maxRating = commonRatings[commonRatings.length - 1];
                         } else {
                             // No common ratings, use the most restrictive
-                            const minIndex = Math.min(...peopleWithRatings.map(p => 
+                            const minIndex = Math.min(...peopleWithRatings.map(p =>
                                 Math.max(...p.preferences.rating.map(r => ratingOrder.indexOf(r)))
                             ));
                             maxRating = ratingOrder[minIndex];
@@ -454,12 +454,12 @@ const MovieNyte = () => {
             setSearchParams(params);
 
             // 7. Call API
-            const response = await axios.get('https://api.themoviedb.org/3/discover/movie', { 
-                params: { ...params, page: 1 } 
+            const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
+                params: { ...params, page: 1 }
             });
-            
+
             setTotalPages(response.data.total_pages);
-            
+
             if (response.data.results.length === 0) {
                 setSearchMessage("No movies found matching everyone's preferences. Try loosening some restrictions!");
             } else {
@@ -470,27 +470,27 @@ const MovieNyte = () => {
             console.error('Error finding movies:', error);
             setSearchMessage("Error finding movies. Please try again.");
         }
-        
+
         setIsSearching(false);
     };
 
     const loadMoreMovies = async () => {
         if (!searchParams || currentPage >= totalPages) return;
-        
+
         setIsLoadingMore(true);
         const nextPage = currentPage + 1;
-        
+
         try {
-            const response = await axios.get('https://api.themoviedb.org/3/discover/movie', { 
-                params: { ...searchParams, page: nextPage } 
+            const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
+                params: { ...searchParams, page: nextPage }
             });
-            
+
             setRecommendedMovies(prev => [...prev, ...response.data.results]);
             setCurrentPage(nextPage);
         } catch (error) {
             console.error('Error loading more movies:', error);
         }
-        
+
         setIsLoadingMore(false);
     };
 
@@ -502,8 +502,8 @@ const MovieNyte = () => {
         }
         const movieDetails = await detailsResponse.json();
         const genreString = movieDetails.genres
-          .map(genre => genre.name)
-          .join(' / ');
+            .map(genre => genre.name)
+            .join(' / ');
 
         //Getting age rating
         const ratingResponse = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/release_dates?api_key=${process.env.REACT_APP_API_KEY}`);
@@ -550,7 +550,7 @@ const MovieNyte = () => {
         const uid = auth.currentUser?.uid;
         if (uid) {
             // Determine the path based on whether it's a custom list or default
-            const listPath = listId 
+            const listPath = listId
                 ? `users/${uid}/customwatchlists/${listId}/items`
                 : `users/${uid}/defaultwatchlists/movies/items`;
             const userMovieListRef = ref(db, listPath);
@@ -582,97 +582,155 @@ const MovieNyte = () => {
     return (
         <div>
             <Navbar />
-            <div className="container-fluid">
-                <div className="container">
+            <div className="container-fluid pb-5">
+                <div className="modern-section">
                     <div className="p-4">
-                        <h1 className="text-center m-4 fw-bold">MovieNyte</h1>
-                        {people?.map((person, index) => (
-                            <div key={index} className="mb-4">
-                                <div className="card shadow">
-                                    <div className="card-body" style={{ paddingRight: '70px' }}>
+                        <header className="text-center mb-5">
+                            <h1 className="hero-title text-dark dark-mode-text-white mb-2">MovieNyte™</h1>
+                            <p className="text-muted">The ultimate group decision maker for your next cinema session.</p>
+                        </header>
+
+                        <div className="mn-profile-grid">
+                            {people?.map((person, index) => (
+                                <div key={index} className="mn-profile-card shadow-sm">
+                                    <div className="mn-profile-header">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <h3 className="mn-profile-name">{person.name}</h3>
+                                            <span className={`mn-status-badge ${person.enabled !== false ? 'mn-status-enabled' : 'mn-status-disabled'}`}>
+                                                {person.enabled !== false ? 'Active' : 'Idle'}
+                                            </span>
+                                        </div>
                                         <button
-                                            type="button" className="btn btn-outline-danger"
+                                            type="button"
+                                            className="mn-delete-btn"
                                             onClick={() => deletePerson(index)}
-                                            style={{ position: 'absolute', right: '10px', top: '10px' }}>
-                                            <span aria-hidden="true">&times;</span>
+                                            title="Remove Profile"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                                            </svg>
                                         </button>
-                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <h3 className="card-title mb-0">{person.name}</h3>
-                                            <div className="form-check form-switch">
-                                                <input 
-                                                    className="form-check-input" 
-                                                    type="checkbox" 
-                                                    id={`enable-${index}`}
-                                                    checked={person.enabled !== false}
-                                                    onChange={() => toggleProfileEnabled(index)}
-                                                />
-                                                <label className="form-check-label" htmlFor={`enable-${index}`}>
-                                                    {person.enabled !== false ? 'Enabled' : 'Disabled'}
-                                                </label>
+                                    </div>
+
+                                    <div className="mn-pref-group">
+                                        <label className="mn-pref-label">Favorite Genres</label>
+                                        <div className="mn-pref-pills">
+                                            {person.preferences.genre.length > 0 ? (
+                                                person.preferences.genre.map((g, i) => <span key={i} className="mn-pill">{g}</span>)
+                                            ) : (
+                                                <span className="mn-pill empty">Any Genre</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="mn-pref-group">
+                                        <label className="mn-pref-label">Age Restrictions</label>
+                                        <div className="mn-pref-pills">
+                                            {person.preferences.rating.length > 0 ? (
+                                                person.preferences.rating.map((r, i) => <span key={i} className="mn-pill">{r}</span>)
+                                            ) : (
+                                                <span className="mn-pill empty">No restrictions</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="row g-2 mt-auto">
+                                        <div className="col-6">
+                                            <div className="mn-pref-group mb-0">
+                                                <label className="mn-pref-label">Min Year</label>
+                                                <span className="mn-pill d-block text-center">{person.preferences.year || 'Any'}</span>
                                             </div>
                                         </div>
-                                        <h6>Preferences</h6>
-                                        <ul className="list-group list-group-flush">
-                                            <li className="list-group-item">Genres: {person.preferences.genre.join(', ') || 'None'}</li>
-                                            <li className="list-group-item">Age Rating: {person.preferences.rating.join(', ') || 'None'}</li>
-                                            <li className="list-group-item">Min. Release Year: {person.preferences.year || 'None'}</li>
-                                            <li className="list-group-item">Runtime (hrs): {person.preferences.runtime || 'None'}</li>
-                                            <li className="list-group-item">Country of Origin: {person.preferences.country ? countries.find(c => c.iso_3166_1 === person.preferences.country)?.english_name || person.preferences.country : 'Any'}</li>
-                                        </ul>
-                                        <button type="button" className="btn btn-outline-primary mt-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop" onClick={() => setCurrentPerson(index)}>Edit</button>
+                                        <div className="col-6">
+                                            <div className="mn-pref-group mb-0">
+                                                <label className="mn-pref-label">Max Runtime</label>
+                                                <span className="mn-pill d-block text-center">{person.preferences.runtime ? `${person.preferences.runtime}h` : 'Any'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="d-flex align-items-center gap-2 mt-4">
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-primary mn-edit-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#staticBackdrop"
+                                            onClick={() => setCurrentPerson(index)}
+                                        >
+                                            Edit Preferences
+                                        </button>
+                                        <div className="form-check form-switch mb-0">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id={`enable-${index}`}
+                                                checked={person.enabled !== false}
+                                                onChange={() => toggleProfileEnabled(index)}
+                                                style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                        <div className="d-flex gap-2 mb-4 align-items-center">
-                            <button className="btn btn-outline-primary" onClick={addPerson}>+ Add Person</button>
-                            <button 
-                                className="btn btn-success" 
-                                onClick={findMovies} 
+                            ))}
+                        </div>
+
+                        <div className="mn-action-bar sticky-bottom shadow-lg">
+                            <button className="btn btn-premium btn-premium-outline py-2" onClick={addPerson}>+ New Profile</button>
+                            <button
+                                className="btn btn-premium btn-premium-primary py-2 px-4 flex-grow-1"
+                                onClick={findMovies}
                                 disabled={isSearching || people.length === 0}
                             >
-                                {isSearching ? "Finding Movies..." : "🎬 Find Movies for Everyone"}
+                                {isSearching ? "Searching..." : "🎬 Sync & Find Movies"}
                             </button>
-                            <div className="form-check ms-3">
-                                <input 
-                                    className="form-check-input" 
-                                    type="checkbox" 
+                            <div className="form-check form-switch ms-3 d-none d-md-block">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
                                     id="excludeAnimated"
                                     checked={excludeAnimated}
                                     onChange={(e) => setExcludeAnimated(e.target.checked)}
                                 />
-                                <label className="form-check-label" htmlFor="excludeAnimated">
-                                    Exclude Animated Movies
+                                <label className="form-check-label small fw-bold" htmlFor="excludeAnimated">
+                                    No Animation
                                 </label>
                             </div>
                         </div>
 
                         {searchMessage && (
-                            <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} mb-4`}>
-                                {searchMessage}
+                            <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} rounded-4 border-0 shadow-sm animate-fade-in`}>
+                                <div className="d-flex align-items-center gap-2">
+                                    <span className="fs-4">{filteredMovies.length > 0 ? '✨' : 'ℹ️'}</span>
+                                    <span className="fw-medium">{searchMessage}</span>
+                                </div>
                             </div>
                         )}
 
-                        {filteredMovies.length > 0 && (
-                            <div className="mb-4">
-                                <h3 className="mb-3">Recommended Movies</h3>
-                                <MovieCardGrid 
+                        {(filteredMovies.length > 0 || isSearching) && (
+                            <div className="mt-5 animate-slide-up">
+                                <div className="d-flex align-items-center justify-content-between mb-4">
+                                    <h3 className="mn-profile-name">Recommended for Your Group</h3>
+                                    <span className="badge bg-primary rounded-pill">{filteredMovies.length} Results</span>
+                                </div>
+                                <MovieCardGrid
+                                    key={isSearching ? "loading" : "results"}
                                     movies={filteredMovies}
                                     genres={genres}
                                     movieRatings={movieRatings}
                                     addedMovies={addedMovies}
                                     customWatchlists={customWatchlists}
                                     handleAddMovie={handleAddMovie}
+                                    loading={isSearching}
                                 />
-                                
+
                                 {currentPage < totalPages && (
-                                    <div className="text-center mt-3">
-                                        <button 
-                                            className="btn btn-outline-primary"
+                                    <div className="text-center mt-5">
+                                        <button
+                                            className="btn btn-premium btn-premium-outline px-5"
                                             onClick={loadMoreMovies}
                                             disabled={isLoadingMore}
                                         >
-                                            {isLoadingMore ? "Loading..." : `Load More (Page ${currentPage} of ${totalPages})`}
+                                            {isLoadingMore ? "Loading more..." : "Load More Options"}
                                         </button>
                                     </div>
                                 )}
@@ -705,8 +763,8 @@ const MovieNyte = () => {
                                     <label className="fw-bold mb-2">Genres</label>
                                     <div className="d-flex flex-wrap gap-2">
                                         {genres?.map(genre => (
-                                            <div 
-                                                key={genre.id} 
+                                            <div
+                                                key={genre.id}
                                                 onClick={() => handlePreferenceChange({ target: { name: 'genre', value: genre.name, checked: !tempPreferences.genre.includes(genre.name) } })}
                                                 className={`px-3 py-1 rounded-pill border ${tempPreferences.genre.includes(genre.name) ? 'bg-primary text-white border-primary' : 'bg-light border-secondary'}`}
                                                 style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -720,7 +778,7 @@ const MovieNyte = () => {
                                     <label className="fw-bold mb-2">Age Rating</label>
                                     <div className="d-flex gap-2">
                                         {['G', 'PG', 'PG-13', 'R', 'NR'].map(rating => (
-                                            <div 
+                                            <div
                                                 key={rating}
                                                 onClick={() => handlePreferenceChange({ target: { name: 'rating', value: rating, checked: !tempPreferences.rating.includes(rating) } })}
                                                 className={`px-3 py-1 rounded-pill border ${tempPreferences.rating.includes(rating) ? 'bg-primary text-white border-primary' : 'bg-light border-secondary'}`}
@@ -741,10 +799,10 @@ const MovieNyte = () => {
                                 </div>
                                 <div className="form-group mb-4">
                                     <label className="fw-bold mb-2">Country of Origin</label>
-                                    <select 
-                                        className="form-control" 
-                                        name="country" 
-                                        value={tempPreferences.country} 
+                                    <select
+                                        className="form-control"
+                                        name="country"
+                                        value={tempPreferences.country}
                                         onChange={handlePreferenceChange}
                                     >
                                         <option value="">Any Country</option>

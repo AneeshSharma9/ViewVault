@@ -16,6 +16,7 @@ const SearchTV = () => {
     const [customWatchlists, setCustomWatchlists] = useState([]);
     const [genres, setGenres] = useState([]);
     const [tvRatings, setTvRatings] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -135,6 +136,8 @@ const SearchTV = () => {
     }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const searchTV = async () => {
+        setIsLoading(true);
+        setSearchResults([]);
         try {
             const response = await axios.get(`https://api.themoviedb.org/3/search/tv`, {
                 params: {
@@ -147,6 +150,7 @@ const SearchTV = () => {
         } catch (error) {
             console.error('Error fetching shows:', error);
         }
+        setIsLoading(false);
     };
 
     const handleSearch = () => {
@@ -248,6 +252,7 @@ const SearchTV = () => {
                 </div>
 
                 <MovieCardGrid
+                    key={isLoading ? "loading" : "results"}
                     movies={searchResults}
                     genres={genres}
                     movieRatings={tvRatings}
@@ -255,6 +260,7 @@ const SearchTV = () => {
                     customWatchlists={customWatchlists}
                     handleAddMovie={handleAddTVShow}
                     defaultWatchlistName="TV Shows (Default)"
+                    loading={isLoading}
                 />
             </div>
             <Footer></Footer>

@@ -4,54 +4,108 @@ import Footer from "./pages/Footer";
 
 function App() {
     return (
-        <div className="mb-4 pb-4">
-            <Navbar></Navbar>
-            <div class="image-container">
-                <img src="https://static-prod.adweek.com/wp-content/uploads/2022/03/movie-theater-buys-back-2022.jpg" class="w-100" alt="" />
-                <span class="title">ViewVault</span>
-                <span class="tagline">Discover entertainment</span>
-                <div class="main-button homepage-button1">
-                    <a class="colorchange nav-link" href="#about">
-                        About
-                    </a>
+        <div className="homepage-wrapper">
+            <Navbar />
+
+            {/* Hero Section */}
+            <div className="image-container hero-container">
+                <div className="hero-content">
+                    <h1 className="hero-title animate-pop-in">ViewVault</h1>
+                    <p className="hero-tagline animate-fade-in">Discover entertainment, curate your watchlist, and master your movie nights.</p>
+                    <div className="hero-buttons animate-slide-up">
+                        <a className="btn-premium btn-premium-primary" href="#about">
+                            Get Started
+                        </a>
+                        <a className="btn-premium btn-premium-outline" href="#how">
+                            MovieNyte™
+                        </a>
+                    </div>
                 </div>
-                <div class="other-button homepage-button2">
-                    <a class="colorchange-black nav-link" href="#how">
-                        What is MovieNyte?
-                    </a>
-                </div>
-            </div>
-            <div id="about"></div>
-            <div class="section-bg" >
-                <h2 class="customh2 text-center homepage-offset " >About ViewVault</h2>
-                <p class="introtext pb-5">ViewVault is a versatile platform designed for organizing and curating watchlists of movies and TV shows. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
+                {/* Decorative overlay */}
+                <div className="hero-overlay"></div>
             </div>
 
-            <h2 class="customh2 text-center">Why ViewVault?</h2>
-            <div class="homepage-card-container">
-                <div class="card homepage-card p-5">
-                    <h5 className="card-title text-center mb-4">Streamlined Experience</h5>
-                    <p>Unlike other websites, ViewVault simplifies complex processes, offering a user-friendly interface that enhances navigation and organization of watchlists effortlessly.</p>
+            {/* About Section */}
+            <section id="about" className="section-padding">
+                <div className="modern-section">
+                    <div className="row align-items-center">
+                        <div className="col-lg-6 mb-4 mb-lg-0">
+                            <h2 className="customh2 mb-4">Your Personal Entertainment Sanctuary</h2>
+                            <p className="introtext mb-4">ViewVault is a versatile platform designed for organizing and curating watchlists of movies and TV shows. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
+                            <div className="d-flex gap-3">
+                                <span className="badge bg-secondary p-2 px-3 rounded-pill">Movies</span>
+                                <span className="badge bg-secondary p-2 px-3 rounded-pill">TV Shows</span>
+                                <span className="badge bg-secondary p-2 px-3 rounded-pill">Watchlists</span>
+                            </div>
+                        </div>
+                        <div className="col-lg-6">
+                            <div className="image-card-decorative shadow-lg rounded-4 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop" className="img-fluid" alt="Cinema" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card homepage-card p-5">
-                    <h5 className="card-title text-center mb-4">Personalized Recommendations</h5>
-                    <p>It provides tailored suggestions based on user preferences and viewing history, ensuring a more customized and enjoyable entertainment discovery.</p>
-                </div>
-                <div class="card homepage-card p-5">
-                    <h5 className="card-title text-center mb-4">Comprehensive Management</h5>
-                    <p>ViewVault enables comprehensive management of watchlists, allowing users to easily add, remove, and prioritize content for seamless viewing experiences..</p>
-                </div>
-            </div>
+            </section>
 
-            <div class="homepage-offset" id="how"></div>
-            <div class="section-bg pb-4">
-                <h2 class="customh2 text-center pt-5" >
-                    What is MovieNyte?
-                </h2>
-                <p class="introtext">
-                    MovieNyte is an innovative feature crafted to revolutionize the way groups choose movies for their movie nights. Designed to alleviate the challenge of selecting a film that satisfies everyone's preferences, MovieNyte enables users to input detailed criteria for each participant, such as preferred genres, age ratings, and even specific countries of origin. By leveraging this information, MovieNyte generates personalized recommendations that consider all factors, ensuring that every movie night is not only seamless but also tailored to the collective tastes of the group. This intuitive tool streamlines the decision-making process, making it easier than ever to curate an evening of entertainment that everyone can enjoy together.
-                </p>
-            </div>
+            {/* Why ViewVault Section */}
+            <section className="section-padding bg-light-section">
+                <div className="modern-section">
+                    <h2 className="customh2 text-center mb-5">Why ViewVault?</h2>
+                    <div className="row g-4">
+                        <div className="col-md-4">
+                            <div className="feature-card">
+                                <span className="feature-icon">🚀</span>
+                                <h4 className="feature-title">Streamlined Experience</h4>
+                                <p className="feature-text">Simplify complex processes with a user-friendly interface designed for effortless navigation and watchlist organization.</p>
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="feature-card">
+                                <span className="feature-icon">✨</span>
+                                <h4 className="feature-title">Personalized Discovery</h4>
+                                <p className="feature-text">Get tailored suggestions based on your unique preferences and viewing history for an enjoyable discovery experience.</p>
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="feature-card">
+                                <span className="feature-icon">🛡️</span>
+                                <h4 className="feature-title">Complete Control</h4>
+                                <p className="feature-text">Easily add, remove, and prioritize content. Your vault, your rules—managed seamlessly in one central place.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* MovieNyte Section */}
+            <section className="section-padding" id="how">
+                <div className="modern-section">
+                    <div className="section-bg shadow-lg">
+                        <div className="row align-items-center">
+                            <div className="col-lg-7">
+                                <span className="badge bg-white text-primary mb-3 p-2 px-3 rounded-pill fw-bold">FEATURED TOOL</span>
+                                <h2 className="customh2 text-white mb-4">Meet MovieNyte™</h2>
+                                <p className="introtext text-white opacity-90 mb-4">
+                                    Revolutionize the way your group chooses films. No more endless scrolling or "I don't know, what do you want to watch?".
+                                    MovieNyte analyzes everyone's preferences—genres, ratings, and even origins—to find the perfect match for the whole group.
+                                </p>
+                                <ul className="list-unstyled text-white mb-4">
+                                    <li className="mb-2"><span className="me-2">✅</span> Group preferences synthesis</li>
+                                    <li className="mb-2"><span className="me-2">✅</span> Smart age rating filters</li>
+                                    <li className="mb-2"><span className="me-2">✅</span> One-click recommendations</li>
+                                </ul>
+                            </div>
+                            <div className="col-lg-5 text-center text-lg-end">
+                                <div className="p-4 bg-white bg-opacity-10 rounded-4 backdrop-blur border border-white border-opacity-20 animate-float">
+                                    <h4 className="text-white mb-3">Host a MovieNyte</h4>
+                                    <p className="text-white-50 small mb-4">Combine 2-10 profiles instantly</p>
+                                    <a href="/movienyte" className="btn btn-light w-100 rounded-pill fw-bold py-2 shadow-sm">Try it now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             <Footer></Footer>
         </div>
     );

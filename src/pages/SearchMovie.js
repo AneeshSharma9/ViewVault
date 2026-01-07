@@ -16,6 +16,7 @@ const SearchMovie = () => {
     const [customWatchlists, setCustomWatchlists] = useState([]);
     const [genres, setGenres] = useState([]);
     const [movieRatings, setMovieRatings] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         // Get user's already added movies from all watchlists
@@ -140,6 +141,8 @@ const SearchMovie = () => {
     }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const searchMovie = async () => {
+        setIsLoading(true);
+        setSearchResults([]);
         try {
             const response = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
                 params: {
@@ -152,6 +155,7 @@ const SearchMovie = () => {
         } catch (error) {
             console.error('Error fetching movies:', error);
         }
+        setIsLoading(false);
     };
 
     const handleSearch = () => {
@@ -269,6 +273,7 @@ const SearchMovie = () => {
                 </div>
 
                 <MovieCardGrid
+                    key={isLoading ? "loading" : "results"}
                     movies={searchResults}
                     genres={genres}
                     movieRatings={movieRatings}
@@ -276,6 +281,7 @@ const SearchMovie = () => {
                     customWatchlists={customWatchlists}
                     handleAddMovie={handleAddMovie}
                     defaultWatchlistName="Movies (Default)"
+                    loading={isLoading}
                 />
             </div>
             <Footer></Footer>
