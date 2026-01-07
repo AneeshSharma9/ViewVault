@@ -56,12 +56,13 @@ const MediaCard = ({
             {/* Poster Column */}
             <div className="media-poster-wrapper">
                 {posterUrl ? (
-                    <div className="btn-group dropstart w-100 h-100">
+                    <div className="btn-group dropend w-100 h-100">
                         <button
                             type="button"
                             className="btn p-0 border-0 w-100 h-100 position-relative"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
+                            style={{ borderRadius: '12px', overflow: 'hidden' }}
                         >
                             <img
                                 src={posterUrl}
@@ -69,8 +70,8 @@ const MediaCard = ({
                                 className="media-poster"
                                 onError={(e) => { e.target.src = 'https://via.placeholder.com/100x150?text=No+Img'; }}
                             />
-                            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-overlay" style={{ background: 'rgba(0,0,0,0.3)', transition: 'opacity 0.2s' }}>
-                                <span className="text-white fw-bold">Options</span>
+                            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center hover-overlay" style={{ background: 'rgba(0,0,0,0.4)', transition: 'opacity 0.2s', opacity: 0 }}>
+                                <span className="text-white fw-bold small">Options</span>
                             </div>
                         </button>
                         <ul className="dropdown-menu shadow-lg border-0 rounded-4 p-2">

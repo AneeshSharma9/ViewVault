@@ -166,9 +166,19 @@
   flex-shrink: 0;
   width: 100px;
   position: relative;
-  overflow: hidden;
+  /* Removed overflow: hidden to allow dropdowns to show */
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.media-poster-wrapper .btn {
+  border-radius: 12px;
+  position: relative;
+}
+
+.media-poster-wrapper .dropdown-menu {
+  z-index: 1100 !important;
+  min-width: 200px;
 }
 
 .media-poster {
@@ -180,6 +190,10 @@
 
 .media-card-premium:hover .media-poster {
   transform: scale(1.1);
+}
+
+.media-poster-wrapper:hover .hover-overlay {
+  opacity: 1 !important;
 }
 
 .media-content {
@@ -1386,6 +1400,7 @@ input:focus {
     transform: rotate(360deg);
   }
 }
+
 /* Scroll Controls */
 .scroll-nav-controls {
   position: fixed;

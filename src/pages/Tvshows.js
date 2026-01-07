@@ -240,14 +240,49 @@ const Tvshows = () => {
                         />
                         <div className="list-group list-group-light">
                             {loading ? (
-                                Array(5).fill(0).map((unneeded, idx) => (
-                                    <div key={idx} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 d-flex align-items-start">
-                                        <div className="skeleton-box rounded flex-shrink-0" style={{ width: '100px', height: '150px' }}></div>
-                                        <div className="flex-grow-1 ms-3">
-                                            <div className="skeleton-box rounded mb-2" style={{ width: '60%', height: '28px' }}></div>
-                                            <div className="skeleton-box rounded" style={{ width: '40%', height: '22px' }}></div>
+                                Array(5).fill(0).map((_, i) => (
+                                    <li key={i} className="media-card-premium">
+                                        {/* Poster skeleton */}
+                                        <div className="media-poster-wrapper">
+                                            <div className="skeleton-box" style={{ width: '100%', height: '150px', borderRadius: '12px' }}></div>
                                         </div>
-                                    </div>
+
+                                        {/* Content skeleton */}
+                                        <div className="media-content">
+                                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                                <div style={{ flex: 1 }}>
+                                                    {/* Title */}
+                                                    <div className="skeleton-box mb-2" style={{ width: '70%', height: '24px', borderRadius: '6px' }}></div>
+                                                    {/* Badges */}
+                                                    <div className="d-flex gap-2 mb-2">
+                                                        <div className="skeleton-box" style={{ width: '50px', height: '20px', borderRadius: '12px' }}></div>
+                                                        <div className="skeleton-box" style={{ width: '40px', height: '20px', borderRadius: '12px' }}></div>
+                                                    </div>
+                                                </div>
+                                                {/* Watched toggle skeleton */}
+                                                <div className="skeleton-box" style={{ width: '32px', height: '32px', borderRadius: '50%' }}></div>
+                                            </div>
+
+                                            {/* Metadata line */}
+                                            <div className="d-flex gap-3 mb-2">
+                                                <div className="skeleton-box" style={{ width: '60px', height: '16px', borderRadius: '4px' }}></div>
+                                                <div className="skeleton-box" style={{ width: '80px', height: '16px', borderRadius: '4px' }}></div>
+                                            </div>
+
+                                            {/* Genres */}
+                                            <div className="skeleton-box mb-2" style={{ width: '85%', height: '14px', borderRadius: '4px' }}></div>
+
+                                            {/* Providers and remove button */}
+                                            <div className="d-flex justify-content-between align-items-end mt-2">
+                                                <div className="d-flex gap-1">
+                                                    <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
+                                                    <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
+                                                    <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
+                                                </div>
+                                                <div className="skeleton-box" style={{ width: '70px', height: '24px', borderRadius: '6px' }}></div>
+                                            </div>
+                                        </div>
+                                    </li>
                                 ))
                             ) : (
                                 filteredShows.map((show) => (
