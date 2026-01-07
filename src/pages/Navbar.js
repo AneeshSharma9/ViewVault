@@ -2,8 +2,10 @@ import { auth, signInWithGooglePopup, db } from "../utils/firebase"
 import { signOut } from "firebase/auth";
 import { ref, push, get, remove } from "firebase/database";
 import { useState, useEffect } from "react";
+import { useTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
+    const { isDarkMode, toggleTheme } = useTheme();
     const [uid, setUid] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newListName, setNewListName] = useState("");
@@ -112,7 +114,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="navbar sticky-top navbar-expand-lg navbar-dark bg-dark p-3 shadow">
+        <nav className={`navbar sticky-top navbar-expand-lg ${isDarkMode ? 'navbar-dark' : 'navbar-light'} navbar-bg p-3 shadow-sm`}>
             <style>{`
                 @keyframes fadeIn {
                     from { opacity: 0; }
@@ -172,17 +174,28 @@ const Navbar = () => {
                 </ul>
 
             </div>
-            <ul className="navbar-nav ml-auto">
-                <li className="nav-item">
-                    {loading ? (
-                        null
-                    ) : uid ? (
-                        <button className="btn btn-outline-danger my-2 my-sm-0 fade-in" onClick={handleSignOut}>Logout</button>
-                    ) : (
-                        <button className="btn btn-outline-success my-2 my-sm-0 fade-in" onClick={handleLogin}>Login</button>
-                    )}
-                </li>
-            </ul>
+            <div className="d-flex align-items-center gap-3">
+                <button
+                    onClick={toggleTheme}
+                    className="btn btn-link nav-link p-0 d-flex align-items-center justify-content-center theme-toggle-btn"
+                    style={{ transition: 'transform 0.3s ease', width: '40px', height: '40px', borderRadius: '50%', background: isDarkMode ? '#333' : '#f0f0f0' }}
+                    title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                    <span style={{ fontSize: '1.2rem' }}>{isDarkMode ? '🌞' : '🌙'}</span>
+                </button>
+
+                <ul className="navbar-nav">
+                    <li className="nav-item">
+                        {loading ? (
+                            null
+                        ) : uid ? (
+                            <button className="btn btn-outline-danger rounded-pill px-4 fade-in" onClick={handleSignOut}>Logout</button>
+                        ) : (
+                            <button className="btn btn-outline-success rounded-pill px-4 fade-in" onClick={handleLogin}>Login</button>
+                        )}
+                    </li>
+                </ul>
+            </div>
 
             {showCreateModal && (
                 <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>

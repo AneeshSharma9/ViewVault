@@ -23,9 +23,37 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
   <title>ViewVault</title>
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem('theme');
+        var supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+        if (!theme && supportDarkMode) theme = 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark-mode');
+        } else {
+          document.documentElement.classList.add('light-mode');
+        }
+      } catch (e) { }
+    })();
+  </script>
+  <style>
+    /* Critical styles to prevent flash */
+    html.dark-mode {
+      background-color: #121212;
+    }
+
+    html.light-mode {
+      background-color: #f9f9f9;
+    }
+
+    body {
+      background-color: inherit;
+    }
+  </style>
 </head>
 
-<body >
+<body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
   <!--

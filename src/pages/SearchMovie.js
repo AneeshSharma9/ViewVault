@@ -261,7 +261,7 @@ const SearchMovie = () => {
             <Navbar></Navbar>
             <div className="container">
                 <h1 className="text-center p-5 fw-bold">Search for Movies</h1>
-                <div className="input-group p-3 bg-white">
+                <div className="input-group p-3 search-bar-container">
                     <input type="text" className="form-control" placeholder="Search for a movie..." ref={inputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} onFocus={handleInputFocus} />
                     <div className="input-group-append">
                         <button className="btn btn-primary" type="button" onClick={handleSearch}>Search</button>

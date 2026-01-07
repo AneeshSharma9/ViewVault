@@ -29,7 +29,7 @@ const MediaFilters = ({
                     <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {sortBy}
                     </button>
-                    <ul className="dropdown-menu dropdown-menu-dark shadow-lg border-0" style={{ borderRadius: '0.8rem' }}>
+                    <ul className="dropdown-menu shadow-lg border-0" style={{ borderRadius: '0.8rem' }}>
                         {sortOptions.map(option => (
                             <li key={option}>
                                 <button className="dropdown-item py-2" onClick={() => onSortChange(option)}>
@@ -45,7 +45,7 @@ const MediaFilters = ({
                     <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {streamingFilterButtonText}
                     </button>
-                    <ul className="dropdown-menu dropdown-menu-dark shadow-lg border-0" style={{ minWidth: '220px', maxHeight: '350px', overflowY: 'auto', borderRadius: '0.8rem' }}>
+                    <ul className="dropdown-menu shadow-lg border-0" style={{ minWidth: '220px', maxHeight: '350px', overflowY: 'auto', borderRadius: '0.8rem' }}>
                         <li>
                             <label className="dropdown-item py-2" style={{ cursor: 'pointer' }}>
                                 <input

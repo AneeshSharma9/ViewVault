@@ -9,6 +9,7 @@ import reportWebVitals from './reportWebVitals';
 
 //Need this
 import firebase from './utils/firebase'
+import { ThemeProvider } from './context/ThemeContext';
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Movies from "./pages/Movies";
@@ -22,23 +23,25 @@ import MovieNyte from './pages/MovieNyte';
 
 export default function All() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App />} />
 
-        <Route path="tvshows" element={<Tvshows />} />
-        <Route path="searchtv" element={<SearchTV />} />
-        <Route path="recommendedshows" element={<RecommendedShows />} />
+          <Route path="tvshows" element={<Tvshows />} />
+          <Route path="searchtv" element={<SearchTV />} />
+          <Route path="recommendedshows" element={<RecommendedShows />} />
 
-        <Route path="movies" element={<Movies />} />
-        <Route path="searchmovie" element={<SearchMovie />} />
-        <Route path="recommendedmovies" element={<RecommendedMovies />} />
+          <Route path="movies" element={<Movies />} />
+          <Route path="searchmovie" element={<SearchMovie />} />
+          <Route path="recommendedmovies" element={<RecommendedMovies />} />
 
-        <Route path="movienyte" element={<MovieNyte />} />
+          <Route path="movienyte" element={<MovieNyte />} />
 
-      </Routes>
+        </Routes>
 
-    </BrowserRouter>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

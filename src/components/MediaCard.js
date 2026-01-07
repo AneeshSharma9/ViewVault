@@ -52,7 +52,7 @@ const MediaCard = ({
         : `📺 ${item.num_episodes} Episodes`;
 
     return (
-        <li className="list-group-item rounded-4 mb-3 mt-2 p-3 bg-white d-flex align-items-start fade-in" style={{
+        <li className="list-group-item rounded-4 mb-3 mt-2 p-3 d-flex align-items-start fade-in" style={{
             boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
             border: '1px solid rgba(0,0,0,0.05)',
             transition: 'transform 0.2s ease, box-shadow 0.2s ease'
@@ -111,19 +111,26 @@ const MediaCard = ({
                         <h5 className="mb-0 fw-bold" style={{ fontSize: '1.2rem', lineHeight: '1.2' }}>{item.name}</h5>
                         <div className="d-flex align-items-center gap-2 mt-1">
                             <small className="text-muted" style={{ fontSize: '0.9rem' }}>({year})</small>
-                            <span className={`badge border ${getAgeRatingClass(item.agerating || "N/A")}`} style={{ fontSize: '0.75rem' }}>
+                            <span className={`badge ${getAgeRatingClass(item.agerating || "N/A")}`} style={{ fontSize: '0.75rem' }}>
                                 {item.agerating || "N/A"}
                             </span>
                         </div>
                     </div>
-                    <div className="form-check ms-2">
-                        <input
-                            className="form-check-input"
-                            type="checkbox"
-                            checked={item.watched}
-                            onChange={() => handleToggleWatched(item, item.watched)}
-                            style={{ cursor: 'pointer', width: '1.4em', height: '1.4em' }}
-                        />
+                    <div
+                        className={`watched-toggle ms-2 ${item.watched ? 'active' : ''}`}
+                        onClick={() => handleToggleWatched(item, item.watched)}
+                        title={item.watched ? "Mark as unwatched" : "Mark as watched"}
+                    >
+                        {item.watched ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l2.578 2.576L12.736 3.97z" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                            </svg>
+                        )}
                     </div>
                 </div>
 
@@ -155,7 +162,7 @@ const MediaCard = ({
                                 return logo ? (
                                     <img key={idx} src={logo} alt={provider} title={provider} className="rounded" style={{ width: '20px', height: '20px' }} />
                                 ) : (
-                                    <span key={idx} className="badge bg-light text-dark border p-1" style={{ fontSize: '0.7rem' }}>{provider}</span>
+                                    <span key={idx} className="badge bg-light text-dark p-1" style={{ fontSize: '0.7rem' }}>{provider}</span>
                                 );
                             })}
                             {filteredProviders.length > 5 && <span className="small text-muted">+{filteredProviders.length - 5}</span>}
@@ -165,11 +172,14 @@ const MediaCard = ({
 
                 <div className="d-flex justify-content-end mt-2">
                     <button
-                        className="btn btn-sm btn-link text-danger text-decoration-none p-0"
+                        className="remove-btn"
                         onClick={() => handleDeleteClick(item)}
-                        style={{ fontSize: '0.9rem' }}
                     >
-                        [ Remove ]
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                        </svg>
+                        Remove
                     </button>
                 </div>
             </div>

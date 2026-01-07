@@ -201,13 +201,7 @@ const Tvshows = () => {
     };
 
     return (
-        <div className="">
-            <style>{`
-                .skeleton-box { animation: skeleton-loading 1.5s infinite ease-in-out; background-color: #f0f0f0; }
-                @keyframes skeleton-loading { 0% { background-color: #f0f0f0; } 50% { background-color: #e0e0e0; } 100% { background-color: #f0f0f0; } }
-                .fade-in { animation: fadeIn 0.5s ease-in; }
-                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            `}</style>
+        <div className="fade-in">
             <Navbar />
             <div className="container-fluid">
                 <div className="container p-4">
@@ -246,7 +240,7 @@ const Tvshows = () => {
                         <div className="list-group list-group-light">
                             {loading ? (
                                 Array(5).fill(0).map((unneeded, idx) => (
-                                    <div key={idx} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 bg-white d-flex align-items-start">
+                                    <div key={idx} className="list-group-item rounded mb-2 mt-2 shadow-sm p-3 d-flex align-items-start">
                                         <div className="skeleton-box rounded flex-shrink-0" style={{ width: '100px', height: '150px' }}></div>
                                         <div className="flex-grow-1 ms-3">
                                             <div className="skeleton-box rounded mb-2" style={{ width: '60%', height: '28px' }}></div>
