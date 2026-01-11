@@ -25,6 +25,7 @@ const EditWatchSites = ({ show, onHide, watchSites, onSave }) => {
 
     const handleSave = () => {
         onSave(editingSites);
+        onHide();
     };
 
     if (!show) return null;
@@ -102,7 +103,7 @@ const EditWatchSites = ({ show, onHide, watchSites, onSave }) => {
                     </div>
                     <div className="modal-footer border-0 pt-0">
                         <button type="button" className="btn btn-light" onClick={onHide}>Cancel</button>
-                        <button type="button" className="btn btn-primary px-4 shadow-sm" onClick={handleSave}>Save Changes</button>
+                        <button type="button" className="btn btn-primary px-4 shadow-sm" onClick={handleSave}>Save & Close</button>
                     </div>
                 </div>
             </div>

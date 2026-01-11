@@ -466,6 +466,12 @@
   box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
 }
 
+.dark-mode .form-control::placeholder,
+.dark-mode .form-select::placeholder {
+  color: #999 !important;
+  opacity: 1;
+}
+
 .dark-mode .dark-mode-text-white {
   color: #ffffff !important;
 }
