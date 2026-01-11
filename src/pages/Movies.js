@@ -61,6 +61,14 @@ const Movies = () => {
     const [movieToDelete, setMovieToDelete] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [movieToRate, setMovieToRate] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Filter movies by search query
+    const searchFilteredMovies = searchQuery.trim()
+        ? filteredMovies.filter(movie =>
+            movie.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : filteredMovies;
 
     const getProviderLogo = (providerName) => {
         const provider = availableProviders.find(p => p.provider_name === providerName);
@@ -243,6 +251,8 @@ const Movies = () => {
                             anyItems={movies.length > 0}
                             addLabel="Add Movie"
                             addLink="./searchmovie"
+                            searchQuery={searchQuery}
+                            onSearchChange={setSearchQuery}
                         />
                         <div className="list-group list-group-light">
                             {loading ? (
@@ -291,7 +301,7 @@ const Movies = () => {
                                     </li>
                                 ))
                             ) : (
-                                filteredMovies.map((movie) => (
+                                searchFilteredMovies.map((movie) => (
                                     <MediaCard
                                         key={movie.id}
                                         item={movie}

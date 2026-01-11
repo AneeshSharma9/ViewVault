@@ -61,6 +61,14 @@ const Tvshows = () => {
     const [showToDelete, setShowToDelete] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [showToRate, setShowToRate] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Filter shows by search query
+    const searchFilteredShows = searchQuery.trim()
+        ? filteredShows.filter(show =>
+            show.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : filteredShows;
 
     const getProviderLogo = (providerName) => {
         const provider = availableProviders.find(p => p.provider_name === providerName);
@@ -237,6 +245,8 @@ const Tvshows = () => {
                             anyItems={shows.length > 0}
                             addLabel="Add TV Show"
                             addLink="./searchtv"
+                            searchQuery={searchQuery}
+                            onSearchChange={setSearchQuery}
                         />
                         <div className="list-group list-group-light">
                             {loading ? (
@@ -285,7 +295,7 @@ const Tvshows = () => {
                                     </li>
                                 ))
                             ) : (
-                                filteredShows.map((show) => (
+                                searchFilteredShows.map((show) => (
                                     <MediaCard
                                         key={show.id}
                                         item={show}

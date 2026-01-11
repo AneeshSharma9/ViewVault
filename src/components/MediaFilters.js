@@ -19,11 +19,25 @@ const MediaFilters = ({
     onClear,
     anyItems,
     addLabel,
-    addLink
+    addLink,
+    searchQuery = '',
+    onSearchChange
 }) => {
     return (
         <div className="mb-3 d-flex flex-column flex-md-row justify-content-between gap-3 fade-in">
-            <div className="d-flex gap-2 flex-wrap">
+            <div className="d-flex gap-2 flex-wrap flex-grow-1">
+                {/* Search Input */}
+                <div className="flex-fill" style={{ minWidth: '200px', maxWidth: '300px' }}>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search by title..."
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        style={{ borderRadius: '0.8rem', height: '38px' }}
+                    />
+                </div>
+
                 {/* Sort Dropdown */}
                 <div className="dropdown flex-fill">
                     <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
