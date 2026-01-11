@@ -329,6 +329,12 @@ const Movies = () => {
             <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
             <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
             <RemoveMediaModal show={showDeleteMovieModal} onHide={() => setShowDeleteMovieModal(false)} onConfirm={handleConfirmDeleteMovie} itemName={movieToDelete?.name} type="movie" />
+
+            {/* Floating Add Button */}
+            <a href="./searchmovie" className="floating-add-btn" data-tooltip="Add Movie">
+                +
+            </a>
+
             <ScrollControls />
             <Footer />
         </div>

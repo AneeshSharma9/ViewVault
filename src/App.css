@@ -615,44 +615,101 @@
   /* Darker base for dark mode */
 }
 
+/* ============================================
+   THEME COLOR CONFIGURATION
+   Edit these values to customize your theme
+   ============================================ */
+
 :root {
-  /* Default Light Mode Variables */
-  --primary-col: #710302;
-  --secondary-col: #dfecea;
-  --secondary-dark-col: #13201e;
-  --accent-col: #b83534;
-  --text-col: #2b2b2b;
-  --bg-gray-col: #f3f3f3;
-  --navbar-bg: #ffffff;
-  --body-bg: #f9f9f9;
+  /* ===== LIGHT MODE THEME COLORS ===== */
+  --light-primary: #710302;
+  /* Main brand color (dark red) */
+  --light-accent: #b83534;
+  /* Accent/hover color (lighter red) */
+  --light-text: #2b2b2b;
+  /* Main text color */
+  --light-bg-primary: #ffffff;
+  /* Main background (navbar, cards) */
+  --light-bg-secondary: #f0f0f0;
+  /* Page background */
+  --light-bg-tertiary: #f3f3f3;
+  /* Subtle backgrounds */
+  --light-secondary: #dfecea;
+  /* Secondary UI elements */
+  --light-secondary-dark: #13201e;
+  /* Dark secondary elements */
+
+  /* ===== DARK MODE THEME COLORS ===== */
+  --dark-primary: #ff4d4d;
+  /* Main brand color (bright red) */
+  --dark-accent: #d32f2f;
+  /* Accent/hover color (darker red) */
+  --dark-text: #f0f0f0;
+  /* Main text color */
+  --dark-bg-primary: #1e1e1e;
+  /* Main background (navbar, cards) */
+  --dark-bg-secondary: #121212;
+  /* Page background */
+  --dark-bg-tertiary: #2c2c2c;
+  /* Subtle backgrounds */
+  --dark-secondary: #1a1a1a;
+  /* Secondary UI elements */
+  --dark-secondary-dark: #000000;
+  /* Dark secondary elements */
+
+  /* ===== SHARED COLORS ===== */
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --info: #17a2b8;
+}
+
+/* ============================================
+   APPLY LIGHT MODE (DEFAULT)
+   ============================================ */
+:root {
+  --primary-col: var(--light-primary);
+  --accent-col: var(--light-accent);
+  --text-col: var(--light-text);
+  --navbar-bg: var(--light-bg-primary);
+  --body-bg: var(--light-bg-secondary);
+  --bg-gray-col: var(--light-bg-tertiary);
+  --secondary-col: var(--light-secondary);
+  --secondary-dark-col: var(--light-secondary-dark);
   --hero-gradient-1: #1a1a1a;
   --hero-gradient-2: #555555;
 }
 
-/* System Preference Default (if no explicit class is set) */
+/* ============================================
+   APPLY DARK MODE (System Preference)
+   ============================================ */
 @media (prefers-color-scheme: dark) {
   :root:not(.light-mode) {
-    --primary-col: #ff4d4d;
-    --secondary-col: #1a1a1a;
-    --secondary-dark-col: #000000;
-    --accent-col: #d32f2f;
-    --text-col: #f0f0f0;
-    --bg-gray-col: #2c2c2c;
-    --navbar-bg: #1e1e1e;
-    --body-bg: #121212;
+    --primary-col: var(--dark-primary);
+    --accent-col: var(--dark-accent);
+    --text-col: var(--dark-text);
+    --navbar-bg: var(--dark-bg-primary);
+    --body-bg: var(--dark-bg-secondary);
+    --bg-gray-col: var(--dark-bg-tertiary);
+    --secondary-col: var(--dark-secondary);
+    --secondary-dark-col: var(--dark-secondary-dark);
+    --hero-gradient-1: #ffffff;
+    --hero-gradient-2: #aaaaaa;
   }
 }
 
-/* Explicit Dark Mode Override */
+/* ============================================
+   APPLY DARK MODE (Explicit Toggle)
+   ============================================ */
 :root.dark-mode {
-  --primary-col: #ff4d4d;
-  --secondary-col: #1a1a1a;
-  --secondary-dark-col: #000000;
-  --accent-col: #d32f2f;
-  --text-col: #f0f0f0;
-  --bg-gray-col: #2c2c2c;
-  --navbar-bg: #1e1e1e;
-  --body-bg: #121212;
+  --primary-col: var(--dark-primary);
+  --accent-col: var(--dark-accent);
+  --text-col: var(--dark-text);
+  --navbar-bg: var(--dark-bg-primary);
+  --body-bg: var(--dark-bg-secondary);
+  --bg-gray-col: var(--dark-bg-tertiary);
+  --secondary-col: var(--dark-secondary);
+  --secondary-dark-col: var(--dark-secondary-dark);
   --hero-gradient-1: #ffffff;
   --hero-gradient-2: #aaaaaa;
 }
@@ -1410,7 +1467,7 @@ input:focus {
 /* Scroll Controls */
 .scroll-nav-controls {
   position: fixed;
-  bottom: 2rem;
+  top: 100px;
   right: 2rem;
   display: flex;
   flex-direction: column;
@@ -1449,4 +1506,76 @@ input:focus {
 
 .dark-mode .scroll-btn:hover {
   background: var(--primary-col);
+}
+
+/* Floating Add Button */
+.floating-add-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--primary-col);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+  padding-bottom: 3px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  text-decoration: none;
+}
+
+.floating-add-btn:hover {
+  transform: translateY(-5px) scale(1.1);
+  background: var(--accent-col);
+  color: white;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.floating-add-btn:active {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.dark-mode .floating-add-btn {
+  background: var(--primary-col);
+  box-shadow: 0 10px 25px rgba(255, 77, 77, 0.3);
+}
+
+.dark-mode .floating-add-btn:hover {
+  background: var(--accent-col);
+  box-shadow: 0 15px 35px rgba(255, 77, 77, 0.4);
+}
+
+/* Tooltip for floating button */
+.floating-add-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 70px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: normal;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.floating-add-btn:hover::after {
+  opacity: 1;
+}
+
+.dark-mode .floating-add-btn::after {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e1e1e;
 }

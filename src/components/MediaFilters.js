@@ -118,13 +118,6 @@ const MediaFilters = ({
                     </ul>
                 </div>
             </div>
-
-            {/* Add Button */}
-            <div className="d-flex gap-2 flex-wrap">
-                <a className="btn btn-primary flex-fill px-4 d-flex align-items-center justify-content-center fw-bold" href={addLink} style={{ borderRadius: '0.8rem' }}>
-                    <span className="me-2">+</span> {addLabel}
-                </a>
-            </div>
         </div>
     );
 };

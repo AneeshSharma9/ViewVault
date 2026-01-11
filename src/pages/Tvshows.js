@@ -322,6 +322,12 @@ const Tvshows = () => {
             <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
             <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
             <RemoveMediaModal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} onConfirm={handleConfirmDelete} itemName={showToDelete?.name} type="tv" />
+
+            {/* Floating Add Button */}
+            <a href="./searchtv" className="floating-add-btn" data-tooltip="Add TV Show">
+                +
+            </a>
+
             <ScrollControls />
             <Footer />
         </div>
