@@ -149,7 +149,7 @@ const Tvshows = () => {
         }
         setRefreshStatus("");
         setIsRefreshing(false);
-        refreshData();
+        refreshData(true);
     };
 
     const exportVault = () => {
@@ -164,6 +164,8 @@ const Tvshows = () => {
         setImportStatus("Importing...");
         const lines = importText.split("\n").filter(l => l.trim());
         const existingIds = shows.map(s => s.tvshowid);
+        let addedCount = 0;
+        let skippedCount = 0;
 
         for (const line of lines) {
             const match = line.match(/^(.+?)\s*(?:\((\d{4})\))?\s*(?:\[(x?)\])?\s*(?:\{([\d.]+)\})?$/);
@@ -175,7 +177,12 @@ const Tvshows = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY, query: title, first_air_date_year: year }
                 });
                 const show = searchRes.data.results[0];
-                if (!show || existingIds.includes(show.id)) continue;
+                if (!show) continue;
+
+                if (existingIds.includes(show.id)) {
+                    skippedCount++;
+                    continue;
+                }
 
                 const detailsRes = await axios.get(`https://api.themoviedb.org/3/tv/${show.id}`, {
                     params: { api_key: process.env.REACT_APP_API_KEY }
@@ -201,11 +208,12 @@ const Tvshows = () => {
                     poster_path: show.poster_path,
                     user_rating: rating ? parseFloat(rating) : null
                 });
+                addedCount++;
             } catch (e) { console.error(e); }
         }
         setIsImporting(false);
-        setImportStatus("Done!");
-        refreshData();
+        setImportStatus(`Done! Added: ${addedCount}, Skipped (Already in Vault): ${skippedCount}`);
+        refreshData(true);
     };
 
     return (

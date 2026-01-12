@@ -33,9 +33,9 @@ const useVault = (type, listId) => {
 
     const getSettingsPath = useCallback((currentUid) => `users/${currentUid}/settings/${type === 'movie' ? 'movies' : 'tvshows'}`, [type]);
 
-    const fetchData = useCallback(async (currentUid) => {
+    const fetchData = useCallback(async (currentUid, silent = false) => {
         if (!currentUid) return;
-        setLoading(true);
+        if (!silent) setLoading(true);
         try {
             // Determine the correct path by checking new and legacy locations
             let resolvedBase = "";
@@ -114,7 +114,7 @@ const useVault = (type, listId) => {
         } catch (error) {
             console.error("Error fetching vault data:", error);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, [listId, type, getItemsPath, getSettingsPath]);
 
@@ -244,7 +244,7 @@ const useVault = (type, listId) => {
         handleClear,
         handleSaveProviders,
         handleSaveSites,
-        refreshData: () => fetchData(uid)
+        refreshData: (silent = false) => fetchData(uid, silent)
     };
 };
 

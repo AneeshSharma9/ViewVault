@@ -155,7 +155,7 @@ const Movies = () => {
         }
         setRefreshStatus("");
         setIsRefreshing(false);
-        refreshData();
+        refreshData(true);
     };
 
     const exportVault = () => {
@@ -170,6 +170,8 @@ const Movies = () => {
         setImportStatus("Importing...");
         const lines = importText.split("\n").filter(l => l.trim());
         const existingIds = movies.map(m => m.movieid);
+        let addedCount = 0;
+        let skippedCount = 0;
 
         for (const line of lines) {
             const match = line.match(/^(.+?)\s*(?:\((\d{4})\))?\s*(?:\[(x?)\])?\s*(?:\{([\d.]+)\})?$/);
@@ -181,7 +183,12 @@ const Movies = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY, query: title, year }
                 });
                 const movie = searchRes.data.results[0];
-                if (!movie || existingIds.includes(movie.id)) continue;
+                if (!movie) continue;
+
+                if (existingIds.includes(movie.id)) {
+                    skippedCount++;
+                    continue;
+                }
 
                 const detailsRes = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
                     params: { api_key: process.env.REACT_APP_API_KEY }
@@ -207,11 +214,12 @@ const Movies = () => {
                     user_rating: rating ? parseFloat(rating) : null,
                     poster_path: movie.poster_path
                 });
+                addedCount++;
             } catch (e) { console.error(e); }
         }
         setIsImporting(false);
-        setImportStatus("Done!");
-        refreshData();
+        setImportStatus(`Done! Added: ${addedCount}, Skipped (Already in Vault): ${skippedCount}`);
+        refreshData(true);
     };
 
     return (
