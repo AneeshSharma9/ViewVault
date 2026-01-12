@@ -74,54 +74,33 @@ const MovieNyte = () => {
                     setLoadingProfiles(true);
                     const addedMoviesData = {};
 
-                    // Get movies from default vault (and legacy watchlist)
                     try {
-                        const newPath = `users/${uid}/defaultvaults/movies/items`;
-                        const legacyPath = `users/${uid}/defaultwatchlists/movies/items`;
-
-                        const [newSnap, legacySnap] = await Promise.all([
-                            get(ref(db, newPath)),
-                            get(ref(db, legacyPath))
-                        ]);
-
-                        if (newSnap.exists()) {
-                            Object.values(newSnap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
-                        }
-                        if (legacySnap.exists()) {
-                            Object.values(legacySnap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
+                        const path = `users/${uid}/defaultwatchlists/movies/items`;
+                        const snap = await get(ref(db, path));
+                        if (snap.exists()) {
+                            Object.values(snap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
                         }
                     } catch (error) {
                         console.error('Error fetching default movies:', error);
                     }
 
-                    // Fetch custom vaults AND legacy watchlists
+                    // Fetch custom vaults
                     try {
-                        const newVaultsRef = ref(db, `users/${uid}/customvaults`);
-                        const legacyWatchlistsRef = ref(db, `users/${uid}/customwatchlists`);
-
-                        const [newSnap, legacySnap] = await Promise.all([
-                            get(newVaultsRef),
-                            get(legacyWatchlistsRef)
-                        ]);
-
+                        const vaultsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const snapshot = await get(vaultsRef);
                         const movieLists = {};
 
-                        const processVaults = (snapshot) => {
-                            if (snapshot.exists()) {
-                                const data = snapshot.val();
-                                for (const key of Object.keys(data)) {
-                                    if (data[key].type === 'movies') {
-                                        movieLists[key] = { id: key, ...data[key] };
-                                        if (data[key].items) {
-                                            Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
-                                        }
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            for (const key of Object.keys(data)) {
+                                if (data[key].type === 'movies') {
+                                    movieLists[key] = { id: key, ...data[key] };
+                                    if (data[key].items) {
+                                        Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
                                     }
                                 }
                             }
-                        };
-
-                        processVaults(legacySnap);
-                        processVaults(newSnap);
+                        }
 
                         setCustomVaults(Object.values(movieLists));
                     } catch (error) {
@@ -132,6 +111,7 @@ const MovieNyte = () => {
                 }
             } else {
                 setUid(null);
+                setLoadingProfiles(false);
             }
         });
         return () => unsubscribe();
@@ -563,8 +543,8 @@ const MovieNyte = () => {
         if (uid) {
             // Determine the path based on whether it's a custom list or default
             const listPath = listId
-                ? `users/${uid}/customvaults/${listId}/items`
-                : `users/${uid}/defaultvaults/movies/items`;
+                ? `users/${uid}/customwatchlists/${listId}/items`
+                : `users/${uid}/defaultwatchlists/movies/items`;
             const userMovieListRef = ref(db, listPath);
             push(userMovieListRef, {
                 movietitle: movie.title,
@@ -865,7 +845,7 @@ const MovieNyte = () => {
                 </div>
             </div>
 
-            <Footer />
+            {!loadingProfiles && <Footer />}
         </div>
     );
 };

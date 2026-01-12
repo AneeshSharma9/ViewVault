@@ -26,8 +26,8 @@ const useVault = (type, listId) => {
     const getItemsPath = useCallback((currentUid) => {
         if (resolvedBase) return `${resolvedBase}/items`;
         const base = listId
-            ? `users/${currentUid}/customvaults/${listId}`
-            : `users/${currentUid}/defaultvaults/${type === 'movie' ? 'movies' : 'tvshows'}`;
+            ? `users/${currentUid}/customwatchlists/${listId}`
+            : `users/${currentUid}/defaultwatchlists/${type === 'movie' ? 'movies' : 'tvshows'}`;
         return `${base}/items`;
     }, [listId, type, resolvedBase]);
 
@@ -42,43 +42,25 @@ const useVault = (type, listId) => {
             let resolvedItems = null;
 
             if (listId) {
-                const newPath = `users/${currentUid}/customvaults/${listId}`;
-                const legacyPath = `users/${currentUid}/customwatchlists/${listId}`;
-
-                const newSnap = await get(ref(db, newPath));
-                if (newSnap.exists()) {
-                    resolvedBase = newPath;
-                    const val = newSnap.val();
+                // Only use customwatchlists as per request
+                resolvedBase = `users/${currentUid}/customwatchlists/${listId}`;
+                const snap = await get(ref(db, resolvedBase));
+                if (snap.exists()) {
+                    const val = snap.val();
                     setListName(val.name || "Custom Vault");
                     resolvedItems = val.items;
-                } else {
-                    const legacySnap = await get(ref(db, legacyPath));
-                    if (legacySnap.exists()) {
-                        resolvedBase = legacyPath;
-                        const val = legacySnap.val();
-                        setListName(val.name || "Custom Vault");
-                        resolvedItems = val.items;
-                    } else {
-                        resolvedBase = newPath; // Default to new for future writes
-                    }
                 }
             } else {
                 const defaultSegment = type === 'movie' ? 'movies' : 'tvshows';
-                const newPath = `users/${currentUid}/defaultvaults/${defaultSegment}`;
-                const legacyPath = `users/${currentUid}/defaultwatchlists/${defaultSegment}`;
+                // Only use defaultwatchlists as per request
+                const path = `users/${currentUid}/defaultwatchlists/${defaultSegment}`;
 
-                const newSnap = await get(ref(db, newPath));
-                if (newSnap.exists()) {
-                    resolvedBase = newPath;
-                    resolvedItems = newSnap.val()?.items;
+                const snap = await get(ref(db, path));
+                if (snap.exists()) {
+                    resolvedBase = path;
+                    resolvedItems = snap.val()?.items;
                 } else {
-                    const legacySnap = await get(ref(db, legacyPath));
-                    if (legacySnap.exists()) {
-                        resolvedBase = legacyPath;
-                        resolvedItems = legacySnap.val()?.items;
-                    } else {
-                        resolvedBase = newPath;
-                    }
+                    resolvedBase = path;
                 }
             }
 

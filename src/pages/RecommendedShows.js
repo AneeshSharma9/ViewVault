@@ -46,54 +46,33 @@ const RecommendedShows = () => {
                     searchShow();
                     const addedShowsData = {};
 
-                    // Get shows from default vault (and legacy tvlist)
                     try {
-                        const newPath = `users/${uid}/defaultvaults/tvshows/items`;
-                        const legacyPath = `users/${uid}/defaultwatchlists/tvshows/items`;
-
-                        const [newSnap, legacySnap] = await Promise.all([
-                            get(ref(db, newPath)),
-                            get(ref(db, legacyPath))
-                        ]);
-
-                        if (newSnap.exists()) {
-                            Object.values(newSnap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
-                        }
-                        if (legacySnap.exists()) {
-                            Object.values(legacySnap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
+                        const path = `users/${uid}/defaultwatchlists/tvshows/items`;
+                        const snap = await get(ref(db, path));
+                        if (snap.exists()) {
+                            Object.values(snap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
                         }
                     } catch (error) {
                         console.error('Error fetching user tv shows:', error);
                     }
 
-                    // Fetch custom vaults AND legacy watchlists
+                    // Fetch custom vaults
                     try {
-                        const newVaultsRef = ref(db, `users/${uid}/customvaults`);
-                        const legacyWatchlistsRef = ref(db, `users/${uid}/customwatchlists`);
-
-                        const [newSnap, legacySnap] = await Promise.all([
-                            get(newVaultsRef),
-                            get(legacyWatchlistsRef)
-                        ]);
-
+                        const vaultsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const snapshot = await get(vaultsRef);
                         const tvLists = {};
 
-                        const processVaults = (snapshot) => {
-                            if (snapshot.exists()) {
-                                const data = snapshot.val();
-                                for (const key of Object.keys(data)) {
-                                    if (data[key].type === 'tvshows') {
-                                        tvLists[key] = { id: key, ...data[key] };
-                                        if (data[key].items) {
-                                            Object.values(data[key].items).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
-                                        }
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            for (const key of Object.keys(data)) {
+                                if (data[key].type === 'tvshows') {
+                                    tvLists[key] = { id: key, ...data[key] };
+                                    if (data[key].items) {
+                                        Object.values(data[key].items).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
                                     }
                                 }
                             }
-                        };
-
-                        processVaults(legacySnap);
-                        processVaults(newSnap);
+                        }
 
                         setCustomVaults(Object.values(tvLists));
                     } catch (error) {
@@ -195,8 +174,8 @@ const RecommendedShows = () => {
         const uid = auth.currentUser.uid;
         if (uid) {
             const listPath = listId
-                ? `users/${uid}/customvaults/${listId}/items`
-                : `users/${uid}/defaultvaults/tvshows/items`;
+                ? `users/${uid}/customwatchlists/${listId}/items`
+                : `users/${uid}/defaultwatchlists/tvshows/items`;
             await push(ref(db, listPath), {
                 tvshowtitle: tvshow.name,
                 tvshowid: tvshow.id,

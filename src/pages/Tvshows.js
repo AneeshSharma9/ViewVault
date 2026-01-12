@@ -132,7 +132,7 @@ const Tvshows = () => {
                     providerNames = providersRes.data.results.US.flatrate.map(p => p.provider_name);
                 }
 
-                const showRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/tvshows`}/items/${show.id}`);
+                const showRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/tvshows`}/items/${show.id}`);
                 await update(showRef, {
                     tvshowtitle: showDetails.name,
                     numepisodes: showDetails.number_of_episodes,
@@ -187,7 +187,7 @@ const Tvshows = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY }
                 });
 
-                const showRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/tvshows`}/items`);
+                const showRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/tvshows`}/items`);
                 await push(showRef, {
                     tvshowtitle: detailsRes.data.name,
                     tvshowid: show.id,

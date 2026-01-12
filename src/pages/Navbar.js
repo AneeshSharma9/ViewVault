@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ onToggleSidebar }) => {
+const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     const { isDarkMode, toggleTheme } = useTheme();
     const [uid, setUid] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -34,11 +34,22 @@ const Navbar = ({ onToggleSidebar }) => {
         <nav className={`navbar sticky-top ${isDarkMode ? 'navbar-dark' : 'navbar-light'} navbar-bg px-4 py-3 shadow-sm d-flex justify-content-between align-items-center`}>
             <div className="d-flex align-items-center gap-3 flex-grow-1">
                 <button
-                    className="btn btn-link d-lg-none p-0 text-muted"
+                    className="btn btn-link p-0 text-muted me-2 sidebar-toggle-btn"
                     onClick={onToggleSidebar}
-                    style={{ fontSize: '1.5rem', textDecoration: 'none' }}
+                    title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+                    style={{
+                        fontSize: '1.5rem',
+                        textDecoration: 'none',
+                        transition: 'transform 0.3s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%'
+                    }}
                 >
-                    ☰
+                    {isSidebarOpen ? '⇠' : '☰'}
                 </button>
 
                 {/* Search Placeholder for now */}

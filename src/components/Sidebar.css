@@ -232,3 +232,13 @@
         transform: translateX(0);
     }
 }
+
+.sidebar-toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: var(--primary-col) !important;
+}
+
+.dark-mode .sidebar-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--primary-col) !important;
+}

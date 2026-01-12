@@ -16,7 +16,7 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
         if (!newListName.trim() || !uid) return;
 
         try {
-            const vaultsRef = ref(db, `users/${uid}/customvaults`);
+            const vaultsRef = ref(db, `users/${uid}/customwatchlists`);
             await push(vaultsRef, {
                 name: newListName.trim(),
                 type: newListType,
@@ -34,6 +34,12 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
             case 'movies': return '🎬';
             case 'tvshows': return '📺';
             default: return '📋';
+        }
+    };
+
+    const handleNavClick = () => {
+        if (window.innerWidth <= 991.98) {
+            onClose();
         }
     };
 
@@ -56,13 +62,13 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                         <h3 className="sidebar-section-title">My Library</h3>
                         <ul className="sidebar-nav">
                             <li className="sidebar-nav-item">
-                                <NavLink to="/movies" onClick={onClose} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
+                                <NavLink to="/movies" onClick={handleNavClick} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
                                     <span className="sidebar-link-icon">🎬</span>
                                     <span>Movie Vault</span>
                                 </NavLink>
                             </li>
                             <li className="sidebar-nav-item">
-                                <NavLink to="/tvshows" onClick={onClose} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
+                                <NavLink to="/tvshows" onClick={handleNavClick} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
                                     <span className="sidebar-link-icon">📺</span>
                                     <span>TV Vault</span>
                                 </NavLink>
@@ -74,19 +80,19 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                         <h3 className="sidebar-section-title">Discover</h3>
                         <ul className="sidebar-nav">
                             <li className="sidebar-nav-item">
-                                <NavLink to="/searchmovie" onClick={onClose} className="sidebar-link">
+                                <NavLink to="/searchmovie" onClick={handleNavClick} className="sidebar-link">
                                     <span className="sidebar-link-icon">🔍</span>
                                     <span>Search Movies</span>
                                 </NavLink>
                             </li>
                             <li className="sidebar-nav-item">
-                                <NavLink to="/searchtv" onClick={onClose} className="sidebar-link">
+                                <NavLink to="/searchtv" onClick={handleNavClick} className="sidebar-link">
                                     <span className="sidebar-link-icon">🔍</span>
                                     <span>Search TV</span>
                                 </NavLink>
                             </li>
                             <li className="sidebar-nav-item">
-                                <NavLink to="/movienyte" onClick={onClose} className="sidebar-link">
+                                <NavLink to="/movienyte" onClick={handleNavClick} className="sidebar-link">
                                     <span className="sidebar-link-icon">🍿</span>
                                     <span>MovieNyte™</span>
                                 </NavLink>
@@ -102,7 +108,7 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                                     <li key={vault.id} className="sidebar-nav-item">
                                         <NavLink
                                             to={`/${vault.type === 'movies' ? 'movies' : 'tvshows'}?list=${vault.id}`}
-                                            onClick={onClose}
+                                            onClick={handleNavClick}
                                             className={({ isActive }) => `sidebar-link ${isActive && location.search.includes(vault.id) ? 'active' : ''}`}
                                         >
                                             <span className="sidebar-link-icon">{getTypeIcon(vault.type)}</span>
@@ -121,7 +127,7 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                             className="btn btn-premium btn-premium-primary create-vault-btn d-flex align-items-center gap-2"
                             onClick={() => {
                                 setShowCreateModal(true);
-                                if (onClose) onClose();
+                                handleNavClick();
                             }}
                             disabled={!uid}
                         >

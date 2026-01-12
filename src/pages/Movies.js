@@ -137,7 +137,7 @@ const Movies = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY }
                 });
 
-                const movieRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/movies`}/items/${movie.id}`);
+                const movieRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/movies`}/items/${movie.id}`);
                 await update(movieRef, {
                     movietitle: movieDetails.title,
                     runtime: movieDetails.runtime,
@@ -193,7 +193,7 @@ const Movies = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY }
                 });
 
-                const movieRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/movies`}/items`);
+                const movieRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/movies`}/items`);
                 await push(movieRef, {
                     movietitle: movie.title,
                     movieid: movie.id,

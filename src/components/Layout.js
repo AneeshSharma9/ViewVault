@@ -8,7 +8,17 @@ const Layout = ({ children }) => {
     const [isResizing, setIsResizing] = useState(false);
 
     const toggleSidebar = () => {
+        if (!sidebarOpen && sidebarWidth < 250) {
+            setSidebarWidth(280);
+        }
         setSidebarOpen(!sidebarOpen);
+    };
+
+    const handleOpenSidebar = () => {
+        if (sidebarWidth < 250) {
+            setSidebarWidth(280);
+        }
+        setSidebarOpen(true);
     };
 
     const startResizing = useCallback((mouseDownEvent) => {
@@ -95,7 +105,7 @@ const Layout = ({ children }) => {
                         }} />
                         <button
                             className="btn btn-sm btn-premium btn-premium-primary rounded-circle p-0"
-                            onClick={() => setSidebarOpen(true)}
+                            onClick={handleOpenSidebar}
                             style={{
                                 position: 'absolute',
                                 left: '10px',
@@ -111,7 +121,7 @@ const Layout = ({ children }) => {
                         </button>
                     </div>
                 )}
-                <Navbar onToggleSidebar={toggleSidebar} />
+                <Navbar onToggleSidebar={toggleSidebar} isSidebarOpen={sidebarOpen} />
                 <main>{children}</main>
             </div>
         </div>
