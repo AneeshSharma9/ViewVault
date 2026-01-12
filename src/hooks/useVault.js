@@ -3,11 +3,11 @@ import { auth, db } from "../utils/firebase";
 import { ref, get, remove, update } from "firebase/database";
 import axios from "axios";
 
-const useWatchlist = (type, listId) => {
+const useVault = (type, listId) => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uid, setUid] = useState(null);
-    const [listName, setListName] = useState(type === 'movie' ? "Movie Watchlist" : "TV Show Watchlist");
+    const [listName, setListName] = useState(type === 'movie' ? "Movie Vault" : "TV Show Vault");
     const [watchSites, setWatchSites] = useState(type === 'movie' ? [
         { name: "Lookmovie", url: "https://lookmovie.foundation/movies/search/?q=", format: "%20" },
         { name: "DopeBox", url: "https://dopebox.to/search/", format: "-" }
@@ -21,13 +21,15 @@ const useWatchlist = (type, listId) => {
     const [sortBy, setSortBy] = useState("Default");
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [refreshStatus, setRefreshStatus] = useState("");
+    const [resolvedBase, setResolvedBase] = useState("");
 
     const getItemsPath = useCallback((currentUid) => {
+        if (resolvedBase) return `${resolvedBase}/items`;
         const base = listId
-            ? `users/${currentUid}/customwatchlists/${listId}`
-            : `users/${currentUid}/defaultwatchlists/${type === 'movie' ? 'movies' : 'tvshows'}`;
+            ? `users/${currentUid}/customvaults/${listId}`
+            : `users/${currentUid}/defaultvaults/${type === 'movie' ? 'movies' : 'tvshows'}`;
         return `${base}/items`;
-    }, [listId, type]);
+    }, [listId, type, resolvedBase]);
 
     const getSettingsPath = useCallback((currentUid) => `users/${currentUid}/settings/${type === 'movie' ? 'movies' : 'tvshows'}`, [type]);
 
@@ -35,23 +37,57 @@ const useWatchlist = (type, listId) => {
         if (!currentUid) return;
         setLoading(true);
         try {
-            // Fetch List Name
-            const listPath = listId
-                ? `users/${currentUid}/customwatchlists/${listId}`
-                : `users/${currentUid}/defaultwatchlists/${type === 'movie' ? 'movies' : 'tvshows'}`;
-            const listRef = ref(db, listPath);
-            const listSnap = await get(listRef);
-            if (listSnap.exists()) {
-                setListName(listSnap.val().name || (type === 'movie' ? "Movie Watchlist" : "TV Show Watchlist"));
+            // Determine the correct path by checking new and legacy locations
+            let resolvedBase = "";
+            let resolvedItems = null;
+
+            if (listId) {
+                const newPath = `users/${currentUid}/customvaults/${listId}`;
+                const legacyPath = `users/${currentUid}/customwatchlists/${listId}`;
+
+                const newSnap = await get(ref(db, newPath));
+                if (newSnap.exists()) {
+                    resolvedBase = newPath;
+                    const val = newSnap.val();
+                    setListName(val.name || "Custom Vault");
+                    resolvedItems = val.items;
+                } else {
+                    const legacySnap = await get(ref(db, legacyPath));
+                    if (legacySnap.exists()) {
+                        resolvedBase = legacyPath;
+                        const val = legacySnap.val();
+                        setListName(val.name || "Custom Vault");
+                        resolvedItems = val.items;
+                    } else {
+                        resolvedBase = newPath; // Default to new for future writes
+                    }
+                }
+            } else {
+                const defaultSegment = type === 'movie' ? 'movies' : 'tvshows';
+                const newPath = `users/${currentUid}/defaultvaults/${defaultSegment}`;
+                const legacyPath = `users/${currentUid}/defaultwatchlists/${defaultSegment}`;
+
+                const newSnap = await get(ref(db, newPath));
+                if (newSnap.exists()) {
+                    resolvedBase = newPath;
+                    resolvedItems = newSnap.val()?.items;
+                } else {
+                    const legacySnap = await get(ref(db, legacyPath));
+                    if (legacySnap.exists()) {
+                        resolvedBase = legacyPath;
+                        resolvedItems = legacySnap.val()?.items;
+                    } else {
+                        resolvedBase = newPath;
+                    }
+                }
             }
 
-            // Fetch Items
-            const itemsRef = ref(db, getItemsPath(currentUid));
-            const itemsSnap = await get(itemsRef);
-            if (itemsSnap.exists()) {
-                const data = itemsSnap.val();
-                const mapped = Object.keys(data).map(key => {
-                    const item = data[key];
+            setResolvedBase(resolvedBase);
+
+            // Map and set items
+            if (resolvedItems) {
+                const mapped = Object.keys(resolvedItems).map(key => {
+                    const item = resolvedItems[key];
                     return {
                         id: key,
                         movieid: item.movieid || item.tvshowid,
@@ -94,7 +130,7 @@ const useWatchlist = (type, listId) => {
             setAvailableProviders(providers);
 
         } catch (error) {
-            console.error("Error fetching watchlist data:", error);
+            console.error("Error fetching vault data:", error);
         } finally {
             setLoading(false);
         }
@@ -230,4 +266,4 @@ const useWatchlist = (type, listId) => {
     };
 };
 
-export default useWatchlist;
+export default useVault;

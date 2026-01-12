@@ -1,18 +1,17 @@
 import { useState } from "react";
-import Navbar from "./Navbar";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from "./Footer";
 import MediaCard from "../components/MediaCard";
 import RatingModal from "../components/RatingModal";
 import ExportModal from "../components/ExportModal";
 import ImportModal from "../components/ImportModal";
-import ClearWatchlistModal from "../components/ClearWatchlistModal";
+import ClearVaultModal from "../components/ClearVaultModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
 import MediaFilters from "../components/MediaFilters";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import ScrollControls from "../components/ScrollControls";
-import useWatchlist from "../hooks/useWatchlist";
+import useVault from "../hooks/useVault";
 import axios from "axios";
 import { db } from "../utils/firebase";
 import { ref, push, update } from "firebase/database";
@@ -45,7 +44,7 @@ const Movies = () => {
         handleSaveProviders,
         handleSaveSites,
         refreshData
-    } = useWatchlist('movie', listId);
+    } = useVault('movie', listId);
 
     // Local UI State
     const [showExportModal, setShowExportModal] = useState(false);
@@ -104,7 +103,7 @@ const Movies = () => {
         }
     };
 
-    const handleRefreshWatchlist = async () => {
+    const handleRefreshVault = async () => {
         if (movies.length === 0 || isRefreshing) return;
         setIsRefreshing(true);
         setRefreshStatus("Starting refresh...");
@@ -138,7 +137,7 @@ const Movies = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY }
                 });
 
-                const movieRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/movies`}/items/${movie.id}`);
+                const movieRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/movies`}/items/${movie.id}`);
                 await update(movieRef, {
                     movietitle: movieDetails.title,
                     runtime: movieDetails.runtime,
@@ -159,13 +158,13 @@ const Movies = () => {
         refreshData();
     };
 
-    const exportWatchlist = () => {
+    const exportVault = () => {
         const content = movies.map(m => `${m.name}${m.releaseyear ? ` (${m.releaseyear})` : ""} ${m.watched ? "[x]" : "[]"}${m.user_rating ? ` {${m.user_rating}}` : ""}`).join("\n");
         setExportText(content);
         setShowExportModal(true);
     };
 
-    const handleImportWatchlist = async () => {
+    const handleImportVault = async () => {
         if (!importText.trim()) return;
         setIsImporting(true);
         setImportStatus("Importing...");
@@ -194,7 +193,7 @@ const Movies = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY }
                 });
 
-                const movieRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/movies`}/items`);
+                const movieRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/movies`}/items`);
                 await push(movieRef, {
                     movietitle: movie.title,
                     movieid: movie.id,
@@ -217,7 +216,6 @@ const Movies = () => {
 
     return (
         <div className="fade-in">
-            <Navbar />
 
             <div className="search-hero">
                 <div className="container">
@@ -246,10 +244,10 @@ const Movies = () => {
                             onStreamingFilterToggle={(p) => setStreamingFilter(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
                             streamingFilterButtonText={streamingFilter.length === 0 ? "All" : streamingFilter.length === 1 ? streamingFilter[0] : `${streamingFilter.length} Selected`}
                             onImport={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}
-                            onExport={exportWatchlist}
+                            onExport={exportVault}
                             onEditProviders={() => setShowStreamingModal(true)}
                             onEditSites={() => setShowSitesModal(true)}
-                            onRefresh={handleRefreshWatchlist}
+                            onRefresh={handleRefreshVault}
                             isRefreshing={isRefreshing}
                             refreshStatus={refreshStatus}
                             onClear={() => setShowClearModal(true)}
@@ -292,9 +290,9 @@ const Movies = () => {
                     </div>
 
                     <ExportModal show={showExportModal} onHide={() => setShowExportModal(false)} exportText={exportText} listName={listName} />
-                    <ImportModal show={showImportModal} onHide={() => setShowImportModal(false)} importText={importText} setImportText={setImportText} onImport={handleImportWatchlist} isImporting={isImporting} importStatus={importStatus} listName={listName} type="movies" />
+                    <ImportModal show={showImportModal} onHide={() => setShowImportModal(false)} importText={importText} setImportText={setImportText} onImport={handleImportVault} isImporting={isImporting} importStatus={importStatus} listName={listName} type="movies" />
                     <RatingModal show={showRatingModal} onHide={() => setShowRatingModal(false)} onSave={handleSaveRating} itemName={movieToRate?.name} type="movie" />
-                    <ClearWatchlistModal show={showClearModal} onHide={() => setShowClearModal(false)} onConfirm={handleClear} listName={listName} />
+                    <ClearVaultModal show={showClearModal} onHide={() => setShowClearModal(false)} onConfirm={handleClear} listName={listName} />
                     <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
                     <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
                     <RemoveMediaModal show={showDeleteMovieModal} onHide={() => setShowDeleteMovieModal(false)} onConfirm={handleConfirmDeleteMovie} itemName={movieToDelete?.name} type="movie" />

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
 import { auth, db } from "../utils/firebase";
@@ -31,7 +30,7 @@ const MovieNyte = () => {
     const [movieRatings, setMovieRatings] = useState({}); // Store age ratings by movie ID
     const [filteredMovies, setFilteredMovies] = useState([]); // Movies filtered by selected ratings
     const [excludeAnimated, setExcludeAnimated] = useState(true); // Toggle to exclude animated movies
-    const [addedMovies, setAddedMovies] = useState({}); // Track movies already in watchlists
+    const [addedMovies, setAddedMovies] = useState({}); // Track movies already in vaults
     const [customVaults, setCustomVaults] = useState([]); // Custom movie vaults
     const [uid, setUid] = useState(null); // User ID
     const [hasTypedSearch, setHasTypedSearch] = useState(false); // Track if user has initiated a search
@@ -75,49 +74,56 @@ const MovieNyte = () => {
                     setLoadingProfiles(true);
                     const addedMoviesData = {};
 
-                    // Get movies from default vault
+                    // Get movies from default vault (and legacy watchlist)
                     try {
-                        const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
-                        const defaultSnapshot = await get(userMovieListRef);
-                        if (defaultSnapshot.exists()) {
-                            const movieData = defaultSnapshot.val();
-                            Object.values(movieData).forEach((movie) => {
-                                if (movie.movieid) {
-                                    addedMoviesData[movie.movieid] = true;
-                                }
-                            });
+                        const newPath = `users/${uid}/defaultvaults/movies/items`;
+                        const legacyPath = `users/${uid}/defaultwatchlists/movies/items`;
+
+                        const [newSnap, legacySnap] = await Promise.all([
+                            get(ref(db, newPath)),
+                            get(ref(db, legacyPath))
+                        ]);
+
+                        if (newSnap.exists()) {
+                            Object.values(newSnap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
+                        }
+                        if (legacySnap.exists()) {
+                            Object.values(legacySnap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
                         }
                     } catch (error) {
                         console.error('Error fetching default movies:', error);
                     }
 
-                    // Fetch custom watchlists of type "movies" and their items
+                    // Fetch custom vaults AND legacy watchlists
                     try {
-                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
-                        const watchlistsSnapshot = await get(watchlistsRef);
-                        if (watchlistsSnapshot.exists()) {
-                            const data = watchlistsSnapshot.val();
-                            const movieLists = [];
+                        const newVaultsRef = ref(db, `users/${uid}/customvaults`);
+                        const legacyWatchlistsRef = ref(db, `users/${uid}/customwatchlists`);
 
-                            for (const key of Object.keys(data)) {
-                                if (data[key].type === 'movies') {
-                                    movieLists.push({
-                                        id: key,
-                                        ...data[key]
-                                    });
+                        const [newSnap, legacySnap] = await Promise.all([
+                            get(newVaultsRef),
+                            get(legacyWatchlistsRef)
+                        ]);
 
-                                    // Check items in this custom list
-                                    if (data[key].items) {
-                                        Object.values(data[key].items).forEach((movie) => {
-                                            if (movie.movieid) {
-                                                addedMoviesData[movie.movieid] = true;
-                                            }
-                                        });
+                        const movieLists = {};
+
+                        const processVaults = (snapshot) => {
+                            if (snapshot.exists()) {
+                                const data = snapshot.val();
+                                for (const key of Object.keys(data)) {
+                                    if (data[key].type === 'movies') {
+                                        movieLists[key] = { id: key, ...data[key] };
+                                        if (data[key].items) {
+                                            Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
+                                        }
                                     }
                                 }
                             }
-                            setCustomVaults(movieLists);
-                        }
+                        };
+
+                        processVaults(legacySnap);
+                        processVaults(newSnap);
+
+                        setCustomVaults(Object.values(movieLists));
                     } catch (error) {
                         console.error('Error fetching custom vaults:', error);
                     }
@@ -557,8 +563,8 @@ const MovieNyte = () => {
         if (uid) {
             // Determine the path based on whether it's a custom list or default
             const listPath = listId
-                ? `users/${uid}/customwatchlists/${listId}/items`
-                : `users/${uid}/defaultwatchlists/movies/items`;
+                ? `users/${uid}/customvaults/${listId}/items`
+                : `users/${uid}/defaultvaults/movies/items`;
             const userMovieListRef = ref(db, listPath);
             push(userMovieListRef, {
                 movietitle: movie.title,
@@ -587,7 +593,6 @@ const MovieNyte = () => {
 
     return (
         <div>
-            <Navbar />
             <div className="search-hero">
                 <div className="container">
                     <h1 className="search-title-premium animate-fade-in">MovieNyte™</h1>
@@ -748,7 +753,7 @@ const MovieNyte = () => {
                                             genres={genres}
                                             movieRatings={movieRatings}
                                             addedMovies={addedMovies}
-                                            customWatchlists={customVaults}
+                                            customVaults={customVaults}
                                             handleAddMovie={handleAddMovie}
                                             loading={isSearching}
                                         />

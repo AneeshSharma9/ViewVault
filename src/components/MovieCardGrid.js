@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customWatchlists, handleAddMovie, defaultWatchlistName, loading }) => {
+const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults, handleAddMovie, defaultVaultName, loading }) => {
     const [selectedMovieDescription, setSelectedMovieDescription] = useState(null);
 
     const getBackgroundColor = (voteAverage) => {
@@ -74,7 +74,7 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customWatchl
                                 <div className="mt-4 pt-3 border-top border-light">
                                     {addedMovies && addedMovies[movie.id] ? (
                                         <button className="btn btn-premium btn-premium-outline w-100 py-2" type="button" disabled style={{ opacity: 0.7 }}>
-                                            ✓ In Watchlist
+                                            ✓ In Vault
                                         </button>
                                     ) : (
                                         <div className="dropdown">
@@ -82,9 +82,9 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customWatchl
                                                 + Add to Vault
                                             </button>
                                             <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 w-100">
-                                                <li><button className="dropdown-item rounded-3 py-2" onClick={() => handleAddMovie(movie)}>🎬 {defaultWatchlistName || "Main List"}</button></li>
-                                                {customWatchlists && customWatchlists.length > 0 && <li><hr className="dropdown-divider opacity-10" /></li>}
-                                                {customWatchlists && customWatchlists.map(list => (
+                                                <li><button className="dropdown-item rounded-3 py-2" onClick={() => handleAddMovie(movie)}>🎬 {defaultVaultName || "Main List"}</button></li>
+                                                {customVaults && customVaults.length > 0 && <li><hr className="dropdown-divider opacity-10" /></li>}
+                                                {customVaults && customVaults.map(list => (
                                                     <li key={list.id}>
                                                         <button className="dropdown-item rounded-3 py-2" onClick={() => handleAddMovie(movie, list.id)}>
                                                             📁 {list.name}

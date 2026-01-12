@@ -1,11 +1,9 @@
 import './App.css';
-import Navbar from './pages/Navbar';
 import Footer from "./pages/Footer";
 
 function App() {
     return (
         <div className="homepage-wrapper">
-            <Navbar />
 
             {/* Hero Section */}
             <div className="image-container hero-container">

@@ -1,18 +1,17 @@
 import { useState } from "react";
-import Navbar from "./Navbar";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from "./Footer";
 import MediaCard from "../components/MediaCard";
 import RatingModal from "../components/RatingModal";
 import ExportModal from "../components/ExportModal";
 import ImportModal from "../components/ImportModal";
-import ClearWatchlistModal from "../components/ClearWatchlistModal";
+import ClearVaultModal from "../components/ClearVaultModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
 import MediaFilters from "../components/MediaFilters";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import ScrollControls from "../components/ScrollControls";
-import useWatchlist from "../hooks/useWatchlist";
+import useVault from "../hooks/useVault";
 import axios from "axios";
 import { db } from "../utils/firebase";
 import { ref, push, update } from "firebase/database";
@@ -45,7 +44,7 @@ const Tvshows = () => {
         handleSaveProviders,
         handleSaveSites,
         refreshData
-    } = useWatchlist('tv', listId);
+    } = useVault('tv', listId);
 
     // Local UI State
     const [showExportModal, setShowExportModal] = useState(false);
@@ -104,7 +103,7 @@ const Tvshows = () => {
         }
     };
 
-    const handleRefreshWatchlist = async () => {
+    const handleRefreshVault = async () => {
         if (shows.length === 0 || isRefreshing) return;
         setIsRefreshing(true);
         setRefreshStatus("Starting refresh...");
@@ -133,7 +132,7 @@ const Tvshows = () => {
                     providerNames = providersRes.data.results.US.flatrate.map(p => p.provider_name);
                 }
 
-                const showRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/tvshows`}/items/${show.id}`);
+                const showRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/tvshows`}/items/${show.id}`);
                 await update(showRef, {
                     tvshowtitle: showDetails.name,
                     numepisodes: showDetails.number_of_episodes,
@@ -153,13 +152,13 @@ const Tvshows = () => {
         refreshData();
     };
 
-    const exportWatchlist = () => {
+    const exportVault = () => {
         const content = shows.map(s => `${s.name}${s.first_air_date ? ` (${s.first_air_date.substring(0, 4)})` : ""} ${s.watched ? "[x]" : "[]"}${s.user_rating ? ` {${s.user_rating}}` : ""}`).join("\n");
         setExportText(content);
         setShowExportModal(true);
     };
 
-    const handleImportWatchlist = async () => {
+    const handleImportVault = async () => {
         if (!importText.trim()) return;
         setIsImporting(true);
         setImportStatus("Importing...");
@@ -188,7 +187,7 @@ const Tvshows = () => {
                     params: { api_key: process.env.REACT_APP_API_KEY }
                 });
 
-                const showRef = ref(db, `${listId ? `users/${uid}/customwatchlists/${listId}` : `users/${uid}/defaultwatchlists/tvshows`}/items`);
+                const showRef = ref(db, `${listId ? `users/${uid}/customvaults/${listId}` : `users/${uid}/defaultvaults/tvshows`}/items`);
                 await push(showRef, {
                     tvshowtitle: detailsRes.data.name,
                     tvshowid: show.id,
@@ -211,7 +210,6 @@ const Tvshows = () => {
 
     return (
         <div className="fade-in">
-            <Navbar />
             <div className="search-hero">
                 <div className="container">
                     <h1 className={`search-title-premium ${loading ? 'opacity-0' : 'animate-fade-in'}`}>
@@ -239,10 +237,10 @@ const Tvshows = () => {
                             onStreamingFilterToggle={(p) => setStreamingFilter(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
                             streamingFilterButtonText={streamingFilter.length === 0 ? "All" : streamingFilter.length === 1 ? streamingFilter[0] : `${streamingFilter.length} Selected`}
                             onImport={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}
-                            onExport={exportWatchlist}
+                            onExport={exportVault}
                             onEditProviders={() => setShowStreamingModal(true)}
                             onEditSites={() => setShowSitesModal(true)}
-                            onRefresh={handleRefreshWatchlist}
+                            onRefresh={handleRefreshVault}
                             isRefreshing={isRefreshing}
                             refreshStatus={refreshStatus}
                             onClear={() => setShowClearModal(true)}
@@ -285,9 +283,9 @@ const Tvshows = () => {
                     </div>
 
                     <ExportModal show={showExportModal} onHide={() => setShowExportModal(false)} exportText={exportText} listName={listName} />
-                    <ImportModal show={showImportModal} onHide={() => setShowImportModal(false)} importText={importText} setImportText={setImportText} onImport={handleImportWatchlist} isImporting={isImporting} importStatus={importStatus} listName={listName} type="tv" />
+                    <ImportModal show={showImportModal} onHide={() => setShowImportModal(false)} importText={importText} setImportText={setImportText} onImport={handleImportVault} isImporting={isImporting} importStatus={importStatus} listName={listName} type="tv" />
                     <RatingModal show={showRatingModal} onHide={() => setShowRatingModal(false)} onSave={handleSaveRating} itemName={showToRate?.name} type="tv" />
-                    <ClearWatchlistModal show={showClearModal} onHide={() => setShowClearModal(false)} onConfirm={handleClear} listName={listName} />
+                    <ClearVaultModal show={showClearModal} onHide={() => setShowClearModal(false)} onConfirm={handleClear} listName={listName} />
                     <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
                     <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
                     <RemoveMediaModal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} onConfirm={handleConfirmDelete} itemName={showToDelete?.name} type="tv" />

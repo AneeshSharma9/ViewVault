@@ -1,6 +1,5 @@
-import Navbar from "./Navbar";
 import { useLocation } from 'react-router-dom';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
@@ -10,7 +9,6 @@ import MovieCardGrid from "../components/MovieCardGrid";
 const RecommendedShows = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [addedShows, setAddedShows] = useState({});
-    const [uid, setUid] = useState(null);
     const location = useLocation();
     const [customVaults, setCustomVaults] = useState([]);
     const [genres, setGenres] = useState([]);
@@ -20,84 +18,94 @@ const RecommendedShows = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
-            if (user) {
-                const uid = user.uid;
-                setUid(uid);
-                if (uid) {
-                    searchShow();
+    const searchShow = useCallback(async () => {
+        if (!location.state?.tvshowid && !location.state?.id) return;
+        setIsLoading(true);
+        setSearchResults([]);
+        setCurrentPage(1);
+        try {
+            const response = await axios.get(`https://api.themoviedb.org/3/tv/${location.state.tvshowid || location.state.id}/recommendations`, {
+                params: {
+                    api_key: process.env.REACT_APP_API_KEY,
+                    page: 1
                 }
-            } else {
-                setUid(null);
-            }
-        });
-        return () => unsubscribe();
-    }, []);
+            });
+            setSearchResults(response.data.results);
+            setTotalPages(response.data.total_pages);
+        } catch (error) {
+            console.error('Error fetching tv shows:', error);
+        }
+        setIsLoading(false);
+    }, [location.state?.tvshowid, location.state?.id]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
-                setUid(uid);
                 if (uid) {
+                    searchShow();
                     const addedShowsData = {};
 
-                    // Get shows from default vault
+                    // Get shows from default vault (and legacy tvlist)
                     try {
-                        const userShowListRef = ref(db, `users/${uid}/defaultwatchlists/tvshows/items`);
-                        const snapshot = await get(userShowListRef);
-                        if (snapshot.exists()) {
-                            const showsData = snapshot.val();
-                            Object.values(showsData).forEach((show) => {
-                                if (show.tvshowid) {
-                                    addedShowsData[show.tvshowid] = true;
-                                }
-                            });
+                        const newPath = `users/${uid}/defaultvaults/tvshows/items`;
+                        const legacyPath = `users/${uid}/defaultwatchlists/tvshows/items`;
+
+                        const [newSnap, legacySnap] = await Promise.all([
+                            get(ref(db, newPath)),
+                            get(ref(db, legacyPath))
+                        ]);
+
+                        if (newSnap.exists()) {
+                            Object.values(newSnap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
+                        }
+                        if (legacySnap.exists()) {
+                            Object.values(legacySnap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
                         }
                     } catch (error) {
                         console.error('Error fetching user tv shows:', error);
                     }
 
-                    // Fetch custom vaults of type "tvshows"
+                    // Fetch custom vaults AND legacy watchlists
                     try {
-                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
-                        const watchlistsSnapshot = await get(watchlistsRef);
-                        if (watchlistsSnapshot.exists()) {
-                            const data = watchlistsSnapshot.val();
-                            const tvLists = [];
+                        const newVaultsRef = ref(db, `users/${uid}/customvaults`);
+                        const legacyWatchlistsRef = ref(db, `users/${uid}/customwatchlists`);
 
-                            for (const key of Object.keys(data)) {
-                                if (data[key].type === 'tvshows') {
-                                    tvLists.push({
-                                        id: key,
-                                        ...data[key]
-                                    });
+                        const [newSnap, legacySnap] = await Promise.all([
+                            get(newVaultsRef),
+                            get(legacyWatchlistsRef)
+                        ]);
 
-                                    // Check items in this custom list
-                                    if (data[key].items) {
-                                        Object.values(data[key].items).forEach((show) => {
-                                            if (show.tvshowid) {
-                                                addedShowsData[show.tvshowid] = true;
-                                            }
-                                        });
+                        const tvLists = {};
+
+                        const processVaults = (snapshot) => {
+                            if (snapshot.exists()) {
+                                const data = snapshot.val();
+                                for (const key of Object.keys(data)) {
+                                    if (data[key].type === 'tvshows') {
+                                        tvLists[key] = { id: key, ...data[key] };
+                                        if (data[key].items) {
+                                            Object.values(data[key].items).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
+                                        }
                                     }
                                 }
                             }
-                            setCustomVaults(tvLists);
-                        }
+                        };
+
+                        processVaults(legacySnap);
+                        processVaults(newSnap);
+
+                        setCustomVaults(Object.values(tvLists));
                     } catch (error) {
                         console.error('Error fetching custom vaults:', error);
                     }
 
                     setAddedShows(addedShowsData);
                 }
-            } else {
-                setUid(null);
             }
         });
         return () => unsubscribe();
-    }, []);
+    }, [searchShow]);
 
     // Fetch genres
     useEffect(() => {
@@ -143,25 +151,7 @@ const RecommendedShows = () => {
         if (searchResults.length > 0) fetchRatings();
     }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const searchShow = async () => {
-        if (!location.state?.tvshowid && !location.state?.id) return;
-        setIsLoading(true);
-        setSearchResults([]);
-        setCurrentPage(1);
-        try {
-            const response = await axios.get(`https://api.themoviedb.org/3/tv/${location.state.tvshowid || location.state.id}/recommendations`, {
-                params: {
-                    api_key: process.env.REACT_APP_API_KEY,
-                    page: 1
-                }
-            });
-            setSearchResults(response.data.results);
-            setTotalPages(response.data.total_pages);
-        } catch (error) {
-            console.error('Error fetching tv shows:', error);
-        }
-        setIsLoading(false);
-    };
+
 
     const loadMoreShows = async () => {
         if (currentPage >= totalPages) return;
@@ -205,8 +195,8 @@ const RecommendedShows = () => {
         const uid = auth.currentUser.uid;
         if (uid) {
             const listPath = listId
-                ? `users/${uid}/customwatchlists/${listId}/items`
-                : `users/${uid}/defaultwatchlists/tvshows/items`;
+                ? `users/${uid}/customvaults/${listId}/items`
+                : `users/${uid}/defaultvaults/tvshows/items`;
             await push(ref(db, listPath), {
                 tvshowtitle: tvshow.name,
                 tvshowid: tvshow.id,
@@ -225,7 +215,6 @@ const RecommendedShows = () => {
 
     return (
         <div className="fade-in">
-            <Navbar />
             <div className="search-hero">
                 <div className="container">
                     <h1 className={`search-title-premium ${isLoading ? 'opacity-0' : 'animate-fade-in'}`}>
@@ -245,9 +234,9 @@ const RecommendedShows = () => {
                         genres={genres}
                         movieRatings={tvRatings}
                         addedMovies={addedShows}
-                        customWatchlists={customVaults}
+                        customVaults={customVaults}
                         handleAddMovie={handleAddTVShow}
-                        defaultWatchlistName="TV Shows (Default)"
+                        defaultVaultName="TV Shows (Default)"
                         loading={isLoading}
                     />
 

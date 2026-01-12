@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ClearWatchlistModal = ({ show, onHide, onConfirm, listName }) => {
+const ClearVaultModal = ({ show, onHide, onConfirm, listName }) => {
     if (!show) return null;
 
     const itemName = listName || 'vault';
@@ -35,4 +35,4 @@ const ClearWatchlistModal = ({ show, onHide, onConfirm, listName }) => {
     );
 };
 
-export default ClearWatchlistModal;
+export default ClearVaultModal;
