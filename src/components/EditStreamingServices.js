@@ -19,6 +19,7 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
 
     const handleSave = () => {
         onSave(editingProviders);
+        onHide();
     };
 
     if (!show) return null;
@@ -40,8 +41,8 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
                                 <div key={provider.provider_id} className="col-6 col-md-4 col-lg-3">
                                     <div
                                         className={`p-2 border rounded d-flex align-items-center gap-2 h-100 ${editingProviders.includes(provider.provider_name)
-                                                ? 'bg-primary text-white border-primary shadow-sm'
-                                                : 'bg-light hover-shadow'
+                                            ? 'bg-primary text-white border-primary shadow-sm'
+                                            : 'bg-light hover-shadow'
                                             }`}
                                         style={{
                                             cursor: 'pointer',
@@ -71,7 +72,7 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
                             {editingProviders.length} services selected
                         </div>
                         <button type="button" className="btn btn-light" onClick={onHide}>Cancel</button>
-                        <button type="button" className="btn btn-primary px-4 shadow-sm" onClick={handleSave}>Save Changes</button>
+                        <button type="button" className="btn btn-primary px-4 shadow-sm" onClick={handleSave}>Save & Close</button>
                     </div>
                 </div>
             </div>

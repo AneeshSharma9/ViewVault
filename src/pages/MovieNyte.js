@@ -367,7 +367,7 @@ const MovieNyte = () => {
         if (recommendedMovies.length > 0) {
             fetchRatings();
         }
-    }, [recommendedMovies, movieRatings, people, excludeAnimated]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [recommendedMovies, movieRatings, people, excludeAnimated, genres]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const findMovies = async () => {
         setIsSearching(true);
@@ -592,7 +592,7 @@ const MovieNyte = () => {
 
                         <div className="mn-profile-grid">
                             {people?.map((person, index) => (
-                                <div key={index} className="mn-profile-card shadow-sm">
+                                <div key={person.id || index} className="mn-profile-card shadow-sm">
                                     <div className="mn-profile-header">
                                         <div className="d-flex align-items-center gap-2">
                                             <h3 className="mn-profile-name">{person.name}</h3>
@@ -674,7 +674,7 @@ const MovieNyte = () => {
                             ))}
                         </div>
 
-                        <div className="mn-action-bar sticky-bottom shadow-lg">
+                        <div className="mn-action-bar shadow-lg">
                             <button className="btn btn-premium btn-premium-outline py-2" onClick={addPerson}>+ New Profile</button>
                             <button
                                 className="btn btn-premium btn-premium-primary py-2 px-4 flex-grow-1"
@@ -683,7 +683,7 @@ const MovieNyte = () => {
                             >
                                 {isSearching ? "Searching..." : "🎬 Sync & Find Movies"}
                             </button>
-                            <div className="form-check form-switch ms-3 d-none d-md-block">
+                            <div className="form-check form-switch ms-3">
                                 <input
                                     className="form-check-input"
                                     type="checkbox"
@@ -700,7 +700,7 @@ const MovieNyte = () => {
                         {searchMessage && (
                             <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} rounded-4 border-0 shadow-sm animate-fade-in`}>
                                 <div className="d-flex align-items-center gap-2">
-                                    <span className="fs-4">{filteredMovies.length > 0 ? '✨' : 'ℹ️'}</span>
+                                    <span className="fs-4" role="img" aria-label="icon">{filteredMovies.length > 0 ? '✨' : 'ℹ️'}</span>
                                     <span className="fw-medium">{searchMessage}</span>
                                 </div>
                             </div>

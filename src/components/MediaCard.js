@@ -156,7 +156,7 @@ const MediaCard = ({
                             const filteredProviders = selectedProviders && selectedProviders.length > 0
                                 ? item.providers.filter(p => selectedProviders.includes(p))
                                 : item.providers;
-                            return filteredProviders.slice(0, 4).map((provider, idx) => {
+                            return filteredProviders.map((provider, idx) => {
                                 const logo = getProviderLogo(provider);
                                 return logo ? (
                                     <img key={idx} src={logo} alt={provider} title={provider} className="rounded-circle shadow-sm" style={{ width: '22px', height: '22px', border: '1px solid rgba(0,0,0,0.05)' }} />
@@ -165,7 +165,6 @@ const MediaCard = ({
                                 );
                             });
                         })()}
-                        {item.providers?.length > 4 && <span className="small text-muted align-self-center">+{item.providers.length - 4}</span>}
                     </div>
 
                     <button

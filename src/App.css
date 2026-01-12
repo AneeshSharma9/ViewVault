@@ -107,6 +107,26 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
 }
 
+@media (max-width: 768px) {
+  .mn-action-bar {
+    flex-direction: column;
+    padding: 1.2rem;
+    gap: 1rem;
+  }
+
+  .mn-action-bar .btn {
+    width: 100%;
+  }
+
+  .mn-action-bar .form-check {
+    margin-left: 0 !important;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+}
+
 .dark-mode .mn-action-bar {
   background: #1e1e1e;
   border-color: rgba(255, 255, 255, 0.05);
