@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults, handleAddMovie, defaultVaultName, loading }) => {
     const [selectedMovieDescription, setSelectedMovieDescription] = useState(null);
@@ -102,8 +103,8 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
             </div>
 
             {/* Movie Description Modal */}
-            {selectedMovieDescription && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+            {selectedMovieDescription && createPortal(
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 10000 }}>
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -129,7 +130,8 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );
