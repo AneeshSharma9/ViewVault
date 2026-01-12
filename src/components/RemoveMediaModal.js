@@ -15,7 +15,7 @@ const RemoveMediaModal = ({ show, onHide, onConfirm, itemName, type }) => {
                     </div>
                     <div className="modal-body py-4 px-4">
                         <p className="mb-0 fs-5">
-                            Are you sure you want to remove "<strong>{itemName}</strong>" from your watchlist?
+                            Are you sure you want to remove "<strong>{itemName}</strong>" from your vault?
                         </p>
                     </div>
                     <div className="modal-footer border-0 pt-0 pb-4 px-4">

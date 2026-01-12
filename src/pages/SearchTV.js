@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import Navbar from "./Navbar";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
 import Footer from "./Footer";
@@ -11,7 +10,6 @@ const SearchTV = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [addedShows, setAddedShows] = useState({});
-    const [uid, setUid] = useState(null);
     const inputRef = useRef(null);
     const [customVaults, setCustomVaults] = useState([]);
     const [genres, setGenres] = useState([]);
@@ -26,61 +24,45 @@ const SearchTV = () => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
-                setUid(uid);
                 if (uid) {
                     const addedShowsData = {};
 
-                    // Get shows from default vault (tvlist)
                     try {
-                        const userShowListRef = ref(db, `users/${uid}/defaultwatchlists/tvshows/items`);
-                        const snapshot = await get(userShowListRef);
-                        if (snapshot.exists()) {
-                            const showsData = snapshot.val();
-                            Object.values(showsData).forEach((show) => {
-                                if (show.tvshowid) {
-                                    addedShowsData[show.tvshowid] = true;
-                                }
-                            });
+                        const path = `users/${uid}/defaultwatchlists/tvshows/items`;
+                        const snap = await get(ref(db, path));
+                        if (snap.exists()) {
+                            Object.values(snap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
                         }
                     } catch (error) {
                         console.error('Error fetching user tv shows:', error);
                     }
 
-                    // Fetch custom watchlists of type "tvshows"
+                    // Fetch custom vaults
                     try {
-                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
-                        const watchlistsSnapshot = await get(watchlistsRef);
-                        if (watchlistsSnapshot.exists()) {
-                            const data = watchlistsSnapshot.val();
-                            const tvLists = [];
+                        const vaultsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const snapshot = await get(vaultsRef);
+                        const tvLists = {};
 
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
                             for (const key of Object.keys(data)) {
                                 if (data[key].type === 'tvshows') {
-                                    tvLists.push({
-                                        id: key,
-                                        ...data[key]
-                                    });
-
-                                    // Check items in this custom list
+                                    tvLists[key] = { id: key, ...data[key] };
                                     if (data[key].items) {
-                                        Object.values(data[key].items).forEach((show) => {
-                                            if (show.tvshowid) {
-                                                addedShowsData[show.tvshowid] = true;
-                                            }
-                                        });
+                                        Object.values(data[key].items).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = true; });
                                     }
                                 }
                             }
-                            setCustomVaults(tvLists);
                         }
+
+                        setCustomVaults(Object.values(tvLists));
                     } catch (error) {
                         console.error('Error fetching custom vaults:', error);
                     }
 
                     setAddedShows(addedShowsData);
                 }
-            } else {
-                setUid(null);
+                // No uid to set
             }
         });
         return () => unsubscribe();
@@ -269,7 +251,6 @@ const SearchTV = () => {
 
     return (
         <div className="">
-            <Navbar></Navbar>
             <div className="search-hero">
                 <div className="container">
                     <h1 className="search-title-premium animate-fade-in">Find TV Shows</h1>
@@ -298,7 +279,7 @@ const SearchTV = () => {
                 </div>
             </div>
 
-            <div className="container">
+            <div className="container px-5">
                 {!isLoading && searchResults.length === 0 && hasSearched && (
                     <div className="text-center my-5 py-5 animate-fade-in">
                         <div className="display-1 mb-4" role="img" aria-label="Search">🔍</div>
@@ -321,9 +302,9 @@ const SearchTV = () => {
                     genres={genres}
                     movieRatings={tvRatings}
                     addedMovies={addedShows}
-                    customWatchlists={customVaults}
+                    customVaults={customVaults}
                     handleAddMovie={handleAddTVShow}
-                    defaultWatchlistName="TV Shows (Default)"
+                    defaultVaultName="TV Shows (Default)"
                     loading={isLoading}
                 />
 

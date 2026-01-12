@@ -8,7 +8,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 //Need this
-import firebase from './utils/firebase'
+
 import { ThemeProvider } from './context/ThemeContext';
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -19,27 +19,31 @@ import RecommendedMovies from './pages/RecommendedMovies';
 import RecommendedShows from './pages/RecommendedShows';
 import SearchTV from './pages/SearchTV';
 import MovieNyte from './pages/MovieNyte';
+import Layout from './components/Layout';
+import { Outlet } from 'react-router-dom';
 
+const AppLayout = () => (
+  <Layout>
+    <Outlet />
+  </Layout>
+);
 
 export default function All() {
   return (
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<App />} />
-
-          <Route path="tvshows" element={<Tvshows />} />
-          <Route path="searchtv" element={<SearchTV />} />
-          <Route path="recommendedshows" element={<RecommendedShows />} />
-
-          <Route path="movies" element={<Movies />} />
-          <Route path="searchmovie" element={<SearchMovie />} />
-          <Route path="recommendedmovies" element={<RecommendedMovies />} />
-
-          <Route path="movienyte" element={<MovieNyte />} />
-
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<App />} />
+            <Route path="tvshows" element={<Tvshows />} />
+            <Route path="searchtv" element={<SearchTV />} />
+            <Route path="recommendedshows" element={<RecommendedShows />} />
+            <Route path="movies" element={<Movies />} />
+            <Route path="searchmovie" element={<SearchMovie />} />
+            <Route path="recommendedmovies" element={<RecommendedMovies />} />
+            <Route path="movienyte" element={<MovieNyte />} />
+          </Route>
         </Routes>
-
       </BrowserRouter>
     </ThemeProvider>
   );

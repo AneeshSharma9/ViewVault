@@ -40,13 +40,12 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
                             {availableProviders.map((provider) => (
                                 <div key={provider.provider_id} className="col-6 col-md-4 col-lg-3">
                                     <div
-                                        className={`p-2 border rounded d-flex align-items-center gap-2 h-100 ${editingProviders.includes(provider.provider_name)
+                                        className={`p-2 border rounded d-flex align-items-center gap-2 h-100 streaming-card ${editingProviders.includes(provider.provider_name)
                                             ? 'bg-primary text-white border-primary shadow-sm'
                                             : 'bg-light hover-shadow'
                                             }`}
                                         style={{
                                             cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
                                             userSelect: 'none'
                                         }}
                                         onClick={() => handleToggle(provider.provider_name)}
@@ -77,10 +76,19 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
                 </div>
             </div>
             <style>{`
+                .streaming-card {
+                    transition: all 0.2s ease;
+                }
                 .hover-shadow:hover {
                     background-color: #f0f0f0 !important;
                     transform: translateY(-1px);
                     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                }
+                .dark-mode .streaming-card {
+                    border-color: rgba(255,255,255,0.1) !important;
+                }
+                .dark-mode .streaming-card.hover-shadow:hover {
+                    background-color: #333 !important;
                 }
             `}</style>
         </div>

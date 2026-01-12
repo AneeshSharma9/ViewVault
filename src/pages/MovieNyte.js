@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
 import { auth, db } from "../utils/firebase";
@@ -31,7 +30,7 @@ const MovieNyte = () => {
     const [movieRatings, setMovieRatings] = useState({}); // Store age ratings by movie ID
     const [filteredMovies, setFilteredMovies] = useState([]); // Movies filtered by selected ratings
     const [excludeAnimated, setExcludeAnimated] = useState(true); // Toggle to exclude animated movies
-    const [addedMovies, setAddedMovies] = useState({}); // Track movies already in watchlists
+    const [addedMovies, setAddedMovies] = useState({}); // Track movies already in vaults
     const [customVaults, setCustomVaults] = useState([]); // Custom movie vaults
     const [uid, setUid] = useState(null); // User ID
     const [hasTypedSearch, setHasTypedSearch] = useState(false); // Track if user has initiated a search
@@ -75,49 +74,35 @@ const MovieNyte = () => {
                     setLoadingProfiles(true);
                     const addedMoviesData = {};
 
-                    // Get movies from default vault
                     try {
-                        const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
-                        const defaultSnapshot = await get(userMovieListRef);
-                        if (defaultSnapshot.exists()) {
-                            const movieData = defaultSnapshot.val();
-                            Object.values(movieData).forEach((movie) => {
-                                if (movie.movieid) {
-                                    addedMoviesData[movie.movieid] = true;
-                                }
-                            });
+                        const path = `users/${uid}/defaultwatchlists/movies/items`;
+                        const snap = await get(ref(db, path));
+                        if (snap.exists()) {
+                            Object.values(snap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
                         }
                     } catch (error) {
                         console.error('Error fetching default movies:', error);
                     }
 
-                    // Fetch custom watchlists of type "movies" and their items
+                    // Fetch custom vaults
                     try {
-                        const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
-                        const watchlistsSnapshot = await get(watchlistsRef);
-                        if (watchlistsSnapshot.exists()) {
-                            const data = watchlistsSnapshot.val();
-                            const movieLists = [];
+                        const vaultsRef = ref(db, `users/${uid}/customwatchlists`);
+                        const snapshot = await get(vaultsRef);
+                        const movieLists = {};
 
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
                             for (const key of Object.keys(data)) {
                                 if (data[key].type === 'movies') {
-                                    movieLists.push({
-                                        id: key,
-                                        ...data[key]
-                                    });
-
-                                    // Check items in this custom list
+                                    movieLists[key] = { id: key, ...data[key] };
                                     if (data[key].items) {
-                                        Object.values(data[key].items).forEach((movie) => {
-                                            if (movie.movieid) {
-                                                addedMoviesData[movie.movieid] = true;
-                                            }
-                                        });
+                                        Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = true; });
                                     }
                                 }
                             }
-                            setCustomVaults(movieLists);
                         }
+
+                        setCustomVaults(Object.values(movieLists));
                     } catch (error) {
                         console.error('Error fetching custom vaults:', error);
                     }
@@ -126,6 +111,7 @@ const MovieNyte = () => {
                 }
             } else {
                 setUid(null);
+                setLoadingProfiles(false);
             }
         });
         return () => unsubscribe();
@@ -587,7 +573,6 @@ const MovieNyte = () => {
 
     return (
         <div>
-            <Navbar />
             <div className="search-hero">
                 <div className="container">
                     <h1 className="search-title-premium animate-fade-in">MovieNyte™</h1>
@@ -595,7 +580,7 @@ const MovieNyte = () => {
                 </div>
             </div>
 
-            <div className="container pb-5">
+            <div className="container pb-5 px-5">
                 <div className="modern-section">
                     <div className="p-0">
 
@@ -621,7 +606,7 @@ const MovieNyte = () => {
                                         </button>
                                     </div>
 
-                                    <div className="mn-pref-group">
+                                    <div className="mn-pref-group mn-genres-section">
                                         <label className="mn-pref-label">Favorite Genres</label>
                                         <div className="mn-pref-pills">
                                             {person.preferences.genre.length > 0 ? (
@@ -632,7 +617,7 @@ const MovieNyte = () => {
                                         </div>
                                     </div>
 
-                                    <div className="mn-pref-group">
+                                    <div className="mn-pref-group mn-ratings-section">
                                         <label className="mn-pref-label">Age Restrictions</label>
                                         <div className="mn-pref-pills">
                                             {person.preferences.rating.length > 0 ? (
@@ -643,7 +628,7 @@ const MovieNyte = () => {
                                         </div>
                                     </div>
 
-                                    <div className="row g-2 mt-auto">
+                                    <div className="row g-2 mt-4">
                                         <div className="col-6">
                                             <div className="mn-pref-group mb-0">
                                                 <label className="mn-pref-label">Min Year</label>
@@ -658,7 +643,7 @@ const MovieNyte = () => {
                                         </div>
                                     </div>
 
-                                    <div className="d-flex align-items-center gap-2 mt-4">
+                                    <div className="d-flex align-items-center gap-3 mt-auto pt-3">
                                         <button
                                             type="button"
                                             className="btn btn-outline-primary mn-edit-btn"
@@ -748,7 +733,7 @@ const MovieNyte = () => {
                                             genres={genres}
                                             movieRatings={movieRatings}
                                             addedMovies={addedMovies}
-                                            customWatchlists={customVaults}
+                                            customVaults={customVaults}
                                             handleAddMovie={handleAddMovie}
                                             loading={isSearching}
                                         />
@@ -778,89 +763,131 @@ const MovieNyte = () => {
             </div>
 
             <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="staticBackdropLabel">{`Edit Preferences for ${customName}`}</h1>
+                <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                    <div className="modal-content rounded-4 border-0 shadow-lg">
+                        <div className="modal-header border-0 pb-0">
+                            <div>
+                                <h1 className="modal-title fs-4 fw-bold" id="staticBackdropLabel">Edit Preferences</h1>
+                                <p className="text-muted small mb-0">Customize {customName}'s movie matching settings</p>
+                            </div>
                             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={handleCloseModal}></button>
                         </div>
-                        <div className="modal-body">
+                        <div className="modal-body py-4">
                             <form>
-                                <div className="form-group mb-4">
-                                    <label className="fw-bold mb-2">Person's Name</label>
+                                <div className="mb-4">
+                                    <label className="form-label fw-bold text-uppercase small text-muted letter-spacing-1">Profile Name</label>
                                     <input
                                         type="text"
-                                        className="form-control"
+                                        className="form-control form-control-lg bg-light border-0 rounded-3"
                                         placeholder="Enter person's name"
                                         value={customName}
                                         onChange={handleNameChange}
                                     />
                                 </div>
-                                <div className="form-group mb-4">
-                                    <label className="fw-bold mb-2">Genres</label>
+
+                                <div className="mb-4">
+                                    <label className="form-label fw-bold text-uppercase small text-muted letter-spacing-1 mb-3">Favorite Genres</label>
                                     <div className="d-flex flex-wrap gap-2">
-                                        {genres?.map(genre => (
-                                            <div
-                                                key={genre.id}
-                                                onClick={() => handlePreferenceChange({ target: { name: 'genre', value: genre.name, checked: !tempPreferences.genre.includes(genre.name) } })}
-                                                className={`px-3 py-1 rounded-pill border ${tempPreferences.genre.includes(genre.name) ? 'bg-primary text-white border-primary' : 'bg-light border-secondary'}`}
-                                                style={{ cursor: 'pointer', userSelect: 'none' }}
-                                            >
-                                                {genre.name}
-                                            </div>
-                                        ))}
+                                        {genres?.map(genre => {
+                                            const isSelected = tempPreferences.genre.includes(genre.name);
+                                            return (
+                                                <div
+                                                    key={genre.id}
+                                                    onClick={() => handlePreferenceChange({ target: { name: 'genre', value: genre.name, checked: !isSelected } })}
+                                                    className={`px-3 py-2 rounded-pill border transition-all ${isSelected
+                                                        ? 'bg-primary text-white border-primary shadow-sm'
+                                                        : 'bg-light border-light text-muted hover-bg-gray'
+                                                        }`}
+                                                    style={{ cursor: 'pointer', userSelect: 'none', transition: 'all 0.2s', fontSize: '0.9rem', fontWeight: isSelected ? '600' : '400' }}
+                                                >
+                                                    {genre.name} {isSelected && '✓'}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
+                                    <div className="form-text mt-2 small">Select specific genres or leave empty for all.</div>
                                 </div>
-                                <div className="form-group mb-4">
-                                    <label className="fw-bold mb-2">Age Rating</label>
-                                    <div className="d-flex gap-2">
-                                        {['G', 'PG', 'PG-13', 'R', 'NR'].map(rating => (
-                                            <div
-                                                key={rating}
-                                                onClick={() => handlePreferenceChange({ target: { name: 'rating', value: rating, checked: !tempPreferences.rating.includes(rating) } })}
-                                                className={`px-3 py-1 rounded-pill border ${tempPreferences.rating.includes(rating) ? 'bg-primary text-white border-primary' : 'bg-light border-secondary'}`}
-                                                style={{ cursor: 'pointer', userSelect: 'none' }}
-                                            >
-                                                {rating}
-                                            </div>
-                                        ))}
+
+                                <div className="mb-4">
+                                    <label className="form-label fw-bold text-uppercase small text-muted letter-spacing-1 mb-3">Max Rating (Age)</label>
+                                    <div className="d-flex flex-wrap gap-2">
+                                        {['G', 'PG', 'PG-13', 'R', 'NR'].map(rating => {
+                                            const isSelected = tempPreferences.rating.includes(rating);
+                                            return (
+                                                <div
+                                                    key={rating}
+                                                    onClick={() => handlePreferenceChange({ target: { name: 'rating', value: rating, checked: !isSelected } })}
+                                                    className={`px-4 py-2 rounded-pill border transition-all ${isSelected
+                                                        ? 'bg-primary text-white border-primary shadow-sm'
+                                                        : 'bg-light border-light text-muted hover-bg-gray'
+                                                        }`}
+                                                    style={{ cursor: 'pointer', userSelect: 'none', transition: 'all 0.2s', fontWeight: 'bold' }}
+                                                >
+                                                    {rating}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
+                                    <div className="form-text mt-2 small">Select the highest content ratings allowed.</div>
                                 </div>
-                                <div className="form-group mb-4">
-                                    <label className="fw-bold mb-2">Min. Release Year</label>
-                                    <input type="number" className="form-control" name="year" value={tempPreferences.year} onChange={handlePreferenceChange} />
-                                </div>
-                                <div className="form-group mb-4">
-                                    <label className="fw-bold mb-2">Runtime (hrs)</label>
-                                    <input type="number" className="form-control" name="runtime" value={tempPreferences.runtime} onChange={handlePreferenceChange} />
-                                </div>
-                                <div className="form-group mb-4">
-                                    <label className="fw-bold mb-2">Country of Origin</label>
-                                    <select
-                                        className="form-control"
-                                        name="country"
-                                        value={tempPreferences.country}
-                                        onChange={handlePreferenceChange}
-                                    >
-                                        <option value="">Any Country</option>
-                                        {countries.map(country => (
-                                            <option key={country.iso_3166_1} value={country.iso_3166_1}>
-                                                {country.english_name}
-                                            </option>
-                                        ))}
-                                    </select>
+
+                                <div className="row g-3">
+                                    <div className="col-md-4">
+                                        <div className="mb-3">
+                                            <label className="form-label fw-bold text-uppercase small text-muted letter-spacing-1">Min. Year</label>
+                                            <input
+                                                type="number"
+                                                className="form-control bg-light border-0 rounded-3"
+                                                name="year"
+                                                placeholder="e.g. 2010"
+                                                value={tempPreferences.year}
+                                                onChange={handlePreferenceChange}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <div className="mb-3">
+                                            <label className="form-label fw-bold text-uppercase small text-muted letter-spacing-1">Max Runtime (hrs)</label>
+                                            <input
+                                                type="number"
+                                                className="form-control bg-light border-0 rounded-3"
+                                                name="runtime"
+                                                placeholder="e.g. 2.5"
+                                                value={tempPreferences.runtime}
+                                                onChange={handlePreferenceChange}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <div className="mb-3">
+                                            <label className="form-label fw-bold text-uppercase small text-muted letter-spacing-1">Origin Country</label>
+                                            <select
+                                                className="form-select bg-light border-0 rounded-3"
+                                                name="country"
+                                                value={tempPreferences.country}
+                                                onChange={handlePreferenceChange}
+                                            >
+                                                <option value="">Any Country</option>
+                                                {countries.map(country => (
+                                                    <option key={country.iso_3166_1} value={country.iso_3166_1}>
+                                                        {country.english_name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
                         </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleCloseModal}>Close</button>
-                            <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={handleSavePreferences}>Save changes</button>
+                        <div className="modal-footer border-0 pt-0 pb-4 pe-4">
+                            <button type="button" className="btn btn-light rounded-pill px-4" data-bs-dismiss="modal" onClick={handleCloseModal}>Cancel</button>
+                            <button type="button" className="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" data-bs-dismiss="modal" onClick={handleSavePreferences}>Save Preferences</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <Footer />
+            {!loadingProfiles && <Footer />}
         </div>
     );
 };

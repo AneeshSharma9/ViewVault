@@ -55,7 +55,7 @@ const MediaCard = ({
     return (
         <li
             className="media-card-premium animate-slide-up"
-            style={{ animationDelay: `${index * 0.05}s` }}
+            style={{ animationDelay: `${index < 20 ? index * 0.05 : 0}s` }}
         >
             {/* Poster Column */}
             <div className="media-poster-wrapper">
@@ -71,6 +71,7 @@ const MediaCard = ({
                             <img
                                 src={posterUrl}
                                 alt={item.name}
+                                loading="lazy"
                                 className="media-poster"
                                 onError={(e) => { e.target.src = 'https://via.placeholder.com/100x150?text=No+Img'; }}
                             />

@@ -23,6 +23,8 @@ body {
   position: relative;
   overflow: hidden;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .dark-mode .mn-profile-card {
@@ -98,9 +100,37 @@ body {
   border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
+
+.mn-genres-section {
+  height: 140px;
+  overflow-y: auto;
+}
+
+.mn-ratings-section {
+  height: 90px;
+  overflow-y: auto;
+  margin-bottom: 0px !important;
+}
+
 .mn-pill.empty {
   opacity: 0.4;
   font-weight: normal;
+}
+
+.hover-bg-gray:hover {
+  background-color: #e9ecef !important;
+}
+
+.dark-mode .hover-bg-gray:hover {
+  background-color: #333 !important;
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
 }
 
 .mn-action-bar {
