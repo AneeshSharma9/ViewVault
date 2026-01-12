@@ -228,50 +228,50 @@ const RecommendedShows = () => {
             <Navbar />
             <div className="search-hero">
                 <div className="container">
-                    {isLoading ? (
-                        <div className="d-flex justify-content-center mb-3">
-                            <div className="skeleton-box rounded" style={{ width: '400px', height: '4rem' }}></div>
-                        </div>
-                    ) : (
-                        <h1 className="search-title-premium animate-fade-in">Similar to {location.state.name || location.state.title}</h1>
-                    )}
-                    <p className="text-muted fs-5 animate-slide-up">Binge-worthy series with a similar vibe.</p>
+                    <h1 className={`search-title-premium ${isLoading ? 'opacity-0' : 'animate-fade-in'}`}>
+                        Similar to {location.state.name || location.state.title}
+                    </h1>
+                    <p className={`text-muted fs-5 ${isLoading ? 'opacity-0' : 'animate-slide-up'}`}>
+                        Binge-worthy series with a similar vibe.
+                    </p>
                 </div>
             </div>
 
-            <div className="container pb-5">
-                <MovieCardGrid
-                    key={isLoading ? "loading" : "results"}
-                    movies={searchResults}
-                    genres={genres}
-                    movieRatings={tvRatings}
-                    addedMovies={addedShows}
-                    customWatchlists={customVaults}
-                    handleAddMovie={handleAddTVShow}
-                    defaultWatchlistName="TV Shows (Default)"
-                    loading={isLoading}
-                />
+            {!isLoading && (
+                <div className="container pb-5">
+                    <MovieCardGrid
+                        key="results"
+                        movies={searchResults}
+                        genres={genres}
+                        movieRatings={tvRatings}
+                        addedMovies={addedShows}
+                        customWatchlists={customVaults}
+                        handleAddMovie={handleAddTVShow}
+                        defaultWatchlistName="TV Shows (Default)"
+                        loading={isLoading}
+                    />
 
-                {searchResults.length > 0 && currentPage < totalPages && (
-                    <div className="text-center my-5 animate-fade-in">
-                        <button
-                            className="btn btn-premium btn-premium-outline px-5"
-                            onClick={loadMoreShows}
-                            disabled={isFetchingMore}
-                        >
-                            {isFetchingMore ? (
-                                <>
-                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    Loading...
-                                </>
-                            ) : (
-                                "Load More Recommendations"
-                            )}
-                        </button>
-                    </div>
-                )}
-            </div>
-            <Footer />
+                    {searchResults.length > 0 && currentPage < totalPages && (
+                        <div className="text-center my-5 animate-fade-in">
+                            <button
+                                className="btn btn-premium btn-premium-outline px-5"
+                                onClick={loadMoreShows}
+                                disabled={isFetchingMore}
+                            >
+                                {isFetchingMore ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Loading...
+                                    </>
+                                ) : (
+                                    "Load More Recommendations"
+                                )}
+                            </button>
+                        </div>
+                    )}
+                    <Footer />
+                </div>
+            )}
         </div>
     );
 };

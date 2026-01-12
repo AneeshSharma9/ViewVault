@@ -11,6 +11,7 @@ const MediaCard = ({
     toComponentB,
     openWatchSite,
     toImdbParentsGuide,
+    index = 0
 }) => {
     const getTextColorClass = (voteAverage) => {
         if (voteAverage * 10 >= 70) return "text-success";
@@ -52,7 +53,10 @@ const MediaCard = ({
         : `📺 ${item.num_episodes} Episodes`;
 
     return (
-        <li className="media-card-premium fade-in">
+        <li
+            className="media-card-premium animate-slide-up"
+            style={{ animationDelay: `${index * 0.05}s` }}
+        >
             {/* Poster Column */}
             <div className="media-poster-wrapper">
                 {posterUrl ? (

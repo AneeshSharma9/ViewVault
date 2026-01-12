@@ -284,52 +284,52 @@ const RecommendedMovies = () => {
             <Navbar />
             <div className="search-hero">
                 <div className="container">
-                    {isLoading ? (
-                        <div className="d-flex justify-content-center mb-3">
-                            <div className="skeleton-box rounded" style={{ width: '400px', height: '4rem' }}></div>
-                        </div>
-                    ) : (
-                        <h1 className="search-title-premium animate-fade-in">More Like {location.state.name}</h1>
-                    )}
-                    <p className="text-muted fs-5 animate-slide-up">Discover movies with a similar cinematic spirit.</p>
+                    <h1 className={`search-title-premium ${isLoading ? 'opacity-0' : 'animate-fade-in'}`}>
+                        More Like {location.state.name}
+                    </h1>
+                    <p className={`text-muted fs-5 ${isLoading ? 'opacity-0' : 'animate-slide-up'}`}>
+                        Discover movies with a similar cinematic spirit.
+                    </p>
                 </div>
             </div>
 
-            <div className="container pb-5">
-                <MovieCardGrid
-                    key={isLoading ? "loading" : "results"}
-                    movies={searchResults}
-                    genres={genres}
-                    movieRatings={movieRatings}
-                    addedMovies={addedMovies}
-                    customWatchlists={customVaults}
-                    handleAddMovie={handleAddMovie}
-                    defaultWatchlistName="Movies (Default)"
-                    loading={isLoading}
-                />
+            {!isLoading && (
+                <div className="container pb-5">
+                    <MovieCardGrid
+                        key="results"
+                        movies={searchResults}
+                        genres={genres}
+                        movieRatings={movieRatings}
+                        addedMovies={addedMovies}
+                        customWatchlists={customVaults}
+                        handleAddMovie={handleAddMovie}
+                        defaultWatchlistName="Movies (Default)"
+                        loading={isLoading}
+                    />
 
-                {searchResults.length > 0 && currentPage < totalPages && (
-                    <div className="text-center my-5 animate-fade-in">
-                        <button
-                            className="btn btn-premium btn-premium-outline px-5"
-                            onClick={loadMoreMovies}
-                            disabled={isFetchingMore}
-                        >
-                            {isFetchingMore ? (
-                                <>
-                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    Loading...
-                                </>
-                            ) : (
-                                "Load More Recommendations"
-                            )}
-                        </button>
-                    </div>
-                )}
-            </div>
-            <Footer></Footer>
+                    {searchResults.length > 0 && currentPage < totalPages && (
+                        <div className="text-center my-5 animate-fade-in">
+                            <button
+                                className="btn btn-premium btn-premium-outline px-5"
+                                onClick={loadMoreMovies}
+                                disabled={isFetchingMore}
+                            >
+                                {isFetchingMore ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Loading...
+                                    </>
+                                ) : (
+                                    "Load More Recommendations"
+                                )}
+                            </button>
+                        </div>
+                    )}
+                    <Footer />
+                </div>
+            )}
         </div>
-    )
+    );
 };
 
 export default RecommendedMovies;

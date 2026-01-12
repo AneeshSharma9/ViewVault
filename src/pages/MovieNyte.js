@@ -9,6 +9,7 @@ import MovieCardGrid from "../components/MovieCardGrid";
 const MovieNyte = () => {
     const initialPersonState = { id: 1, name: "Person 1", enabled: true, preferences: { genre: [], rating: [], year: '', runtime: '', country: 'US' } };
     const [people, setPeople] = useState([initialPersonState]);
+    const [loadingProfiles, setLoadingProfiles] = useState(true);
     const [genres, setGenres] = useState([]);
     const [countries, setCountries] = useState([]);
     const [currentPerson, setCurrentPerson] = useState(null);
@@ -71,6 +72,7 @@ const MovieNyte = () => {
                 const uid = user.uid;
                 setUid(uid);
                 if (uid) {
+                    setLoadingProfiles(true);
                     const addedMoviesData = {};
 
                     // Get movies from default vault
@@ -150,6 +152,8 @@ const MovieNyte = () => {
                 }
             } catch (error) {
                 console.error('Error loading profiles:', error);
+            } finally {
+                setLoadingProfiles(false);
             }
         };
 
@@ -595,9 +599,9 @@ const MovieNyte = () => {
                 <div className="modern-section">
                     <div className="p-0">
 
-                        <div className="mn-profile-grid">
-                            {people?.map((person, index) => (
-                                <div key={person.id || index} className="mn-profile-card shadow-sm">
+                        <div className="mn-profile-grid animate-fade-in">
+                            {!loadingProfiles && people?.map((person, index) => (
+                                <div key={person.id || index} className="mn-profile-card shadow-sm animate-slide-up">
                                     <div className="mn-profile-header">
                                         <div className="d-flex align-items-center gap-2">
                                             <h3 className="mn-profile-name">{person.name}</h3>
@@ -679,91 +683,95 @@ const MovieNyte = () => {
                             ))}
                         </div>
 
-                        <div className="mn-action-bar-premium animate-slide-up">
-                            <button className="btn btn-premium btn-premium-outline py-2 px-4 shadow-sm" onClick={addPerson}>
-                                <span className="me-2">➕</span> Add Member
-                            </button>
-                            <button
-                                className="btn btn-premium btn-premium-primary py-3 px-5 flex-grow-1 shadow-sm"
-                                onClick={findMovies}
-                                disabled={isSearching || people.length === 0}
-                                style={{ borderRadius: '100px' }}
-                            >
-                                {isSearching ? (
-                                    <>
-                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Calculating Best Matches...
-                                    </>
-                                ) : "✨ Find Our Common Movies"}
-                            </button>
-                            <div className="form-check form-switch ms-md-3 bg-light dark-mode-bg-dark rounded-pill px-4 py-2 border shadow-sm d-flex align-items-center gap-2">
-                                <input
-                                    className="form-check-input ms-0"
-                                    type="checkbox"
-                                    id="excludeAnimated"
-                                    checked={excludeAnimated}
-                                    onChange={(e) => setExcludeAnimated(e.target.checked)}
-                                    style={{ cursor: 'pointer' }}
-                                />
-                                <label className="form-check-label small fw-bold mb-0" htmlFor="excludeAnimated" style={{ whiteSpace: 'nowrap' }}>
-                                    No Animation
-                                </label>
-                            </div>
-                        </div>
-
-                        {filteredMovies.length === 0 && !isSearching && !hasTypedSearch && (
-                            <div className="mn-empty-state text-center animate-fade-in">
-                                <div className="display-1 mb-4">🏠</div>
-                                <h2 className="fw-bold h1 mb-3">Welcome to MovieNyte</h2>
-                                <p className="text-muted fs-5 mb-0 mx-auto" style={{ maxWidth: '600px' }}>
-                                    Add your friends, set their preferences, and we'll help you find the perfect movie that caters to everyone's taste.
-                                </p>
-                            </div>
-                        )}
-
-                        {searchMessage && hasTypedSearch && (
-                            <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} rounded-4 border-0 shadow-sm animate-fade-in mt-4`}>
-                                <div className="d-flex align-items-center gap-2">
-                                    <span className="fs-4" role="img" aria-label="icon">{filteredMovies.length > 0 ? '✨' : 'ℹ️'}</span>
-                                    <span className="fw-medium">{searchMessage}</span>
+                        {!loadingProfiles && (
+                            <>
+                                <div className="mn-action-bar-premium animate-slide-up">
+                                    <button className="btn btn-premium btn-premium-outline py-2 px-4 shadow-sm" onClick={addPerson}>
+                                        <span className="me-2">➕</span> Add Member
+                                    </button>
+                                    <button
+                                        className="btn btn-premium btn-premium-primary py-3 px-5 flex-grow-1 shadow-sm"
+                                        onClick={findMovies}
+                                        disabled={isSearching || people.length === 0}
+                                        style={{ borderRadius: '100px' }}
+                                    >
+                                        {isSearching ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                Calculating Best Matches...
+                                            </>
+                                        ) : "✨ Find Our Common Movies"}
+                                    </button>
+                                    <div className="form-check form-switch ms-md-3 bg-light dark-mode-bg-dark rounded-pill px-4 py-2 border shadow-sm d-flex align-items-center gap-2">
+                                        <input
+                                            className="form-check-input ms-0"
+                                            type="checkbox"
+                                            id="excludeAnimated"
+                                            checked={excludeAnimated}
+                                            onChange={(e) => setExcludeAnimated(e.target.checked)}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <label className="form-check-label small fw-bold mb-0" htmlFor="excludeAnimated" style={{ whiteSpace: 'nowrap' }}>
+                                            No Animation
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
 
-                        {(filteredMovies.length > 0 || isSearching) && (
-                            <div className="mt-5 animate-slide-up">
-                                <div className="d-flex align-items-center justify-content-between mb-4 px-2">
-                                    <h3 className="mn-profile-name fs-2">Recommended for Your Group</h3>
-                                    <span className="badge bg-primary rounded-pill px-3 py-2 fs-6 shadow-sm">{filteredMovies.length} Matching Results</span>
-                                </div>
-                                <MovieCardGrid
-                                    key={isSearching ? "loading" : "results"}
-                                    movies={filteredMovies}
-                                    genres={genres}
-                                    movieRatings={movieRatings}
-                                    addedMovies={addedMovies}
-                                    customWatchlists={customVaults}
-                                    handleAddMovie={handleAddMovie}
-                                    loading={isSearching}
-                                />
-
-                                {currentPage < totalPages && (
-                                    <div className="text-center my-5">
-                                        <button
-                                            className="btn btn-premium btn-premium-outline px-5 py-3 shadow-sm fw-bold"
-                                            onClick={loadMoreMovies}
-                                            disabled={isLoadingMore}
-                                        >
-                                            {isLoadingMore ? (
-                                                <>
-                                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                    Exploring More...
-                                                </>
-                                            ) : "View More Group Recommendations"}
-                                        </button>
+                                {filteredMovies.length === 0 && !isSearching && !hasTypedSearch && (
+                                    <div className="mn-empty-state text-center animate-fade-in">
+                                        <div className="display-1 mb-4">🏠</div>
+                                        <h2 className="fw-bold h1 mb-3">Welcome to MovieNyte</h2>
+                                        <p className="text-muted fs-5 mb-0 mx-auto" style={{ maxWidth: '600px' }}>
+                                            Add your friends, set their preferences, and we'll help you find the perfect movie that caters to everyone's taste.
+                                        </p>
                                     </div>
                                 )}
-                            </div>
+
+                                {searchMessage && hasTypedSearch && (
+                                    <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} rounded-4 border-0 shadow-sm animate-fade-in mt-4`}>
+                                        <div className="d-flex align-items-center gap-2">
+                                            <span className="fs-4" role="img" aria-label="icon">{filteredMovies.length > 0 ? '✨' : 'ℹ️'}</span>
+                                            <span className="fw-medium">{searchMessage}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(filteredMovies.length > 0 || isSearching) && (
+                                    <div className="mt-5 animate-slide-up">
+                                        <div className="d-flex align-items-center justify-content-between mb-4 px-2">
+                                            <h3 className="mn-profile-name fs-2">Recommended for Your Group</h3>
+                                            <span className="badge bg-primary rounded-pill px-3 py-2 fs-6 shadow-sm">{filteredMovies.length} Matching Results</span>
+                                        </div>
+                                        <MovieCardGrid
+                                            key={isSearching ? "loading" : "results"}
+                                            movies={filteredMovies}
+                                            genres={genres}
+                                            movieRatings={movieRatings}
+                                            addedMovies={addedMovies}
+                                            customWatchlists={customVaults}
+                                            handleAddMovie={handleAddMovie}
+                                            loading={isSearching}
+                                        />
+
+                                        {currentPage < totalPages && (
+                                            <div className="text-center my-5">
+                                                <button
+                                                    className="btn btn-premium btn-premium-outline px-5 py-3 shadow-sm fw-bold"
+                                                    onClick={loadMoreMovies}
+                                                    disabled={isLoadingMore}
+                                                >
+                                                    {isLoadingMore ? (
+                                                        <>
+                                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                            Exploring More...
+                                                        </>
+                                                    ) : "View More Group Recommendations"}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

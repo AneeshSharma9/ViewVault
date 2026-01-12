@@ -9,27 +9,7 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customWatchl
         return "bg-danger";
     };
 
-    if (loading) {
-        return (
-            <div className="row g-4 mt-2 fade-in">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="col-12 col-md-6 col-lg-4">
-                        <div className="skeleton-card shadow-sm">
-                            <div className="skeleton-image"></div>
-                            <div className="skeleton-body">
-                                <div className="skeleton-line skeleton-title"></div>
-                                <div className="skeleton-line w-50"></div>
-                                <div className="skeleton-line w-100 mt-4"></div>
-                                <div className="skeleton-line w-100"></div>
-                                <div className="skeleton-line w-75"></div>
-                                <div className="skeleton-line skeleton-btn"></div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    }
+
 
     if (!movies || movies.length === 0) {
         return null;

@@ -175,19 +175,10 @@ const Navbar = () => {
 
             </div>
             <div className="d-flex align-items-center gap-3">
-                <button
-                    onClick={toggleTheme}
-                    className="btn btn-link nav-link p-0 d-flex align-items-center justify-content-center theme-toggle-btn"
-                    style={{ transition: 'transform 0.3s ease', width: '40px', height: '40px', borderRadius: '50%', background: isDarkMode ? '#333' : '#f0f0f0' }}
-                    title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                >
-                    <span style={{ fontSize: '1.2rem' }}>{isDarkMode ? '🌞' : '🌙'}</span>
-                </button>
-
-                <ul className="navbar-nav">
+                <ul className="navbar-nav order-lg-1">
                     <li className="nav-item">
                         {loading ? (
-                            null
+                            <button className="btn btn-outline-secondary rounded-pill px-4" style={{ visibility: 'hidden' }}>Login</button>
                         ) : uid ? (
                             <button className="btn btn-outline-danger rounded-pill px-4 fade-in" onClick={handleSignOut}>Logout</button>
                         ) : (
@@ -195,6 +186,15 @@ const Navbar = () => {
                         )}
                     </li>
                 </ul>
+
+                <button
+                    onClick={toggleTheme}
+                    className="btn btn-link nav-link p-0 d-flex align-items-center justify-content-center theme-toggle-btn order-lg-2"
+                    style={{ transition: 'transform 0.3s ease', width: '40px', height: '40px', borderRadius: '50%', background: isDarkMode ? '#333' : '#f0f0f0' }}
+                    title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                    <span style={{ fontSize: '1.2rem' }}>{isDarkMode ? '🌞' : '🌙'}</span>
+                </button>
             </div>
 
             {showCreateModal && (
