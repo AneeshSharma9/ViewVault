@@ -580,7 +580,7 @@ const MovieNyte = () => {
                 </div>
             </div>
 
-            <div className="container pb-5">
+            <div className="container pb-5 px-5">
                 <div className="modern-section">
                     <div className="p-0">
 

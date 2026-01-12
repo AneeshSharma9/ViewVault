@@ -237,7 +237,7 @@ const Movies = () => {
             </div>
 
             {!loading && (
-                <div className="container pb-5">
+                <div className="container pb-5 px-5">
                     <div className="pb-4">
                         <MediaFilters
                             sortBy={sortBy}

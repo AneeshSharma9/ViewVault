@@ -206,7 +206,7 @@ const RecommendedShows = () => {
             </div>
 
             {!isLoading && (
-                <div className="container pb-5">
+                <div className="container pb-5 px-5">
                     <MovieCardGrid
                         key="results"
                         movies={searchResults}

@@ -279,7 +279,7 @@ const SearchTV = () => {
                 </div>
             </div>
 
-            <div className="container">
+            <div className="container px-5">
                 {!isLoading && searchResults.length === 0 && hasSearched && (
                     <div className="text-center my-5 py-5 animate-fade-in">
                         <div className="display-1 mb-4" role="img" aria-label="Search">🔍</div>
