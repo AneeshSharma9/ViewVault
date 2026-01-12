@@ -100,8 +100,8 @@ const MediaFilters = ({
                         ⋯
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0" style={{ borderRadius: '0.8rem', minWidth: '200px' }}>
-                        <li><button className="dropdown-item py-2" onClick={onImport}>Import Watchlist</button></li>
-                        <li><button className="dropdown-item py-2" onClick={onExport}>Export Watchlist</button></li>
+                        <li><button className="dropdown-item py-2" onClick={onImport}>Import Vault</button></li>
+                        <li><button className="dropdown-item py-2" onClick={onExport}>Export Vault</button></li>
                         <li><hr className="dropdown-divider opacity-10" /></li>
                         <li><button className="dropdown-item py-2" onClick={onEditProviders}>Edit Streaming Services</button></li>
                         <li><button className="dropdown-item py-2" onClick={onEditSites}>Edit Watch Sites</button></li>
@@ -110,11 +110,11 @@ const MediaFilters = ({
                             <button className="dropdown-item py-2" onClick={onRefresh} disabled={isRefreshing || !anyItems}>
                                 <div className="d-flex align-items-center">
                                     {isRefreshing && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>}
-                                    {isRefreshing ? refreshStatus : "Refresh Watchlist"}
+                                    {isRefreshing ? refreshStatus : "Refresh Vault"}
                                 </div>
                             </button>
                         </li>
-                        <li><button className="dropdown-item text-danger py-2" onClick={onClear} disabled={!anyItems}>Clear Watchlist</button></li>
+                        <li><button className="dropdown-item text-danger py-2" onClick={onClear} disabled={!anyItems}>Clear Vault</button></li>
                     </ul>
                 </div>
             </div>

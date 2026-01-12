@@ -13,7 +13,7 @@ const RecommendedMovies = () => {
     const [addedMovies, setAddedMovies] = useState({});
     const [uid, setUid] = useState(null);
     const location = useLocation();
-    const [customWatchlists, setCustomWatchlists] = useState([]);
+    const [customVaults, setCustomVaults] = useState([]);
     const [genres, setGenres] = useState([]);
     const [movieRatings, setMovieRatings] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +44,7 @@ const RecommendedMovies = () => {
                 if (uid) {
                     const addedMoviesData = {};
 
-                    // Get movies from default watchlist
+                    // Get movies from default vault
                     try {
                         const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
                         const defaultSnapshot = await get(userMovieListRef);
@@ -60,7 +60,7 @@ const RecommendedMovies = () => {
                         console.error('Error fetching default movies:', error);
                     }
 
-                    // Fetch custom watchlists of type "movies" and their items
+                    // Fetch custom vaults of type "movies" and their items
                     try {
                         const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
                         const watchlistsSnapshot = await get(watchlistsRef);
@@ -85,10 +85,10 @@ const RecommendedMovies = () => {
                                     }
                                 }
                             }
-                            setCustomWatchlists(movieLists);
+                            setCustomVaults(movieLists);
                         }
                     } catch (error) {
-                        console.error('Error fetching custom watchlists:', error);
+                        console.error('Error fetching custom vaults:', error);
                     }
 
                     setAddedMovies(addedMoviesData);
@@ -280,17 +280,29 @@ const RecommendedMovies = () => {
     };
 
     return (
-        <div className="">
-            <Navbar></Navbar>
-            <div className="container">
-                <h1 className="text-center m-5">Movies like {location.state.name}</h1>
+        <div className="fade-in">
+            <Navbar />
+            <div className="search-hero">
+                <div className="container">
+                    {isLoading ? (
+                        <div className="d-flex justify-content-center mb-3">
+                            <div className="skeleton-box rounded" style={{ width: '400px', height: '4rem' }}></div>
+                        </div>
+                    ) : (
+                        <h1 className="search-title-premium animate-fade-in">More Like {location.state.name}</h1>
+                    )}
+                    <p className="text-muted fs-5 animate-slide-up">Discover movies with a similar cinematic spirit.</p>
+                </div>
+            </div>
+
+            <div className="container pb-5">
                 <MovieCardGrid
                     key={isLoading ? "loading" : "results"}
                     movies={searchResults}
                     genres={genres}
                     movieRatings={movieRatings}
                     addedMovies={addedMovies}
-                    customWatchlists={customWatchlists}
+                    customWatchlists={customVaults}
                     handleAddMovie={handleAddMovie}
                     defaultWatchlistName="Movies (Default)"
                     loading={isLoading}

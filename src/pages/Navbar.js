@@ -139,7 +139,7 @@ const Navbar = () => {
                     </li>
                     <li className="nav-item p-2 dropdown">
                         <button className="nav-link dropdown-toggle btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ textDecoration: 'none' }}>
-                            My Watchlists
+                            My Vaults
                         </button>
                         <ul className="dropdown-menu">
                             <li><a className="dropdown-item" href="/movies">Movies</a></li>
@@ -147,7 +147,7 @@ const Navbar = () => {
                             {customWatchlists.length > 0 && (
                                 <>
                                     <li><hr className="dropdown-divider" /></li>
-                                    <li><span className="dropdown-item-text text-muted small">Custom Watchlists</span></li>
+                                    <li><span className="dropdown-item-text text-muted small">Custom Vaults</span></li>
                                     {customWatchlists.map(list => (
                                         <li key={list.id} className="d-flex align-items-center">
                                             <a className="dropdown-item flex-grow-1" href={`/${list.type}?list=${list.id}`}>
@@ -165,7 +165,7 @@ const Navbar = () => {
                                 </>
                             )}
                             <li><hr className="dropdown-divider" /></li>
-                            <li><button className="dropdown-item" onClick={() => setShowCreateModal(true)}>+ Create New Watchlist</button></li>
+                            <li><button className="dropdown-item" onClick={() => setShowCreateModal(true)}>+ Create New Vault</button></li>
                         </ul>
                     </li>
                     <li className="nav-item p-2">
@@ -202,18 +202,18 @@ const Navbar = () => {
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Create New Watchlist</h5>
+                                <h5 className="modal-title">Create New Vault</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
                             </div>
                             <div className="modal-body">
                                 <div className="mb-3">
-                                    <label className="form-label">Watchlist Name</label>
+                                    <label className="form-label">Vault Name</label>
                                     <input
                                         type="text"
                                         className="form-control"
                                         value={newListName}
                                         onChange={(e) => setNewListName(e.target.value)}
-                                        placeholder="My Watchlist"
+                                        placeholder="My Vault"
                                     />
                                 </div>
                                 <div className="mb-3">
@@ -242,12 +242,12 @@ const Navbar = () => {
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Delete Watchlist</h5>
+                                <h5 className="modal-title">Delete Vault</h5>
                                 <button type="button" className="btn-close" onClick={() => { setShowDeleteModal(false); setListToDelete(null); }}></button>
                             </div>
                             <div className="modal-body">
                                 <p>Are you sure you want to delete "<strong>{listToDelete.name}</strong>"?</p>
-                                <p className="text-danger">This will permanently delete the watchlist and all its items.</p>
+                                <p className="text-danger">This will permanently delete the vault and all its items.</p>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setListToDelete(null); }}>Cancel</button>

@@ -13,16 +13,17 @@ const SearchMovie = () => {
     const [addedMovies, setAddedMovies] = useState({});
     const [uid, setUid] = useState(null);
     const inputRef = useRef(null);
-    const [customWatchlists, setCustomWatchlists] = useState([]);
+    const [customVaults, setCustomVaults] = useState([]);
     const [genres, setGenres] = useState([]);
     const [movieRatings, setMovieRatings] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
 
     useEffect(() => {
-        // Get user's already added movies from all watchlists
+        // Get user's already added movies from all vaults
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
@@ -30,7 +31,7 @@ const SearchMovie = () => {
                 if (uid) {
                     const addedMoviesData = {};
 
-                    // Get movies from default watchlist
+                    // Get movies from default vault
                     try {
                         const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
                         const defaultSnapshot = await get(userMovieListRef);
@@ -46,7 +47,7 @@ const SearchMovie = () => {
                         console.error('Error fetching default movies:', error);
                     }
 
-                    // Fetch custom watchlists of type "movies" and their items
+                    // Fetch custom vaults of type "movies" and their items
                     try {
                         const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
                         const watchlistsSnapshot = await get(watchlistsRef);
@@ -71,10 +72,10 @@ const SearchMovie = () => {
                                     }
                                 }
                             }
-                            setCustomWatchlists(movieLists);
+                            setCustomVaults(movieLists);
                         }
                     } catch (error) {
-                        console.error('Error fetching custom watchlists:', error);
+                        console.error('Error fetching custom vaults:', error);
                     }
 
                     setAddedMovies(addedMoviesData);
@@ -146,6 +147,7 @@ const SearchMovie = () => {
     const searchMovie = async () => {
         if (!searchQuery.trim()) return;
         setIsLoading(true);
+        setHasSearched(true);
         setSearchResults([]);
         setCurrentPage(1);
         try {
@@ -289,14 +291,50 @@ const SearchMovie = () => {
     return (
         <div className="">
             <Navbar></Navbar>
-            <div className="container">
-                <h1 className="text-center p-5 fw-bold">Search for Movies</h1>
-                <div className="input-group p-3 search-bar-container">
-                    <input type="text" className="form-control" placeholder="Search for a movie..." ref={inputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} onFocus={handleInputFocus} />
-                    <div className="input-group-append">
-                        <button className="btn btn-primary" type="button" onClick={handleSearch}>Search</button>
+            <div className="search-hero">
+                <div className="container">
+                    <h1 className="search-title-premium animate-fade-in">Find Your Next Movie</h1>
+                    <div className="search-container-premium animate-slide-up">
+                        <div className="search-wrapper-premium">
+                            <input
+                                type="text"
+                                className="search-input-premium"
+                                placeholder="Enter movie title..."
+                                ref={inputRef}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onFocus={handleInputFocus}
+                            />
+                            <button
+                                className="search-btn-premium-inner"
+                                type="button"
+                                onClick={handleSearch}
+                            >
+                                Search
+                            </button>
+                        </div>
+                        <p className="search-hint">Millions of movies to discover. Explore now.</p>
                     </div>
                 </div>
+            </div>
+
+            <div className="container">
+                {!isLoading && searchResults.length === 0 && hasSearched && (
+                    <div className="text-center my-5 py-5 animate-fade-in">
+                        <div className="display-1 mb-4" role="img" aria-label="Search">🔍</div>
+                        <h3 className="fw-bold">No results found for "{searchQuery}"</h3>
+                        <p className="text-muted">Try a different title or check for typos.</p>
+                    </div>
+                )}
+
+                {!isLoading && searchResults.length === 0 && !hasSearched && (
+                    <div className="text-center my-5 py-5 animate-fade-in opacity-75">
+                        <div className="display-1 mb-4" role="img" aria-label="Movie">🎬</div>
+                        <h3 className="fw-bold fs-2">Your Movie Vault Awaits</h3>
+                        <p className="text-muted fs-5">Search millions of movies and keep track of what you want to watch.</p>
+                    </div>
+                )}
 
                 <MovieCardGrid
                     key={isLoading ? "loading" : "results"}
@@ -304,7 +342,7 @@ const SearchMovie = () => {
                     genres={genres}
                     movieRatings={movieRatings}
                     addedMovies={addedMovies}
-                    customWatchlists={customWatchlists}
+                    customWatchlists={customVaults}
                     handleAddMovie={handleAddMovie}
                     defaultWatchlistName="Movies (Default)"
                     loading={isLoading}

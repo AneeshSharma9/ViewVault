@@ -11,7 +11,7 @@ function App() {
             <div className="image-container hero-container">
                 <div className="hero-content">
                     <h1 className="hero-title animate-pop-in">ViewVault</h1>
-                    <p className="hero-tagline animate-fade-in">Discover entertainment, curate your watchlist, and master your movie nights.</p>
+                    <p className="hero-tagline animate-fade-in">Discover entertainment, curate your vault, and master your movie nights.</p>
                     <div className="hero-buttons animate-slide-up">
                         <a className="btn-premium btn-premium-primary" href="#about">
                             Get Started
@@ -31,11 +31,11 @@ function App() {
                     <div className="row align-items-center">
                         <div className="col-lg-6 mb-4 mb-lg-0">
                             <h2 className="customh2 mb-4">Your Personal Entertainment Sanctuary</h2>
-                            <p className="introtext mb-4">ViewVault is a versatile platform designed for organizing and curating watchlists of movies and TV shows. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
+                            <p className="introtext mb-4">ViewVault is a versatile platform designed for organizing and curating vaults of movies and TV shows. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
                             <div className="d-flex gap-3">
                                 <span className="badge bg-secondary p-2 px-3 rounded-pill">Movies</span>
                                 <span className="badge bg-secondary p-2 px-3 rounded-pill">TV Shows</span>
-                                <span className="badge bg-secondary p-2 px-3 rounded-pill">Watchlists</span>
+                                <span className="badge bg-secondary p-2 px-3 rounded-pill">Vaults</span>
                             </div>
                         </div>
                         <div className="col-lg-6">
@@ -56,7 +56,7 @@ function App() {
                             <div className="feature-card">
                                 <span className="feature-icon">🚀</span>
                                 <h4 className="feature-title">Streamlined Experience</h4>
-                                <p className="feature-text">Simplify complex processes with a user-friendly interface designed for effortless navigation and watchlist organization.</p>
+                                <p className="feature-text">Simplify complex processes with a user-friendly interface designed for effortless navigation and vault organization.</p>
                             </div>
                         </div>
                         <div className="col-md-4">

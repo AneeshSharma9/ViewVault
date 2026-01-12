@@ -13,13 +13,14 @@ const SearchTV = () => {
     const [addedShows, setAddedShows] = useState({});
     const [uid, setUid] = useState(null);
     const inputRef = useRef(null);
-    const [customWatchlists, setCustomWatchlists] = useState([]);
+    const [customVaults, setCustomVaults] = useState([]);
     const [genres, setGenres] = useState([]);
     const [tvRatings, setTvRatings] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -29,7 +30,7 @@ const SearchTV = () => {
                 if (uid) {
                     const addedShowsData = {};
 
-                    // Get shows from default watchlist (tvlist)
+                    // Get shows from default vault (tvlist)
                     try {
                         const userShowListRef = ref(db, `users/${uid}/defaultwatchlists/tvshows/items`);
                         const snapshot = await get(userShowListRef);
@@ -70,10 +71,10 @@ const SearchTV = () => {
                                     }
                                 }
                             }
-                            setCustomWatchlists(tvLists);
+                            setCustomVaults(tvLists);
                         }
                     } catch (error) {
-                        console.error('Error fetching custom watchlists:', error);
+                        console.error('Error fetching custom vaults:', error);
                     }
 
                     setAddedShows(addedShowsData);
@@ -141,6 +142,7 @@ const SearchTV = () => {
     const searchTV = async () => {
         if (!searchQuery.trim()) return;
         setIsLoading(true);
+        setHasSearched(true);
         setSearchResults([]);
         setCurrentPage(1);
         try {
@@ -268,14 +270,50 @@ const SearchTV = () => {
     return (
         <div className="">
             <Navbar></Navbar>
-            <div className="container">
-                <h1 className="text-center p-5 fw-bold">Find TV Shows</h1>
-                <div className="input-group p-3 search-bar-container">
-                    <input type="text" className="form-control" placeholder="Search for a tv show..." ref={inputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown} onFocus={handleInputFocus} />
-                    <div className="input-group-append">
-                        <button className="btn btn-primary" type="button" onClick={handleSearch}>Search</button>
+            <div className="search-hero">
+                <div className="container">
+                    <h1 className="search-title-premium animate-fade-in">Find TV Shows</h1>
+                    <div className="search-container-premium animate-slide-up">
+                        <div className="search-wrapper-premium">
+                            <input
+                                type="text"
+                                className="search-input-premium"
+                                placeholder="Enter show title..."
+                                ref={inputRef}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onFocus={handleInputFocus}
+                            />
+                            <button
+                                className="search-btn-premium-inner"
+                                type="button"
+                                onClick={handleSearch}
+                            >
+                                Search
+                            </button>
+                        </div>
+                        <p className="search-hint">Track and discover your favorite series.</p>
                     </div>
                 </div>
+            </div>
+
+            <div className="container">
+                {!isLoading && searchResults.length === 0 && hasSearched && (
+                    <div className="text-center my-5 py-5 animate-fade-in">
+                        <div className="display-1 mb-4" role="img" aria-label="Search">🔍</div>
+                        <h3 className="fw-bold">No results found for "{searchQuery}"</h3>
+                        <p className="text-muted">Try a different title or check for typos.</p>
+                    </div>
+                )}
+
+                {!isLoading && searchResults.length === 0 && !hasSearched && (
+                    <div className="text-center my-5 py-5 animate-fade-in opacity-75">
+                        <div className="display-1 mb-4" role="img" aria-label="TV">📺</div>
+                        <h3 className="fw-bold fs-2">Your TV Show Vault Awaits</h3>
+                        <p className="text-muted fs-5">Track your favorite series and discover new ones tailored to your taste.</p>
+                    </div>
+                )}
 
                 <MovieCardGrid
                     key={isLoading ? "loading" : "results"}
@@ -283,7 +321,7 @@ const SearchTV = () => {
                     genres={genres}
                     movieRatings={tvRatings}
                     addedMovies={addedShows}
-                    customWatchlists={customWatchlists}
+                    customWatchlists={customVaults}
                     handleAddMovie={handleAddTVShow}
                     defaultWatchlistName="TV Shows (Default)"
                     loading={isLoading}

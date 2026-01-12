@@ -16,12 +16,12 @@ const ExportModal = ({ show, onHide, exportText, listName }) => {
             <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '1.2rem' }}>
                     <div className="modal-header border-0 pb-0 pt-4 px-4">
-                        <h5 className="modal-title fw-bold">Export {listName || 'Watchlist'}</h5>
+                        <h5 className="modal-title fw-bold">Export {listName || 'Vault'}</h5>
                         <button type="button" className="btn-close" onClick={onHide} aria-label="Close"></button>
                     </div>
                     <div className="modal-body py-4 px-4">
                         <p className="text-muted small mb-3">
-                            You can copy this text to backup your watchlist or import it into another account.
+                            You can copy this text to backup your vault or import it into another account.
                         </p>
                         <textarea
                             className="form-control bg-light border-0 p-3"

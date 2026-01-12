@@ -212,105 +212,122 @@ const Tvshows = () => {
     return (
         <div className="fade-in">
             <Navbar />
-            <div className="container-fluid">
-                <div className="container p-4">
+            <div className="search-hero">
+                <div className="container">
                     {loading ? (
-                        <div className="text-center m-4 d-flex justify-content-center">
-                            <div className="skeleton-box rounded" style={{ width: '300px', height: '48px' }}></div>
+                        <div className="d-flex justify-content-center mb-3">
+                            <div className="skeleton-box rounded" style={{ width: '300px', height: '4rem' }}></div>
                         </div>
                     ) : (
-                        <h1 className="text-center m-4 fw-bold fade-in">{listName}</h1>
+                        <h1 className="search-title-premium animate-fade-in">{listName || "TV Show Vault"}</h1>
                     )}
-                    <div className="pt-2 pb-4">
-                        <MediaFilters
-                            sortBy={sortBy}
-                            onSortChange={handleSortBy}
-                            sortOptions={["Default", "To Watch", "Watched", "Episodes", "User Rating", "Release Year"]}
-                            streamingFilter={streamingFilter}
-                            selectedProviders={selectedProviders}
-                            onSelectAllStreaming={() => {
-                                if (streamingFilter.length === selectedProviders.length) setStreamingFilter([]);
-                                else setStreamingFilter(selectedProviders);
-                            }}
-                            onStreamingFilterToggle={(p) => setStreamingFilter(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
-                            streamingFilterButtonText={streamingFilter.length === 0 ? "All" : streamingFilter.length === 1 ? streamingFilter[0] : `${streamingFilter.length} Selected`}
-                            onImport={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}
-                            onExport={exportWatchlist}
-                            onEditProviders={() => setShowStreamingModal(true)}
-                            onEditSites={() => setShowSitesModal(true)}
-                            onRefresh={handleRefreshWatchlist}
-                            isRefreshing={isRefreshing}
-                            refreshStatus={refreshStatus}
-                            onClear={() => setShowClearModal(true)}
-                            anyItems={shows.length > 0}
-                            addLabel="Add TV Show"
-                            addLink="./searchtv"
-                            searchQuery={searchQuery}
-                            onSearchChange={setSearchQuery}
-                        />
-                        <div className="list-group list-group-light">
-                            {loading ? (
-                                Array(5).fill(0).map((_, i) => (
-                                    <li key={i} className="media-card-premium">
-                                        {/* Poster skeleton */}
-                                        <div className="media-poster-wrapper">
-                                            <div className="skeleton-box" style={{ width: '100%', height: '150px', borderRadius: '12px' }}></div>
-                                        </div>
+                    <p className="text-muted fs-5 animate-slide-up">Track your progress and discover your next binge.</p>
+                </div>
+            </div>
 
-                                        {/* Content skeleton */}
-                                        <div className="media-content">
-                                            <div className="d-flex justify-content-between align-items-start mb-2">
-                                                <div style={{ flex: 1 }}>
-                                                    {/* Title */}
-                                                    <div className="skeleton-box mb-2" style={{ width: '70%', height: '24px', borderRadius: '6px' }}></div>
-                                                    {/* Badges */}
-                                                    <div className="d-flex gap-2 mb-2">
-                                                        <div className="skeleton-box" style={{ width: '50px', height: '20px', borderRadius: '12px' }}></div>
-                                                        <div className="skeleton-box" style={{ width: '40px', height: '20px', borderRadius: '12px' }}></div>
-                                                    </div>
-                                                </div>
-                                                {/* Watched toggle skeleton */}
-                                                <div className="skeleton-box" style={{ width: '32px', height: '32px', borderRadius: '50%' }}></div>
-                                            </div>
+            <div className="container pb-5">
+                <div className="pb-4">
+                    <MediaFilters
+                        sortBy={sortBy}
+                        onSortChange={handleSortBy}
+                        sortOptions={["Default", "To Watch", "Watched", "Episodes", "User Rating", "Release Year"]}
+                        streamingFilter={streamingFilter}
+                        selectedProviders={selectedProviders}
+                        onSelectAllStreaming={() => {
+                            if (streamingFilter.length === selectedProviders.length) setStreamingFilter([]);
+                            else setStreamingFilter(selectedProviders);
+                        }}
+                        onStreamingFilterToggle={(p) => setStreamingFilter(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
+                        streamingFilterButtonText={streamingFilter.length === 0 ? "All" : streamingFilter.length === 1 ? streamingFilter[0] : `${streamingFilter.length} Selected`}
+                        onImport={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}
+                        onExport={exportWatchlist}
+                        onEditProviders={() => setShowStreamingModal(true)}
+                        onEditSites={() => setShowSitesModal(true)}
+                        onRefresh={handleRefreshWatchlist}
+                        isRefreshing={isRefreshing}
+                        refreshStatus={refreshStatus}
+                        onClear={() => setShowClearModal(true)}
+                        anyItems={shows.length > 0}
+                        addLabel="Add TV Show"
+                        addLink="./searchtv"
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                    />
 
-                                            {/* Metadata line */}
-                                            <div className="d-flex gap-3 mb-2">
-                                                <div className="skeleton-box" style={{ width: '60px', height: '16px', borderRadius: '4px' }}></div>
-                                                <div className="skeleton-box" style={{ width: '80px', height: '16px', borderRadius: '4px' }}></div>
-                                            </div>
-
-                                            {/* Genres */}
-                                            <div className="skeleton-box mb-2" style={{ width: '85%', height: '14px', borderRadius: '4px' }}></div>
-
-                                            {/* Providers and remove button */}
-                                            <div className="d-flex justify-content-between align-items-end mt-2">
-                                                <div className="d-flex gap-1">
-                                                    <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
-                                                    <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
-                                                    <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
-                                                </div>
-                                                <div className="skeleton-box" style={{ width: '70px', height: '24px', borderRadius: '6px' }}></div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))
-                            ) : (
-                                searchFilteredShows.map((show) => (
-                                    <MediaCard
-                                        key={show.id}
-                                        item={show}
-                                        type="tv"
-                                        watchSites={watchSites}
-                                        selectedProviders={selectedProviders}
-                                        getProviderLogo={getProviderLogo}
-                                        handleToggleWatched={handleToggleWatched}
-                                        handleDeleteClick={handleDeleteClick}
-                                        toComponentB={(s) => navigate('/recommendedshows', { state: s })}
-                                        openWatchSite={(n, s) => window.open(`${s.url}${n.replace(/ /g, s.format)}`, '_blank')}
-                                    />
-                                ))
-                            )}
+                    {shows.length === 0 && !loading && (
+                        <div className="mn-empty-state text-center animate-fade-in mt-4">
+                            <div className="display-1 mb-4">📺</div>
+                            <h2 className="fw-bold h1 mb-3">Your Vault is Empty</h2>
+                            <p className="text-muted fs-5 mb-4 mx-auto" style={{ maxWidth: '600px' }}>
+                                Start building your collection by searching for TV shows you want to watch or have already finished.
+                            </p>
+                            <a href="/searchtv" className="btn btn-premium btn-premium-primary px-5 py-3 shadow-sm rounded-pill fw-bold">
+                                Explore TV Shows
+                            </a>
                         </div>
+                    )}
+                    <div className="list-group list-group-light">
+                        {loading ? (
+                            Array(5).fill(0).map((_, i) => (
+                                <li key={i} className="media-card-premium">
+                                    {/* Poster skeleton */}
+                                    <div className="media-poster-wrapper">
+                                        <div className="skeleton-box" style={{ width: '100%', height: '150px', borderRadius: '12px' }}></div>
+                                    </div>
+
+                                    {/* Content skeleton */}
+                                    <div className="media-content">
+                                        <div className="d-flex justify-content-between align-items-start mb-2">
+                                            <div style={{ flex: 1 }}>
+                                                {/* Title */}
+                                                <div className="skeleton-box mb-2" style={{ width: '70%', height: '24px', borderRadius: '6px' }}></div>
+                                                {/* Badges */}
+                                                <div className="d-flex gap-2 mb-2">
+                                                    <div className="skeleton-box" style={{ width: '50px', height: '20px', borderRadius: '12px' }}></div>
+                                                    <div className="skeleton-box" style={{ width: '40px', height: '20px', borderRadius: '12px' }}></div>
+                                                </div>
+                                            </div>
+                                            {/* Watched toggle skeleton */}
+                                            <div className="skeleton-box" style={{ width: '32px', height: '32px', borderRadius: '50%' }}></div>
+                                        </div>
+
+                                        {/* Metadata line */}
+                                        <div className="d-flex gap-3 mb-2">
+                                            <div className="skeleton-box" style={{ width: '60px', height: '16px', borderRadius: '4px' }}></div>
+                                            <div className="skeleton-box" style={{ width: '80px', height: '16px', borderRadius: '4px' }}></div>
+                                        </div>
+
+                                        {/* Genres */}
+                                        <div className="skeleton-box mb-2" style={{ width: '85%', height: '14px', borderRadius: '4px' }}></div>
+
+                                        {/* Providers and remove button */}
+                                        <div className="d-flex justify-content-between align-items-end mt-2">
+                                            <div className="d-flex gap-1">
+                                                <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
+                                                <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
+                                                <div className="skeleton-box" style={{ width: '22px', height: '22px', borderRadius: '50%' }}></div>
+                                            </div>
+                                            <div className="skeleton-box" style={{ width: '70px', height: '24px', borderRadius: '6px' }}></div>
+                                        </div>
+                                    </div>
+                                </li>
+                            ))
+                        ) : (
+                            searchFilteredShows.map((show) => (
+                                <MediaCard
+                                    key={show.id}
+                                    item={show}
+                                    type="tv"
+                                    watchSites={watchSites}
+                                    selectedProviders={selectedProviders}
+                                    getProviderLogo={getProviderLogo}
+                                    handleToggleWatched={handleToggleWatched}
+                                    handleDeleteClick={handleDeleteClick}
+                                    toComponentB={(s) => navigate('/recommendedshows', { state: s })}
+                                    openWatchSite={(n, s) => window.open(`${s.url}${n.replace(/ /g, s.format)}`, '_blank')}
+                                />
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

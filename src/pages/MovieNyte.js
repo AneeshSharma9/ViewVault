@@ -31,8 +31,9 @@ const MovieNyte = () => {
     const [filteredMovies, setFilteredMovies] = useState([]); // Movies filtered by selected ratings
     const [excludeAnimated, setExcludeAnimated] = useState(true); // Toggle to exclude animated movies
     const [addedMovies, setAddedMovies] = useState({}); // Track movies already in watchlists
-    const [customWatchlists, setCustomWatchlists] = useState([]); // Custom movie watchlists
+    const [customVaults, setCustomVaults] = useState([]); // Custom movie vaults
     const [uid, setUid] = useState(null); // User ID
+    const [hasTypedSearch, setHasTypedSearch] = useState(false); // Track if user has initiated a search
 
     useEffect(() => {
         // Fetch genres and countries from TMDB API
@@ -64,7 +65,7 @@ const MovieNyte = () => {
     }, []);
 
     useEffect(() => {
-        // Get user's already added movies from all watchlists
+        // Get user's already added movies from all vaults
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
@@ -72,7 +73,7 @@ const MovieNyte = () => {
                 if (uid) {
                     const addedMoviesData = {};
 
-                    // Get movies from default watchlist
+                    // Get movies from default vault
                     try {
                         const userMovieListRef = ref(db, `users/${uid}/defaultwatchlists/movies/items`);
                         const defaultSnapshot = await get(userMovieListRef);
@@ -113,10 +114,10 @@ const MovieNyte = () => {
                                     }
                                 }
                             }
-                            setCustomWatchlists(movieLists);
+                            setCustomVaults(movieLists);
                         }
                     } catch (error) {
-                        console.error('Error fetching custom watchlists:', error);
+                        console.error('Error fetching custom vaults:', error);
                     }
 
                     setAddedMovies(addedMoviesData);
@@ -378,6 +379,7 @@ const MovieNyte = () => {
         setTotalPages(0);
 
         try {
+            setHasTypedSearch(true);
             // Filter to only enabled profiles
             const enabledPeople = people.filter(p => p.enabled !== false);
 
@@ -582,13 +584,16 @@ const MovieNyte = () => {
     return (
         <div>
             <Navbar />
-            <div className="container-fluid pb-5">
+            <div className="search-hero">
+                <div className="container">
+                    <h1 className="search-title-premium animate-fade-in">MovieNyte™</h1>
+                    <p className="text-muted fs-5 animate-slide-up">The ultimate group decision maker for your next cinema session.</p>
+                </div>
+            </div>
+
+            <div className="container pb-5">
                 <div className="modern-section">
-                    <div className="p-4">
-                        <header className="text-center mb-5">
-                            <h1 className="hero-title text-dark dark-mode-text-white mb-2">MovieNyte™</h1>
-                            <p className="text-muted">The ultimate group decision maker for your next cinema session.</p>
-                        </header>
+                    <div className="p-0">
 
                         <div className="mn-profile-grid">
                             {people?.map((person, index) => (
@@ -674,31 +679,50 @@ const MovieNyte = () => {
                             ))}
                         </div>
 
-                        <div className="mn-action-bar shadow-lg">
-                            <button className="btn btn-premium btn-premium-outline py-2" onClick={addPerson}>+ New Profile</button>
+                        <div className="mn-action-bar-premium animate-slide-up">
+                            <button className="btn btn-premium btn-premium-outline py-2 px-4 shadow-sm" onClick={addPerson}>
+                                <span className="me-2">➕</span> Add Member
+                            </button>
                             <button
-                                className="btn btn-premium btn-premium-primary py-2 px-4 flex-grow-1"
+                                className="btn btn-premium btn-premium-primary py-3 px-5 flex-grow-1 shadow-sm"
                                 onClick={findMovies}
                                 disabled={isSearching || people.length === 0}
+                                style={{ borderRadius: '100px' }}
                             >
-                                {isSearching ? "Searching..." : "🎬 Sync & Find Movies"}
+                                {isSearching ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Calculating Best Matches...
+                                    </>
+                                ) : "✨ Find Our Common Movies"}
                             </button>
-                            <div className="form-check form-switch ms-3">
+                            <div className="form-check form-switch ms-md-3 bg-light dark-mode-bg-dark rounded-pill px-4 py-2 border shadow-sm d-flex align-items-center gap-2">
                                 <input
-                                    className="form-check-input"
+                                    className="form-check-input ms-0"
                                     type="checkbox"
                                     id="excludeAnimated"
                                     checked={excludeAnimated}
                                     onChange={(e) => setExcludeAnimated(e.target.checked)}
+                                    style={{ cursor: 'pointer' }}
                                 />
-                                <label className="form-check-label small fw-bold" htmlFor="excludeAnimated">
+                                <label className="form-check-label small fw-bold mb-0" htmlFor="excludeAnimated" style={{ whiteSpace: 'nowrap' }}>
                                     No Animation
                                 </label>
                             </div>
                         </div>
 
-                        {searchMessage && (
-                            <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} rounded-4 border-0 shadow-sm animate-fade-in`}>
+                        {filteredMovies.length === 0 && !isSearching && !hasTypedSearch && (
+                            <div className="mn-empty-state text-center animate-fade-in">
+                                <div className="display-1 mb-4">🏠</div>
+                                <h2 className="fw-bold h1 mb-3">Welcome to MovieNyte</h2>
+                                <p className="text-muted fs-5 mb-0 mx-auto" style={{ maxWidth: '600px' }}>
+                                    Add your friends, set their preferences, and we'll help you find the perfect movie that caters to everyone's taste.
+                                </p>
+                            </div>
+                        )}
+
+                        {searchMessage && hasTypedSearch && (
+                            <div className={`alert ${filteredMovies.length > 0 ? 'alert-success' : 'alert-info'} rounded-4 border-0 shadow-sm animate-fade-in mt-4`}>
                                 <div className="d-flex align-items-center gap-2">
                                     <span className="fs-4" role="img" aria-label="icon">{filteredMovies.length > 0 ? '✨' : 'ℹ️'}</span>
                                     <span className="fw-medium">{searchMessage}</span>
@@ -708,9 +732,9 @@ const MovieNyte = () => {
 
                         {(filteredMovies.length > 0 || isSearching) && (
                             <div className="mt-5 animate-slide-up">
-                                <div className="d-flex align-items-center justify-content-between mb-4">
-                                    <h3 className="mn-profile-name">Recommended for Your Group</h3>
-                                    <span className="badge bg-primary rounded-pill">{filteredMovies.length} Results</span>
+                                <div className="d-flex align-items-center justify-content-between mb-4 px-2">
+                                    <h3 className="mn-profile-name fs-2">Recommended for Your Group</h3>
+                                    <span className="badge bg-primary rounded-pill px-3 py-2 fs-6 shadow-sm">{filteredMovies.length} Matching Results</span>
                                 </div>
                                 <MovieCardGrid
                                     key={isSearching ? "loading" : "results"}
@@ -718,19 +742,24 @@ const MovieNyte = () => {
                                     genres={genres}
                                     movieRatings={movieRatings}
                                     addedMovies={addedMovies}
-                                    customWatchlists={customWatchlists}
+                                    customWatchlists={customVaults}
                                     handleAddMovie={handleAddMovie}
                                     loading={isSearching}
                                 />
 
                                 {currentPage < totalPages && (
-                                    <div className="text-center mt-5">
+                                    <div className="text-center my-5">
                                         <button
-                                            className="btn btn-premium btn-premium-outline px-5"
+                                            className="btn btn-premium btn-premium-outline px-5 py-3 shadow-sm fw-bold"
                                             onClick={loadMoreMovies}
                                             disabled={isLoadingMore}
                                         >
-                                            {isLoadingMore ? "Loading more..." : "Load More Options"}
+                                            {isLoadingMore ? (
+                                                <>
+                                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                    Exploring More...
+                                                </>
+                                            ) : "View More Group Recommendations"}
                                         </button>
                                     </div>
                                 )}

@@ -12,7 +12,7 @@ const RecommendedShows = () => {
     const [addedShows, setAddedShows] = useState({});
     const [uid, setUid] = useState(null);
     const location = useLocation();
-    const [customWatchlists, setCustomWatchlists] = useState([]);
+    const [customVaults, setCustomVaults] = useState([]);
     const [genres, setGenres] = useState([]);
     const [tvRatings, setTvRatings] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +43,7 @@ const RecommendedShows = () => {
                 if (uid) {
                     const addedShowsData = {};
 
-                    // Get shows from default watchlist
+                    // Get shows from default vault
                     try {
                         const userShowListRef = ref(db, `users/${uid}/defaultwatchlists/tvshows/items`);
                         const snapshot = await get(userShowListRef);
@@ -59,7 +59,7 @@ const RecommendedShows = () => {
                         console.error('Error fetching user tv shows:', error);
                     }
 
-                    // Fetch custom watchlists of type "tvshows"
+                    // Fetch custom vaults of type "tvshows"
                     try {
                         const watchlistsRef = ref(db, `users/${uid}/customwatchlists`);
                         const watchlistsSnapshot = await get(watchlistsRef);
@@ -84,10 +84,10 @@ const RecommendedShows = () => {
                                     }
                                 }
                             }
-                            setCustomWatchlists(tvLists);
+                            setCustomVaults(tvLists);
                         }
                     } catch (error) {
-                        console.error('Error fetching custom watchlists:', error);
+                        console.error('Error fetching custom vaults:', error);
                     }
 
                     setAddedShows(addedShowsData);
@@ -224,17 +224,29 @@ const RecommendedShows = () => {
     };
 
     return (
-        <div className="">
+        <div className="fade-in">
             <Navbar />
-            <div className="container">
-                <h1 className="text-center p-5 fw-bold">TV Shows like {location.state.name || location.state.title}</h1>
+            <div className="search-hero">
+                <div className="container">
+                    {isLoading ? (
+                        <div className="d-flex justify-content-center mb-3">
+                            <div className="skeleton-box rounded" style={{ width: '400px', height: '4rem' }}></div>
+                        </div>
+                    ) : (
+                        <h1 className="search-title-premium animate-fade-in">Similar to {location.state.name || location.state.title}</h1>
+                    )}
+                    <p className="text-muted fs-5 animate-slide-up">Binge-worthy series with a similar vibe.</p>
+                </div>
+            </div>
+
+            <div className="container pb-5">
                 <MovieCardGrid
                     key={isLoading ? "loading" : "results"}
                     movies={searchResults}
                     genres={genres}
                     movieRatings={tvRatings}
                     addedMovies={addedShows}
-                    customWatchlists={customWatchlists}
+                    customWatchlists={customVaults}
                     handleAddMovie={handleAddTVShow}
                     defaultWatchlistName="TV Shows (Default)"
                     loading={isLoading}
