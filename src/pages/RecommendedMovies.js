@@ -16,6 +16,10 @@ const RecommendedMovies = () => {
     const [customWatchlists, setCustomWatchlists] = useState([]);
     const [genres, setGenres] = useState([]);
     const [movieRatings, setMovieRatings] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -154,17 +158,42 @@ const RecommendedMovies = () => {
     }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const searchMovie = async () => {
+        if (!location.state?.movieid && !location.state?.id) return;
+        setIsLoading(true);
+        setSearchResults([]);
+        setCurrentPage(1);
         try {
-            const detailsResponse = await fetch(`https://api.themoviedb.org/3/movie/${location.state.movieid}/recommendations?api_key=${process.env.REACT_APP_API_KEY}`);
-            if (!detailsResponse.ok) {
-                throw new Error('Failed to fetch movie details');
-            }
-            const movieDetails = await detailsResponse.json();
-            console.log(movieDetails)
-            setSearchResults(movieDetails.results);
+            const response = await axios.get(`https://api.themoviedb.org/3/movie/${location.state.movieid || location.state.id}/recommendations`, {
+                params: {
+                    api_key: process.env.REACT_APP_API_KEY,
+                    page: 1
+                }
+            });
+            setSearchResults(response.data.results);
+            setTotalPages(response.data.total_pages);
         } catch (error) {
             console.error('Error fetching movies:', error);
         }
+        setIsLoading(false);
+    };
+
+    const loadMoreMovies = async () => {
+        if (currentPage >= totalPages) return;
+        setIsFetchingMore(true);
+        const nextPage = currentPage + 1;
+        try {
+            const response = await axios.get(`https://api.themoviedb.org/3/movie/${location.state.movieid || location.state.id}/recommendations`, {
+                params: {
+                    api_key: process.env.REACT_APP_API_KEY,
+                    page: nextPage
+                }
+            });
+            setSearchResults(prev => [...prev, ...response.data.results]);
+            setCurrentPage(nextPage);
+        } catch (error) {
+            console.error('Error fetching more movies:', error);
+        }
+        setIsFetchingMore(false);
     };
 
 
@@ -256,6 +285,7 @@ const RecommendedMovies = () => {
             <div className="container">
                 <h1 className="text-center m-5">Movies like {location.state.name}</h1>
                 <MovieCardGrid
+                    key={isLoading ? "loading" : "results"}
                     movies={searchResults}
                     genres={genres}
                     movieRatings={movieRatings}
@@ -263,7 +293,27 @@ const RecommendedMovies = () => {
                     customWatchlists={customWatchlists}
                     handleAddMovie={handleAddMovie}
                     defaultWatchlistName="Movies (Default)"
+                    loading={isLoading}
                 />
+
+                {searchResults.length > 0 && currentPage < totalPages && (
+                    <div className="text-center my-5 animate-fade-in">
+                        <button
+                            className="btn btn-premium btn-premium-outline px-5"
+                            onClick={loadMoreMovies}
+                            disabled={isFetchingMore}
+                        >
+                            {isFetchingMore ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Loading...
+                                </>
+                            ) : (
+                                "Load More Recommendations"
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
             <Footer></Footer>
         </div>

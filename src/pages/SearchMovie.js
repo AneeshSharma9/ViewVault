@@ -17,6 +17,9 @@ const SearchMovie = () => {
     const [genres, setGenres] = useState([]);
     const [movieRatings, setMovieRatings] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
     useEffect(() => {
         // Get user's already added movies from all watchlists
@@ -141,21 +144,44 @@ const SearchMovie = () => {
     }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const searchMovie = async () => {
+        if (!searchQuery.trim()) return;
         setIsLoading(true);
         setSearchResults([]);
+        setCurrentPage(1);
         try {
             const response = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
                 params: {
                     api_key: `${process.env.REACT_APP_API_KEY}`,
-                    query: searchQuery
+                    query: searchQuery,
+                    page: 1
                 }
             });
-            const results = response.data.results;
-            setSearchResults(results);
+            setSearchResults(response.data.results);
+            setTotalPages(response.data.total_pages);
         } catch (error) {
             console.error('Error fetching movies:', error);
         }
         setIsLoading(false);
+    };
+
+    const loadMoreMovies = async () => {
+        if (currentPage >= totalPages) return;
+        setIsFetchingMore(true);
+        const nextPage = currentPage + 1;
+        try {
+            const response = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
+                params: {
+                    api_key: `${process.env.REACT_APP_API_KEY}`,
+                    query: searchQuery,
+                    page: nextPage
+                }
+            });
+            setSearchResults(prev => [...prev, ...response.data.results]);
+            setCurrentPage(nextPage);
+        } catch (error) {
+            console.error('Error fetching more movies:', error);
+        }
+        setIsFetchingMore(false);
     };
 
     const handleSearch = () => {
@@ -283,6 +309,25 @@ const SearchMovie = () => {
                     defaultWatchlistName="Movies (Default)"
                     loading={isLoading}
                 />
+
+                {searchResults.length > 0 && currentPage < totalPages && (
+                    <div className="text-center my-5 animate-fade-in">
+                        <button
+                            className="btn btn-premium btn-premium-outline px-5"
+                            onClick={loadMoreMovies}
+                            disabled={isFetchingMore}
+                        >
+                            {isFetchingMore ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Loading...
+                                </>
+                            ) : (
+                                "Load More Results"
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
             <Footer></Footer>
         </div>

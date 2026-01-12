@@ -260,11 +260,11 @@ const MovieNyte = () => {
     };
 
     useEffect(() => {
-        if (currentPerson !== null) {
+        if (currentPerson !== null && people[currentPerson]) {
             setCustomName(people[currentPerson].name); // Set initial value for custom name input
             setTempPreferences({ ...people[currentPerson].preferences }); // Set initial value for preferences
         }
-    }, [currentPerson]);
+    }, [currentPerson, people]);
 
     // Fetch age ratings for recommended movies and filter by selected ratings
     useEffect(() => {

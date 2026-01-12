@@ -17,6 +17,9 @@ const SearchTV = () => {
     const [genres, setGenres] = useState([]);
     const [tvRatings, setTvRatings] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -136,21 +139,44 @@ const SearchTV = () => {
     }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const searchTV = async () => {
+        if (!searchQuery.trim()) return;
         setIsLoading(true);
         setSearchResults([]);
+        setCurrentPage(1);
         try {
             const response = await axios.get(`https://api.themoviedb.org/3/search/tv`, {
                 params: {
                     api_key: `${process.env.REACT_APP_API_KEY}`,
-                    query: searchQuery
+                    query: searchQuery,
+                    page: 1
                 }
             });
-            const results = response.data.results;
-            setSearchResults(results);
+            setSearchResults(response.data.results);
+            setTotalPages(response.data.total_pages);
         } catch (error) {
             console.error('Error fetching shows:', error);
         }
         setIsLoading(false);
+    };
+
+    const loadMoreTV = async () => {
+        if (currentPage >= totalPages) return;
+        setIsFetchingMore(true);
+        const nextPage = currentPage + 1;
+        try {
+            const response = await axios.get(`https://api.themoviedb.org/3/search/tv`, {
+                params: {
+                    api_key: `${process.env.REACT_APP_API_KEY}`,
+                    query: searchQuery,
+                    page: nextPage
+                }
+            });
+            setSearchResults(prev => [...prev, ...response.data.results]);
+            setCurrentPage(nextPage);
+        } catch (error) {
+            console.error('Error fetching more shows:', error);
+        }
+        setIsFetchingMore(false);
     };
 
     const handleSearch = () => {
@@ -262,6 +288,25 @@ const SearchTV = () => {
                     defaultWatchlistName="TV Shows (Default)"
                     loading={isLoading}
                 />
+
+                {searchResults.length > 0 && currentPage < totalPages && (
+                    <div className="text-center my-5 animate-fade-in">
+                        <button
+                            className="btn btn-premium btn-premium-outline px-5"
+                            onClick={loadMoreTV}
+                            disabled={isFetchingMore}
+                        >
+                            {isFetchingMore ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Loading...
+                                </>
+                            ) : (
+                                "Load More Results"
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
             <Footer></Footer>
         </div>

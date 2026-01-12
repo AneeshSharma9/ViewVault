@@ -15,6 +15,10 @@ const RecommendedShows = () => {
     const [customWatchlists, setCustomWatchlists] = useState([]);
     const [genres, setGenres] = useState([]);
     const [tvRatings, setTvRatings] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -140,14 +144,42 @@ const RecommendedShows = () => {
     }, [searchResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const searchShow = async () => {
+        if (!location.state?.tvshowid && !location.state?.id) return;
+        setIsLoading(true);
+        setSearchResults([]);
+        setCurrentPage(1);
         try {
             const response = await axios.get(`https://api.themoviedb.org/3/tv/${location.state.tvshowid || location.state.id}/recommendations`, {
-                params: { api_key: process.env.REACT_APP_API_KEY }
+                params: {
+                    api_key: process.env.REACT_APP_API_KEY,
+                    page: 1
+                }
             });
             setSearchResults(response.data.results);
+            setTotalPages(response.data.total_pages);
         } catch (error) {
             console.error('Error fetching tv shows:', error);
         }
+        setIsLoading(false);
+    };
+
+    const loadMoreShows = async () => {
+        if (currentPage >= totalPages) return;
+        setIsFetchingMore(true);
+        const nextPage = currentPage + 1;
+        try {
+            const response = await axios.get(`https://api.themoviedb.org/3/tv/${location.state.tvshowid || location.state.id}/recommendations`, {
+                params: {
+                    api_key: process.env.REACT_APP_API_KEY,
+                    page: nextPage
+                }
+            });
+            setSearchResults(prev => [...prev, ...response.data.results]);
+            setCurrentPage(nextPage);
+        } catch (error) {
+            console.error('Error fetching more tv shows:', error);
+        }
+        setIsFetchingMore(false);
     };
 
     const handleAddTVShow = async (tvshow, listId = null) => {
@@ -197,6 +229,7 @@ const RecommendedShows = () => {
             <div className="container">
                 <h1 className="text-center p-5 fw-bold">TV Shows like {location.state.name || location.state.title}</h1>
                 <MovieCardGrid
+                    key={isLoading ? "loading" : "results"}
                     movies={searchResults}
                     genres={genres}
                     movieRatings={tvRatings}
@@ -204,7 +237,27 @@ const RecommendedShows = () => {
                     customWatchlists={customWatchlists}
                     handleAddMovie={handleAddTVShow}
                     defaultWatchlistName="TV Shows (Default)"
+                    loading={isLoading}
                 />
+
+                {searchResults.length > 0 && currentPage < totalPages && (
+                    <div className="text-center my-5 animate-fade-in">
+                        <button
+                            className="btn btn-premium btn-premium-outline px-5"
+                            onClick={loadMoreShows}
+                            disabled={isFetchingMore}
+                        >
+                            {isFetchingMore ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Loading...
+                                </>
+                            ) : (
+                                "Load More Recommendations"
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
             <Footer />
         </div>
