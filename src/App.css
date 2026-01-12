@@ -1004,6 +1004,19 @@ html {
   backdrop-filter: blur(10px);
 }
 
+/* Force light style for outline button in hero section (always dark bg) */
+.hero-container .btn-premium-outline {
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+}
+
+.hero-container .btn-premium-outline:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 1);
+}
+
 .btn-premium-outline:hover {
   background: rgba(0, 0, 0, 0.1);
   transform: translateY(-3px);
