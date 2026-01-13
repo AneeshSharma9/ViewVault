@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const MediaCard = ({
     item,
@@ -13,6 +13,35 @@ const MediaCard = ({
     toImdbParentsGuide,
     index = 0
 }) => {
+    const cardRef = useRef(null);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const card = cardRef.current;
+        const dropdown = dropdownRef.current;
+        if (!card || !dropdown) return;
+
+        const handleShow = () => {
+            card.classList.add('dropdown-open');
+        };
+
+        const handleHide = () => {
+            card.classList.remove('dropdown-open');
+        };
+
+        // Bootstrap 5 event listeners
+        dropdown.addEventListener('show.bs.dropdown', handleShow);
+        dropdown.addEventListener('hide.bs.dropdown', handleHide);
+        dropdown.addEventListener('shown.bs.dropdown', handleShow);
+        dropdown.addEventListener('hidden.bs.dropdown', handleHide);
+
+        return () => {
+            dropdown.removeEventListener('show.bs.dropdown', handleShow);
+            dropdown.removeEventListener('hide.bs.dropdown', handleHide);
+            dropdown.removeEventListener('shown.bs.dropdown', handleShow);
+            dropdown.removeEventListener('hidden.bs.dropdown', handleHide);
+        };
+    }, []);
     const getTextColorClass = (voteAverage) => {
         if (voteAverage * 10 >= 70) return "text-success";
         if (voteAverage * 10 >= 50) return "text-warning";
@@ -54,13 +83,14 @@ const MediaCard = ({
 
     return (
         <li
+            ref={cardRef}
             className="media-card-premium animate-slide-up"
             style={{ animationDelay: `${index < 20 ? index * 0.05 : 0}s` }}
         >
             {/* Poster Column */}
             <div className="media-poster-wrapper">
                 {posterUrl ? (
-                    <div className="btn-group dropend w-100 h-100">
+                    <div ref={dropdownRef} className="btn-group dropend w-100 h-100">
                         <button
                             type="button"
                             className="btn p-0 border-0 w-100 h-100 position-relative"
@@ -79,7 +109,7 @@ const MediaCard = ({
                                 <span className="text-white fw-bold small">Options</span>
                             </div>
                         </button>
-                        <ul className="dropdown-menu shadow-lg border-0 rounded-4 p-2">
+                        <ul className="dropdown-menu shadow-lg rounded-4 p-2">
                             <li><button className="dropdown-item rounded-3" onClick={() => toComponentB(item)}>✨ More like this</button></li>
                             {watchSites.length > 0 && <li><hr className="dropdown-divider opacity-10" /></li>}
                             {watchSites.map((site, index) => (

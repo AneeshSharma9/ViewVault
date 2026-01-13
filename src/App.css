@@ -12,6 +12,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
+  justify-items: center;
 }
 
 .mn-profile-card {
@@ -25,6 +26,18 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .mn-profile-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  
+  .mn-profile-card {
+    max-width: 400px;
+    width: 100%;
+  }
 }
 
 .dark-mode .mn-profile-card {
@@ -234,9 +247,55 @@ body {
   position: relative;
 }
 
+/* Ensure dropdown appears above other cards */
+.media-card-premium {
+  position: relative;
+  z-index: 1;
+}
+
+/* When dropdown is open, raise the entire card above others */
+.media-card-premium.dropdown-open {
+  z-index: 9999 !important;
+  position: relative;
+}
+
+.media-card-premium .btn-group.show,
+.media-card-premium .dropdown.show,
+.media-card-premium .btn[aria-expanded="true"] {
+  z-index: 9999 !important;
+  position: relative;
+}
+
+/* Raise the parent card when dropdown is open (fallback for browsers that support :has) */
+.media-card-premium:has(.btn-group.show),
+.media-card-premium:has(.dropdown.show),
+.media-card-premium:has(.btn[aria-expanded="true"]) {
+  z-index: 9999 !important;
+  position: relative;
+}
+
 .media-poster-wrapper .dropdown-menu {
-  z-index: 1100 !important;
+  z-index: 99999 !important;
   min-width: 200px;
+  background-color: #ffffff !important;
+  border: 2px solid rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  position: absolute !important;
+}
+
+.dark-mode .media-poster-wrapper .dropdown-menu {
+  background-color: #2a2a2a !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ensure list-group doesn't interfere with z-index stacking */
+.list-group {
+  position: relative;
+}
+
+.list-group-item {
+  position: relative;
 }
 
 .media-poster {
@@ -277,6 +336,8 @@ body {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .grid-card-premium:hover {
@@ -487,9 +548,17 @@ body {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Filter dropdown menus styling - apply to all dropdowns for better visibility */
+.dropdown-menu {
+  background-color: #ffffff !important;
+  border: 2px solid rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
 .dark-mode .dropdown-menu {
-  background-color: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: #2a2a2a !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
 }
 
 .dark-mode .dropdown-item {
@@ -497,8 +566,31 @@ body {
 }
 
 .dark-mode .dropdown-item:hover {
-  background-color: #333 !important;
+  background-color: rgba(214, 51, 132, 0.2) !important;
 }
+
+.dropdown-item:hover {
+  background-color: rgba(214, 51, 132, 0.1) !important;
+}
+
+/* Grid card dropdown menu styling for better visibility */
+.grid-card-premium .dropdown.show {
+  z-index: 1050;
+}
+
+.grid-card-premium .dropdown-menu {
+  background-color: #ffffff !important;
+  border: 2px solid rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  z-index: 1050 !important;
+}
+
+.dark-mode .grid-card-premium .dropdown-menu {
+  background-color: #2a2a2a !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
 
 .dark-mode .modal-content {
   background-color: #1e1e1e !important;
@@ -680,10 +772,10 @@ body {
 
 :root {
   /* ===== LIGHT MODE THEME COLORS ===== */
-  --light-primary: #710302;
-  /* Main brand color (dark red) */
-  --light-accent: #b83534;
-  /* Accent/hover color (lighter red) */
+  --light-primary: #d63384;
+  /* Main brand color (purplish pink) */
+  --light-accent: #b02a6b;
+  /* Accent/hover color (darker pink) */
   --light-text: #2b2b2b;
   /* Main text color */
   --light-bg-primary: #ffffff;
@@ -698,10 +790,10 @@ body {
   /* Dark secondary elements */
 
   /* ===== DARK MODE THEME COLORS ===== */
-  --dark-primary: #ff4d4d;
-  /* Main brand color (bright red) */
-  --dark-accent: #d32f2f;
-  /* Accent/hover color (darker red) */
+  --dark-primary: #d63384;
+  /* Main brand color (purplish pink) */
+  --dark-accent: #e0459a;
+  /* Accent/hover color (brighter pink) */
   --dark-text: #f0f0f0;
   /* Main text color */
   --dark-bg-primary: #1e1e1e;
@@ -720,6 +812,10 @@ body {
   --warning: #ffc107;
   --danger: #dc3545;
   --info: #17a2b8;
+  --button-primary: #d63384;
+  /* Primary button/toggle color (purplish pink) */
+  --primary-col-rgb: 214, 51, 132;
+  /* RGB values for primary color (for rgba usage) */
 }
 
 /* ============================================
@@ -736,6 +832,67 @@ body {
   --secondary-dark-col: var(--light-secondary-dark);
   --hero-gradient-1: #1a1a1a;
   --hero-gradient-2: #555555;
+  --button-primary: #d63384;
+}
+
+/* Override Bootstrap primary color */
+:root {
+  --bs-primary: #d63384 !important;
+  --bs-primary-rgb: 214, 51, 132 !important;
+  --bs-form-check-input-checked-bg-color: #d63384 !important;
+  --bs-form-check-input-checked-border-color: #d63384 !important;
+  --bs-form-check-input-focus-border: rgba(214, 51, 132, 0.5) !important;
+  --bs-form-check-input-focus-box-shadow: 0 0 0 0.25rem rgba(214, 51, 132, 0.25) !important;
+}
+
+.btn-primary,
+.bg-primary,
+.text-primary,
+.border-primary {
+  --bs-btn-bg: #d63384 !important;
+  --bs-btn-border-color: #d63384 !important;
+  --bs-btn-hover-bg: #b02a6b !important;
+  --bs-btn-hover-border-color: #b02a6b !important;
+  --bs-btn-active-bg: #b02a6b !important;
+  --bs-btn-active-border-color: #b02a6b !important;
+  background-color: #d63384 !important;
+  border-color: #d63384 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #b02a6b !important;
+  border-color: #b02a6b !important;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: #d63384 !important;
+  --bs-btn-border-color: #d63384 !important;
+  --bs-btn-hover-bg: #d63384 !important;
+  --bs-btn-hover-border-color: #d63384 !important;
+  --bs-btn-active-bg: #d63384 !important;
+  --bs-btn-active-border-color: #d63384 !important;
+  color: #d63384 !important;
+  border-color: #d63384 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: #d63384 !important;
+  border-color: #d63384 !important;
+  color: white !important;
+}
+
+.bg-primary {
+  background-color: #d63384 !important;
+}
+
+.text-primary {
+  color: #d63384 !important;
+}
+
+.border-primary {
+  border-color: #d63384 !important;
 }
 
 /* ============================================
@@ -821,12 +978,38 @@ body {
   background: var(--primary-col);
   border-color: var(--primary-col);
   color: white;
-  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4);
+  box-shadow: 0 4px 15px rgba(214, 51, 132, 0.4);
 }
 
 .watched-toggle:hover {
   transform: scale(1.1);
   border-color: var(--primary-col);
+}
+
+/* Form Switch Toggle Styling */
+.form-check-input:checked {
+  background-color: #d63384 !important;
+  border-color: #d63384 !important;
+}
+
+.form-check-input:focus {
+  border-color: rgba(214, 51, 132, 0.5) !important;
+  box-shadow: 0 0 0 0.25rem rgba(214, 51, 132, 0.25) !important;
+}
+
+.form-check-input[type="checkbox"]:checked {
+  background-color: #d63384 !important;
+  border-color: #d63384 !important;
+}
+
+.form-switch .form-check-input:checked {
+  background-color: #d63384 !important;
+  border-color: #d63384 !important;
+}
+
+.form-switch .form-check-input:focus {
+  border-color: rgba(214, 51, 132, 0.5) !important;
+  box-shadow: 0 0 0 0.25rem rgba(214, 51, 132, 0.25) !important;
 }
 
 /* Premium Remove Button */
@@ -852,18 +1035,18 @@ body {
 }
 
 .dark-mode .remove-btn {
-  background: rgba(255, 77, 77, 0.15);
-  color: #ff4d4d;
+  background: rgba(214, 51, 132, 0.15);
+  color: #d63384;
 }
 
 .dark-mode .remove-btn:hover {
-  background: #ff4d4d;
+  background: #d63384;
   color: white;
 }
 
 .dark-mode .section-bg .btn-light {
   background-color: #ffffff !important;
-  color: #710302 !important;
+  color: #d63384 !important;
   border: none !important;
   opacity: 1 !important;
 }
@@ -1029,24 +1212,24 @@ html {
 }
 
 .btn-premium-primary {
-  background: var(--primary-col);
+  background: var(--button-primary, #d63384);
   color: white !important;
-  box-shadow: 0 10px 20px rgba(113, 3, 2, 0.2);
+  box-shadow: 0 10px 20px rgba(214, 51, 132, 0.2);
   border: none;
 }
 
 .btn-premium-primary:hover {
   transform: translateY(-3px);
-  background: var(--accent-col);
-  /* Use accent color for hover feedback */
-  box-shadow: 0 15px 30px rgba(113, 3, 2, 0.3);
+  background: #b02a6b;
+  /* Darker shade for hover feedback */
+  box-shadow: 0 15px 30px rgba(214, 51, 132, 0.3);
   color: white !important;
 }
 
 .dark-mode .btn-premium-primary:hover {
-  background: #ff6666;
-  /* Brighter red for dark mode hover */
-  box-shadow: 0 0 20px rgba(255, 77, 77, 0.4);
+  background: #e0459a;
+  /* Brighter shade for dark mode hover */
+  box-shadow: 0 0 20px rgba(214, 51, 132, 0.4);
 }
 
 .btn-premium-outline {
@@ -1337,7 +1520,7 @@ html {
 }
 
 .navbar-light .navbar-brand {
-  color: #710302 !important;
+  color: #d63384 !important;
   /* Keep brand color primary in light mode */
 }
 
@@ -1347,7 +1530,7 @@ html {
 }
 
 .navbar-light .nav-link:hover {
-  color: #710302 !important;
+  color: #d63384 !important;
 }
 
 .other-button:hover {
@@ -1617,12 +1800,12 @@ input:focus {
 
 .dark-mode .floating-add-btn {
   background: var(--primary-col);
-  box-shadow: 0 10px 25px rgba(255, 77, 77, 0.3);
+  box-shadow: 0 10px 25px rgba(214, 51, 132, 0.3);
 }
 
 .dark-mode .floating-add-btn:hover {
   background: var(--accent-col);
-  box-shadow: 0 15px 35px rgba(255, 77, 77, 0.4);
+  box-shadow: 0 15px 35px rgba(214, 51, 132, 0.4);
 }
 
 /* Tooltip for floating button */

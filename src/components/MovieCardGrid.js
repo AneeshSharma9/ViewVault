@@ -82,7 +82,7 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                             <button className="btn btn-premium btn-premium-primary w-100 py-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 + Add to Vault
                                             </button>
-                                            <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 w-100">
+                                            <ul className="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-2 w-100">
                                                 <li><button className="dropdown-item rounded-3 py-2" onClick={() => handleAddMovie(movie)}>🎬 {defaultVaultName || "Main List"}</button></li>
                                                 {customVaults && customVaults.length > 0 && <li><hr className="dropdown-divider opacity-10" /></li>}
                                                 {customVaults && customVaults.map(list => (

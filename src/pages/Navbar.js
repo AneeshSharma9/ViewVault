@@ -1,6 +1,6 @@
 import { auth, signInWithGooglePopup } from "../utils/firebase"
 import { signOut } from "firebase/auth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +8,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     const { isDarkMode, toggleTheme } = useTheme();
     const [uid, setUid] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchType, setSearchType] = useState("movies"); // "movies" or "tv"
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,6 +30,21 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
 
     const handleSignOut = () => {
         signOut(auth).catch((error) => console.error('Error signing out:', error.message));
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            const route = searchType === "movies" ? "/searchmovie" : "/searchtv";
+            navigate(route, { state: { query: searchQuery.trim() } });
+            setSearchQuery("");
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch(e);
+        }
     };
 
     return (
@@ -52,12 +69,76 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                     {isSidebarOpen ? '⇠' : '☰'}
                 </button>
 
-                {/* Search Placeholder for now */}
-                <div className="search-bar-mini d-none d-md-flex align-items-center px-3 py-2 rounded-pill bg-light bg-opacity-10 border border-white border-opacity-10"
-                    style={{ minWidth: '300px', cursor: 'pointer' }}
-                    onClick={() => navigate('/searchmovie')}>
-                    <span className="me-2">🔍</span>
-                    <span className="text-muted small">Search for movies or shows...</span>
+                {/* Search Bar */}
+                <div className="d-none d-md-flex align-items-center gap-2" style={{ minWidth: '300px', maxWidth: '600px', flex: '1' }}>
+                    {/* Toggle Switch */}
+                    <div className="d-flex align-items-center bg-light rounded-pill p-1" style={{ 
+                        minWidth: '140px',
+                        background: isDarkMode ? '#2a2a2a' : '#f0f0f0',
+                        border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => setSearchType("movies")}
+                            className="btn border-0 flex-fill rounded-pill"
+                            style={{
+                                background: searchType === "movies" ? '#d63384' : 'transparent',
+                                color: searchType === "movies" ? 'white' : (isDarkMode ? '#ccc' : '#666'),
+                                fontSize: '0.85rem',
+                                fontWeight: searchType === "movies" ? '600' : '400',
+                                padding: '0.4rem 0.75rem',
+                                transition: 'all 0.3s ease',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            🎬 Movies
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setSearchType("tv")}
+                            className="btn border-0 flex-fill rounded-pill"
+                            style={{
+                                background: searchType === "tv" ? '#d63384' : 'transparent',
+                                color: searchType === "tv" ? 'white' : (isDarkMode ? '#ccc' : '#666'),
+                                fontSize: '0.85rem',
+                                fontWeight: searchType === "tv" ? '600' : '400',
+                                padding: '0.4rem 0.75rem',
+                                transition: 'all 0.3s ease',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            📺 TV Shows
+                        </button>
+                    </div>
+
+                    {/* Search Input */}
+                    <form onSubmit={handleSearch} className="flex-grow-1" style={{ minWidth: 0 }}>
+                        <div className="input-group" style={{ borderRadius: '50px', overflow: 'hidden' }}>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder={`Search ${searchType === "movies" ? "movies" : "TV shows"}...`}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRight: 'none'
+                                }}
+                            />
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{
+                                    borderTopLeftRadius: 0,
+                                    borderBottomLeftRadius: 0,
+                                    padding: '0.5rem 1rem'
+                                }}
+                            >
+                                🔍
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
