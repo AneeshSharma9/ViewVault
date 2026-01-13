@@ -82,8 +82,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                             onClick={() => setSearchType("movies")}
                             className="btn border-0 flex-fill rounded-pill"
                             style={{
-                                background: searchType === "movies" ? '#d63384' : 'transparent',
-                                color: searchType === "movies" ? 'white' : (isDarkMode ? '#ccc' : '#666'),
+                                background: searchType === "movies" ? '#00d4ff' : 'transparent',
+                                color: searchType === "movies" ? '#0a0e1a' : (isDarkMode ? '#aaa' : '#666'),
                                 fontSize: '0.85rem',
                                 fontWeight: searchType === "movies" ? '600' : '400',
                                 padding: '0.4rem 0.75rem',
@@ -98,8 +98,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                             onClick={() => setSearchType("tv")}
                             className="btn border-0 flex-fill rounded-pill"
                             style={{
-                                background: searchType === "tv" ? '#d63384' : 'transparent',
-                                color: searchType === "tv" ? 'white' : (isDarkMode ? '#ccc' : '#666'),
+                                background: searchType === "tv" ? '#00d4ff' : 'transparent',
+                                color: searchType === "tv" ? '#0a0e1a' : (isDarkMode ? '#aaa' : '#666'),
                                 fontSize: '0.85rem',
                                 fontWeight: searchType === "tv" ? '600' : '400',
                                 padding: '0.4rem 0.75rem',
