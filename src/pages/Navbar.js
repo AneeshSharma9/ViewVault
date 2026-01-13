@@ -66,7 +66,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                         borderRadius: '50%'
                     }}
                 >
-                    {isSidebarOpen ? '⇠' : '☰'}
+                    {isSidebarOpen ? '◀' : '☰'}
                 </button>
 
                 {/* Search Bar */}
@@ -82,8 +82,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                             onClick={() => setSearchType("movies")}
                             className="btn border-0 flex-fill rounded-pill"
                             style={{
-                                background: searchType === "movies" ? '#00d4ff' : 'transparent',
-                                color: searchType === "movies" ? '#0a0e1a' : (isDarkMode ? '#aaa' : '#666'),
+                                background: searchType === "movies" ? 'var(--secondary)' : 'transparent',
+                                color: searchType === "movies" ? 'white' : (isDarkMode ? '#aaa' : '#666'),
                                 fontSize: '0.85rem',
                                 fontWeight: searchType === "movies" ? '600' : '400',
                                 padding: '0.4rem 0.75rem',
@@ -98,8 +98,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                             onClick={() => setSearchType("tv")}
                             className="btn border-0 flex-fill rounded-pill"
                             style={{
-                                background: searchType === "tv" ? '#00d4ff' : 'transparent',
-                                color: searchType === "tv" ? '#0a0e1a' : (isDarkMode ? '#aaa' : '#666'),
+                                background: searchType === "tv" ? 'var(--secondary)' : 'transparent',
+                                color: searchType === "tv" ? 'white' : (isDarkMode ? '#aaa' : '#666'),
                                 fontSize: '0.85rem',
                                 fontWeight: searchType === "tv" ? '600' : '400',
                                 padding: '0.4rem 0.75rem',
@@ -123,16 +123,26 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                                 onKeyDown={handleKeyDown}
                                 style={{
                                     padding: '0.5rem 1rem',
-                                    borderRight: 'none'
+                                    borderRight: 'none',
+                                    borderTopLeftRadius: '50px',
+                                    borderBottomLeftRadius: '50px',
+                                    borderTopRightRadius: 0,
+                                    borderBottomRightRadius: 0
                                 }}
                             />
                             <button
                                 type="submit"
-                                className="btn btn-primary"
+                                className="btn"
                                 style={{
                                     borderTopLeftRadius: 0,
                                     borderBottomLeftRadius: 0,
-                                    padding: '0.5rem 1rem'
+                                    borderTopRightRadius: '50px',
+                                    borderBottomRightRadius: '50px',
+                                    padding: '0.5rem 1rem',
+                                    backgroundColor: 'var(--secondary)',
+                                    borderColor: 'var(--secondary)',
+                                    color: 'white',
+                                    borderLeft: 'none'
                                 }}
                             >
                                 🔍
@@ -158,7 +168,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                 <button
                     onClick={toggleTheme}
                     className="btn btn-link nav-link p-0 d-flex align-items-center justify-content-center theme-toggle-btn"
-                    style={{ transition: 'transform 0.3s ease', width: '40px', height: '40px', borderRadius: '50%', background: isDarkMode ? '#333' : '#f0f0f0' }}
+                    style={{ transition: 'transform 0.3s ease', width: '40px', height: '40px', borderRadius: '50%', background: isDarkMode ? '#333' : '#ffffff', border: isDarkMode ? 'none' : '1px solid rgba(0, 0, 0, 0.1)', boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)' }}
                     title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 >
                     <span style={{ fontSize: '1.2rem' }}>{isDarkMode ? '🌞' : '🌙'}</span>

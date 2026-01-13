@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "../context/ThemeContext";
 
 const EditStreamingServices = ({ show, onHide, availableProviders, selectedProviders, onSave }) => {
+    const { isDarkMode } = useTheme();
     const [editingProviders, setEditingProviders] = useState([]);
 
     useEffect(() => {
@@ -25,28 +27,31 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
     if (!show) return null;
 
     return (
-        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1060 }}>
-            <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                <div className="modal-content border-0 shadow-lg">
-                    <div className="modal-header border-0 pb-0">
-                        <h5 className="modal-title fw-bold">Edit Streaming Services</h5>
+        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: 1060 }} onClick={onHide}>
+            <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" style={{ maxWidth: '700px' }} onClick={(e) => e.stopPropagation()}>
+                <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '1.5rem', overflow: 'hidden' }}>
+                    <div className="modal-header border-0 pb-0 pt-4 px-4">
+                        <h5 className="modal-title fw-bold mb-0" style={{ fontSize: '1.5rem' }}>Edit Streaming Services</h5>
                         <button type="button" className="btn-close" onClick={onHide}></button>
                     </div>
-                    <div className="modal-body py-4">
-                        <p className="text-muted small mb-3">
+                    <div className="modal-body py-4 px-4">
+                        <p className="mb-3" style={{ fontSize: '0.9rem', color: 'var(--text)', opacity: 0.7 }}>
                             Select the streaming services you have access to. This helps us show you where your content is available.
                         </p>
                         <div className="row g-2">
                             {availableProviders.map((provider) => (
                                 <div key={provider.provider_id} className="col-6 col-md-4 col-lg-3">
                                     <div
-                                        className={`p-2 border rounded d-flex align-items-center gap-2 h-100 streaming-card ${editingProviders.includes(provider.provider_name)
-                                            ? 'bg-primary text-white border-primary shadow-sm'
-                                            : 'bg-light hover-shadow'
+                                        className={`p-2 rounded d-flex align-items-center gap-2 h-100 streaming-card ${editingProviders.includes(provider.provider_name)
+                                            ? 'shadow-sm'
+                                            : 'hover-shadow'
                                             }`}
                                         style={{
                                             cursor: 'pointer',
-                                            userSelect: 'none'
+                                            userSelect: 'none',
+                                            backgroundColor: editingProviders.includes(provider.provider_name) ? 'var(--secondary)' : 'var(--background)',
+                                            border: editingProviders.includes(provider.provider_name) ? `1px solid var(--secondary)` : (isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(var(--text-rgb), 0.1)'),
+                                            color: editingProviders.includes(provider.provider_name) ? 'white' : 'var(--text)'
                                         }}
                                         onClick={() => handleToggle(provider.provider_name)}
                                     >
@@ -66,12 +71,36 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
                             ))}
                         </div>
                     </div>
-                    <div className="modal-footer border-0 pt-0">
-                        <div className="me-auto small text-muted">
+                    <div className="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-between align-items-center">
+                        <div className="small" style={{ color: 'var(--text)', opacity: 0.7 }}>
                             {editingProviders.length} services selected
                         </div>
-                        <button type="button" className="btn btn-light" onClick={onHide}>Cancel</button>
-                        <button type="button" className="btn btn-primary px-4 shadow-sm" onClick={handleSave}>Save & Close</button>
+                        <div className="d-flex gap-2">
+                            <button 
+                                type="button" 
+                                className="btn rounded-pill px-4 fw-medium" 
+                                onClick={onHide}
+                                style={{ 
+                                    backgroundColor: 'var(--background)', 
+                                    border: '1px solid rgba(var(--text-rgb), 0.2)',
+                                    color: 'var(--text)'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="button" 
+                                className="btn rounded-pill px-4 fw-bold" 
+                                onClick={handleSave}
+                                style={{ 
+                                    backgroundColor: 'var(--secondary)', 
+                                    borderColor: 'var(--secondary)', 
+                                    color: 'white'
+                                }}
+                            >
+                                Save & Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,15 +109,9 @@ const EditStreamingServices = ({ show, onHide, availableProviders, selectedProvi
                     transition: all 0.2s ease;
                 }
                 .hover-shadow:hover {
-                    background-color: #f0f0f0 !important;
                     transform: translateY(-1px);
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                }
-                .dark-mode .streaming-card {
-                    border-color: rgba(255,255,255,0.1) !important;
-                }
-                .dark-mode .streaming-card.hover-shadow:hover {
-                    background-color: #333 !important;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    border-color: rgba(var(--secondary-rgb), 0.3) !important;
                 }
             `}</style>
         </div>
