@@ -17,6 +17,8 @@ const MediaFilters = ({
     isRefreshing,
     refreshStatus,
     onClear,
+    onDeleteVault,
+    isCustomVault = false,
     anyItems,
     addLabel,
     addLink,
@@ -115,6 +117,12 @@ const MediaFilters = ({
                             </button>
                         </li>
                         <li><button className="dropdown-item text-danger py-2" onClick={onClear} disabled={!anyItems}>Clear Vault</button></li>
+                        {isCustomVault && onDeleteVault && (
+                            <>
+                                <li><hr className="dropdown-divider opacity-10" /></li>
+                                <li><button className="dropdown-item text-danger py-2" onClick={onDeleteVault}>Delete Vault</button></li>
+                            </>
+                        )}
                     </ul>
                 </div>
             </div>

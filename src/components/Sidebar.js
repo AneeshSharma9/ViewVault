@@ -3,10 +3,12 @@ import { NavLink, useLocation } from 'react-router-dom';
 import useUserVaults from '../hooks/useUserVaults';
 import { db } from '../utils/firebase';
 import { ref, push } from 'firebase/database';
+import { useTheme } from '../context/ThemeContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
     const { customVaults, uid } = useUserVaults();
+    const { isDarkMode } = useTheme();
     const location = useLocation();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newListName, setNewListName] = useState("");
@@ -52,7 +54,18 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                 <div className="sidebar-resizer" onMouseDown={onResizeStart} />
                 <div className="sidebar-content">
                     <div className="sidebar-header d-flex justify-content-between align-items-center">
-                        <a href="/" className="sidebar-logo">ViewVault</a>
+                        <a href="/" className="sidebar-logo d-flex align-items-center gap-2">
+                            <img 
+                                src="/favicon_white.png" 
+                                alt="ViewVault" 
+                                style={{ 
+                                    width: '28px', 
+                                    height: '28px',
+                                    filter: isDarkMode ? 'none' : 'invert(1)'
+                                }}
+                            />
+                            <span>ViewVault</span>
+                        </a>
                         <button className="btn d-lg-none p-0 text-muted" onClick={onClose} style={{ fontSize: '1.5rem' }}>
                             ✕
                         </button>
