@@ -136,8 +136,19 @@
     box-shadow: 0 4px 15px rgba(var(--secondary-rgb), 0.2);
 }
 
+.sidebar-link.active:hover {
+    background: var(--secondary) !important;
+    color: white !important;
+    transform: translateX(4px);
+}
+
 .dark-mode .sidebar-link.active {
     box-shadow: 0 4px 15px rgba(var(--secondary-rgb), 0.3);
+}
+
+.dark-mode .sidebar-link.active:hover {
+    background: var(--secondary) !important;
+    color: white !important;
 }
 
 .sidebar-link-icon {
