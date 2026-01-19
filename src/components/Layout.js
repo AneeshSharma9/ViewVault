@@ -73,7 +73,7 @@ const Layout = ({ children }) => {
                         right: 0,
                         bottom: 0,
                         background: 'rgba(0,0,0,0.5)',
-                        zIndex: 999
+                        zIndex: 1040
                     }}
                 />
             )}
@@ -100,7 +100,7 @@ const Layout = ({ children }) => {
                             width: '4px',
                             height: '40px',
                             borderRadius: '4px',
-                            background: 'rgba(0,0,0,0.1)',
+                            background: 'rgba(107, 70, 193, 0.2)',
                             transition: 'all 0.3s ease'
                         }} />
                         <button

@@ -17,6 +17,8 @@ const MediaFilters = ({
     isRefreshing,
     refreshStatus,
     onClear,
+    onDeleteVault,
+    isCustomVault = false,
     anyItems,
     addLabel,
     addLink,
@@ -43,7 +45,7 @@ const MediaFilters = ({
                     <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {sortBy}
                     </button>
-                    <ul className="dropdown-menu shadow-lg border-0" style={{ borderRadius: '0.8rem' }}>
+                    <ul className="dropdown-menu shadow-lg" style={{ borderRadius: '0.8rem' }}>
                         {sortOptions.map(option => (
                             <li key={option}>
                                 <button className="dropdown-item py-2" onClick={() => onSortChange(option)}>
@@ -59,7 +61,7 @@ const MediaFilters = ({
                     <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {streamingFilterButtonText}
                     </button>
-                    <ul className="dropdown-menu shadow-lg border-0" style={{ minWidth: '220px', maxHeight: '350px', overflowY: 'auto', borderRadius: '0.8rem' }}>
+                    <ul className="dropdown-menu shadow-lg" style={{ minWidth: '220px', maxHeight: '350px', overflowY: 'auto', borderRadius: '0.8rem' }}>
                         <li>
                             <label className="dropdown-item py-2" style={{ cursor: 'pointer' }}>
                                 <input
@@ -99,7 +101,7 @@ const MediaFilters = ({
                     <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         ⋯
                     </button>
-                    <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0" style={{ borderRadius: '0.8rem', minWidth: '200px' }}>
+                    <ul className="dropdown-menu dropdown-menu-end shadow-lg" style={{ borderRadius: '0.8rem', minWidth: '200px' }}>
                         <li><button className="dropdown-item py-2" onClick={onImport}>Import Vault</button></li>
                         <li><button className="dropdown-item py-2" onClick={onExport}>Export Vault</button></li>
                         <li><hr className="dropdown-divider opacity-10" /></li>
@@ -115,6 +117,12 @@ const MediaFilters = ({
                             </button>
                         </li>
                         <li><button className="dropdown-item text-danger py-2" onClick={onClear} disabled={!anyItems}>Clear Vault</button></li>
+                        {isCustomVault && onDeleteVault && (
+                            <>
+                                <li><hr className="dropdown-divider opacity-10" /></li>
+                                <li><button className="dropdown-item text-danger py-2" onClick={onDeleteVault}>Delete Vault</button></li>
+                            </>
+                        )}
                     </ul>
                 </div>
             </div>

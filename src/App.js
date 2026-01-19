@@ -30,10 +30,10 @@ function App() {
                         <div className="col-lg-6 mb-4 mb-lg-0">
                             <h2 className="customh2 mb-4">Your Personal Entertainment Sanctuary</h2>
                             <p className="introtext mb-4">ViewVault is a versatile platform designed for organizing and curating vaults of movies and TV shows. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
-                            <div className="d-flex gap-3">
-                                <span className="badge bg-secondary p-2 px-3 rounded-pill">Movies</span>
-                                <span className="badge bg-secondary p-2 px-3 rounded-pill">TV Shows</span>
-                                <span className="badge bg-secondary p-2 px-3 rounded-pill">Vaults</span>
+                            <div className="d-flex gap-3 flex-wrap">
+                                <span className="badge p-2 px-4 rounded-pill" style={{ backgroundColor: 'rgba(var(--secondary-rgb), 0.1)', color: 'var(--secondary)', border: '1px solid rgba(var(--secondary-rgb), 0.2)', fontWeight: '600' }}>Movies</span>
+                                <span className="badge p-2 px-4 rounded-pill" style={{ backgroundColor: 'rgba(var(--secondary-rgb), 0.1)', color: 'var(--secondary)', border: '1px solid rgba(var(--secondary-rgb), 0.2)', fontWeight: '600' }}>TV Shows</span>
+                                <span className="badge p-2 px-4 rounded-pill" style={{ backgroundColor: 'rgba(var(--secondary-rgb), 0.1)', color: 'var(--secondary)', border: '1px solid rgba(var(--secondary-rgb), 0.2)', fontWeight: '600' }}>Vaults</span>
                             </div>
                         </div>
                         <div className="col-lg-6">
@@ -81,7 +81,7 @@ function App() {
                     <div className="section-bg shadow-lg">
                         <div className="row align-items-center">
                             <div className="col-lg-7">
-                                <span className="badge bg-white text-primary mb-3 p-2 px-3 rounded-pill fw-bold">FEATURED TOOL</span>
+                                <span className="badge mb-3 p-2 px-4 rounded-pill fw-bold" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', color: 'var(--primary)', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)' }}>FEATURED TOOL</span>
                                 <h2 className="customh2 text-white mb-4">Meet MovieNyte™</h2>
                                 <p className="introtext text-white opacity-90 mb-4">
                                     Revolutionize the way your group chooses films. No more endless scrolling or "I don't know, what do you want to watch?".

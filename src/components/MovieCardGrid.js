@@ -63,9 +63,9 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                     </p>
                                     {movie.overview && movie.overview.length > 100 && (
                                         <button
-                                            className="btn btn-link btn-sm p-0 text-primary fw-bold"
+                                            className="btn btn-link btn-sm p-0 fw-bold"
                                             onClick={() => setSelectedMovieDescription(movie)}
-                                            style={{ fontSize: '0.8rem', textDecoration: 'none' }}
+                                            style={{ fontSize: '0.8rem', textDecoration: 'none', color: 'var(--secondary)' }}
                                         >
                                             Read more →
                                         </button>
@@ -82,7 +82,7 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                             <button className="btn btn-premium btn-premium-primary w-100 py-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 + Add to Vault
                                             </button>
-                                            <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 w-100">
+                                            <ul className="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-2 w-100">
                                                 <li><button className="dropdown-item rounded-3 py-2" onClick={() => handleAddMovie(movie)}>🎬 {defaultVaultName || "Main List"}</button></li>
                                                 {customVaults && customVaults.length > 0 && <li><hr className="dropdown-divider opacity-10" /></li>}
                                                 {customVaults && customVaults.map(list => (
@@ -104,11 +104,11 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
 
             {/* Movie Description Modal */}
             {selectedMovieDescription && createPortal(
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 10000 }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">{selectedMovieDescription.title || selectedMovieDescription.name}</h5>
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: 10000 }} onClick={() => setSelectedMovieDescription(null)}>
+                    <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '1.5rem', overflow: 'hidden' }}>
+                            <div className="modal-header border-0 pb-0 pt-4 px-4">
+                                <h5 className="modal-title fw-bold mb-0" style={{ fontSize: '1.5rem' }}>{selectedMovieDescription.title || selectedMovieDescription.name}</h5>
                                 <button
                                     type="button"
                                     className="btn-close"
@@ -116,14 +116,22 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                     aria-label="Close"
                                 ></button>
                             </div>
-                            <div className="modal-body">
-                                <p>{selectedMovieDescription.overview || 'No description available.'}</p>
+                            <div className="modal-body py-4 px-4">
+                                <p className="mb-0" style={{ fontSize: '1rem', lineHeight: '1.7', color: 'var(--text)' }}>
+                                    {selectedMovieDescription.overview || 'No description available.'}
+                                </p>
                             </div>
-                            <div className="modal-footer">
+                            <div className="modal-footer border-0 pt-0 pb-4 px-4">
                                 <button
                                     type="button"
-                                    className="btn btn-secondary"
+                                    className="btn rounded-pill px-4"
                                     onClick={() => setSelectedMovieDescription(null)}
+                                    style={{ 
+                                        backgroundColor: 'var(--secondary)', 
+                                        borderColor: 'var(--secondary)', 
+                                        color: 'white',
+                                        fontWeight: '600'
+                                    }}
                                 >
                                     Close
                                 </button>

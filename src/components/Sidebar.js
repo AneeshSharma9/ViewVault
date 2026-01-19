@@ -3,10 +3,12 @@ import { NavLink, useLocation } from 'react-router-dom';
 import useUserVaults from '../hooks/useUserVaults';
 import { db } from '../utils/firebase';
 import { ref, push } from 'firebase/database';
+import { useTheme } from '../context/ThemeContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
     const { customVaults, uid } = useUserVaults();
+    const { isDarkMode } = useTheme();
     const location = useLocation();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newListName, setNewListName] = useState("");
@@ -52,7 +54,18 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                 <div className="sidebar-resizer" onMouseDown={onResizeStart} />
                 <div className="sidebar-content">
                     <div className="sidebar-header d-flex justify-content-between align-items-center">
-                        <a href="/" className="sidebar-logo">ViewVault</a>
+                        <a href="/" className="sidebar-logo d-flex align-items-center gap-2">
+                            <img 
+                                src="/favicon_white.png" 
+                                alt="ViewVault" 
+                                style={{ 
+                                    width: '28px', 
+                                    height: '28px',
+                                    filter: isDarkMode ? 'none' : 'invert(1)'
+                                }}
+                            />
+                            <span>ViewVault</span>
+                        </a>
                         <button className="btn d-lg-none p-0 text-muted" onClick={onClose} style={{ fontSize: '1.5rem' }}>
                             ✕
                         </button>
@@ -140,49 +153,77 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
 
             {/* Create Vault Modal */}
             {showCreateModal && (
-                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: 2000 }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content border-0 shadow-lg rounded-4">
-                            <div className="modal-header border-0 pb-0">
-                                <h5 className="modal-title fw-bold">Create New Vault</h5>
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: 2000 }} onClick={() => setShowCreateModal(false)}>
+                    <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '1.5rem', overflow: 'hidden' }}>
+                            <div className="modal-header border-0 pb-0 pt-4 px-4">
+                                <h5 className="modal-title fw-bold mb-0" style={{ fontSize: '1.5rem' }}>Create New Vault</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
                             </div>
-                            <div className="modal-body p-4">
+                            <div className="modal-body py-4 px-4">
                                 <div className="mb-3">
                                     <label className="form-label fw-semibold">Vault Name</label>
                                     <input
                                         type="text"
-                                        className="form-control rounded-3"
+                                        className="form-control rounded-pill"
                                         value={newListName}
                                         onChange={(e) => setNewListName(e.target.value)}
                                         placeholder="My Epic Collection"
+                                        style={{ padding: '0.6rem 1.2rem' }}
                                     />
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label fw-semibold">Vault Type</label>
                                     <div className="d-flex gap-2">
                                         <button
-                                            className={`btn flex-grow-1 rounded-3 ${newListType === 'movies' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                            className={`btn flex-grow-1 rounded-pill fw-medium`}
                                             onClick={() => setNewListType('movies')}
+                                            style={{
+                                                backgroundColor: newListType === 'movies' ? 'var(--secondary)' : 'var(--background)',
+                                                color: newListType === 'movies' ? 'white' : 'var(--text)',
+                                                border: 'none'
+                                            }}
                                         >
                                             🎬 Movies
                                         </button>
                                         <button
-                                            className={`btn flex-grow-1 rounded-3 ${newListType === 'tvshows' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                            className={`btn flex-grow-1 rounded-pill fw-medium`}
                                             onClick={() => setNewListType('tvshows')}
+                                            style={{
+                                                backgroundColor: newListType === 'tvshows' ? 'var(--secondary)' : 'var(--background)',
+                                                color: newListType === 'tvshows' ? 'white' : 'var(--text)',
+                                                border: 'none'
+                                            }}
                                         >
                                             📺 TV Shows
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <div className="modal-footer border-0 pt-0 p-4">
-                                <button type="button" className="btn btn-secondary rounded-pill px-4" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                            <div className="modal-footer border-0 pt-0 pb-4 px-4 d-flex gap-2">
+                                <button 
+                                    type="button" 
+                                    className="btn rounded-pill px-4 fw-medium" 
+                                    onClick={() => setShowCreateModal(false)}
+                                    style={{ 
+                                        backgroundColor: 'var(--background)', 
+                                        border: '1px solid rgba(var(--text-rgb), 0.2)',
+                                        color: 'var(--text)'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
                                 <button
                                     type="button"
-                                    className="btn btn-premium btn-premium-primary rounded-pill px-4"
+                                    className="btn rounded-pill px-4 fw-bold"
                                     onClick={handleCreateVault}
                                     disabled={!newListName.trim()}
+                                    style={{ 
+                                        backgroundColor: 'var(--secondary)', 
+                                        borderColor: 'var(--secondary)', 
+                                        color: 'white',
+                                        opacity: !newListName.trim() ? 0.5 : 1
+                                    }}
                                 >
                                     Create Vault
                                 </button>

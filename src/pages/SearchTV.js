@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { auth, db } from "../utils/firebase"
 import { ref, push, get } from "firebase/database";
+import { useLocation } from "react-router-dom";
 import Footer from "./Footer";
 import MovieCardGrid from "../components/MovieCardGrid";
 
 
 const SearchTV = () => {
-    const [searchQuery, setSearchQuery] = useState("");
+    const location = useLocation();
+    const [searchQuery, setSearchQuery] = useState(location.state?.query || "");
     const [searchResults, setSearchResults] = useState([]);
     const [addedShows, setAddedShows] = useState({});
     const inputRef = useRef(null);
@@ -19,6 +21,37 @@ const SearchTV = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+
+    // Auto-search if query is passed from navigation
+    useEffect(() => {
+        if (location.state?.query && location.state.query.trim()) {
+            const searchTV = async () => {
+                const query = location.state.query.trim();
+                setIsLoading(true);
+                setHasSearched(true);
+                setSearchResults([]);
+                setCurrentPage(1);
+                try {
+                    const response = await axios.get(`https://api.themoviedb.org/3/search/tv`, {
+                        params: {
+                            api_key: process.env.REACT_APP_API_KEY,
+                            query: query,
+                            page: 1
+                        }
+                    });
+                    setSearchResults(response.data.results || []);
+                    setTotalPages(response.data.total_pages || 1);
+                } catch (error) {
+                    console.error('Error searching TV shows:', error);
+                    setSearchResults([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            searchTV();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.state]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {

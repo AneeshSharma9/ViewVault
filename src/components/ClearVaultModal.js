@@ -6,8 +6,8 @@ const ClearVaultModal = ({ show, onHide, onConfirm, listName }) => {
     const itemName = listName || 'vault';
 
     return (
-        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1060 }}>
-            <div className="modal-dialog modal-dialog-centered">
+        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1060 }} onClick={onHide}>
+            <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '1.2rem' }}>
                     <div className="modal-header border-0 pb-0 pt-4 px-4">
                         <h5 className="modal-title fw-bold text-danger">Clear Vault</h5>

@@ -6,6 +6,7 @@ import RatingModal from "../components/RatingModal";
 import ExportModal from "../components/ExportModal";
 import ImportModal from "../components/ImportModal";
 import ClearVaultModal from "../components/ClearVaultModal";
+import DeleteVaultModal from "../components/DeleteVaultModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
 import MediaFilters from "../components/MediaFilters";
 import EditWatchSites from "../components/EditWatchSites";
@@ -14,7 +15,7 @@ import ScrollControls from "../components/ScrollControls";
 import useVault from "../hooks/useVault";
 import axios from "axios";
 import { db } from "../utils/firebase";
-import { ref, push, update } from "firebase/database";
+import { ref, push, update, remove } from "firebase/database";
 
 const Movies = () => {
     const [searchParams] = useSearchParams();
@@ -60,6 +61,7 @@ const Movies = () => {
     const [movieToDelete, setMovieToDelete] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [movieToRate, setMovieToRate] = useState(null);
+    const [showDeleteVaultModal, setShowDeleteVaultModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Filter movies by search query
@@ -100,6 +102,18 @@ const Movies = () => {
             await handleDelete(movieToDelete.id);
             setShowDeleteMovieModal(false);
             setMovieToDelete(null);
+        }
+    };
+
+    const handleDeleteVault = async () => {
+        if (!listId || !uid) return;
+        try {
+            const vaultRef = ref(db, `users/${uid}/customwatchlists/${listId}`);
+            await remove(vaultRef);
+            setShowDeleteVaultModal(false);
+            navigate('/movies');
+        } catch (error) {
+            console.error('Error deleting vault:', error);
         }
     };
 
@@ -259,6 +273,8 @@ const Movies = () => {
                             isRefreshing={isRefreshing}
                             refreshStatus={refreshStatus}
                             onClear={() => setShowClearModal(true)}
+                            onDeleteVault={() => setShowDeleteVaultModal(true)}
+                            isCustomVault={!!listId}
                             anyItems={movies.length > 0}
                             addLabel="Add Movie"
                             addLink="./searchmovie"
@@ -301,6 +317,7 @@ const Movies = () => {
                     <ImportModal show={showImportModal} onHide={() => setShowImportModal(false)} importText={importText} setImportText={setImportText} onImport={handleImportVault} isImporting={isImporting} importStatus={importStatus} listName={listName} type="movies" />
                     <RatingModal show={showRatingModal} onHide={() => setShowRatingModal(false)} onSave={handleSaveRating} itemName={movieToRate?.name} type="movie" />
                     <ClearVaultModal show={showClearModal} onHide={() => setShowClearModal(false)} onConfirm={handleClear} listName={listName} />
+                    <DeleteVaultModal show={showDeleteVaultModal} onHide={() => setShowDeleteVaultModal(false)} onConfirm={handleDeleteVault} listName={listName} />
                     <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
                     <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
                     <RemoveMediaModal show={showDeleteMovieModal} onHide={() => setShowDeleteMovieModal(false)} onConfirm={handleConfirmDeleteMovie} itemName={movieToDelete?.name} type="movie" />
