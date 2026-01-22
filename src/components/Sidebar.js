@@ -72,24 +72,6 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                     </div>
 
                     <div className="sidebar-section">
-                        <h3 className="sidebar-section-title">My Library</h3>
-                        <ul className="sidebar-nav">
-                            <li className="sidebar-nav-item">
-                                <NavLink to="/movies" onClick={handleNavClick} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
-                                    <span className="sidebar-link-icon">🎬</span>
-                                    <span>Movie Vault</span>
-                                </NavLink>
-                            </li>
-                            <li className="sidebar-nav-item">
-                                <NavLink to="/tvshows" onClick={handleNavClick} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
-                                    <span className="sidebar-link-icon">📺</span>
-                                    <span>TV Vault</span>
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className="sidebar-section">
                         <h3 className="sidebar-section-title">Discover</h3>
                         <ul className="sidebar-nav">
                             <li className="sidebar-nav-item">
@@ -108,6 +90,24 @@ const Sidebar = ({ isOpen, onClose, width, onResizeStart }) => {
                                 <NavLink to="/movienyte" onClick={handleNavClick} className="sidebar-link">
                                     <span className="sidebar-link-icon">🍿</span>
                                     <span>MovieNyte™</span>
+                                </NavLink>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="sidebar-section">
+                        <h3 className="sidebar-section-title">My Library</h3>
+                        <ul className="sidebar-nav">
+                            <li className="sidebar-nav-item">
+                                <NavLink to="/movies" onClick={handleNavClick} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
+                                    <span className="sidebar-link-icon">🎬</span>
+                                    <span>Movie Vault</span>
+                                </NavLink>
+                            </li>
+                            <li className="sidebar-nav-item">
+                                <NavLink to="/tvshows" onClick={handleNavClick} className={({ isActive }) => `sidebar-link ${isActive && !location.search ? 'active' : ''}`}>
+                                    <span className="sidebar-link-icon">📺</span>
+                                    <span>TV Vault</span>
                                 </NavLink>
                             </li>
                         </ul>

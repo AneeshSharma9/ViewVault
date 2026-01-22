@@ -46,6 +46,11 @@
     transition: none !important;
 }
 
+/* Smooth transition when closing after resize */
+.sidebar:not(.open) {
+    transition: width 0.3s ease, transform 0.3s ease;
+}
+
 .sidebar-resizer {
     position: absolute;
     top: 0;

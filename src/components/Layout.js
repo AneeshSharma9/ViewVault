@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from '../pages/Navbar';
 
@@ -6,6 +6,7 @@ const Layout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [sidebarWidth, setSidebarWidth] = useState(280);
     const [isResizing, setIsResizing] = useState(false);
+    const isOpeningRef = useRef(false);
 
     const toggleSidebar = () => {
         if (!sidebarOpen && sidebarWidth < 250) {
@@ -14,11 +15,18 @@ const Layout = ({ children }) => {
         setSidebarOpen(!sidebarOpen);
     };
 
-    const handleOpenSidebar = () => {
-        if (sidebarWidth < 250) {
-            setSidebarWidth(280);
-        }
+    const handleOpenSidebar = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // Set flag to prevent closing logic from triggering
+        isOpeningRef.current = true;
+        // Set width first, then open to prevent closing logic from triggering
+        setSidebarWidth(280);
         setSidebarOpen(true);
+        // Reset flag after a short delay
+        setTimeout(() => {
+            isOpeningRef.current = false;
+        }, 350);
     };
 
     const startResizing = useCallback((mouseDownEvent) => {
@@ -26,18 +34,32 @@ const Layout = ({ children }) => {
     }, []);
 
     const stopResizing = useCallback(() => {
+        if (!isResizing) return; // Prevent multiple calls
+        if (isOpeningRef.current) return; // Don't close if we're intentionally opening
         setIsResizing(false);
-    }, []);
+        // If sidebar is below threshold, smoothly close it
+        // But only if we're actually resizing and not just opening
+        if (sidebarWidth < 200 && sidebarOpen) {
+            // Smoothly animate to 0 and close
+            setSidebarWidth(0);
+            setTimeout(() => {
+                setSidebarOpen(false);
+            }, 300);
+        }
+    }, [sidebarWidth, sidebarOpen, isResizing]);
 
     const resize = useCallback((mouseMoveEvent) => {
         if (isResizing) {
             let newWidth = mouseMoveEvent.clientX;
-            if (newWidth < 120) {
-                setSidebarOpen(false);
+            if (newWidth < 200) {
+                // Smoothly collapse by gradually reducing width
+                // Keep sidebar "open" during drag to allow smooth width transition
+                setSidebarOpen(true);
+                const collapsedWidth = Math.max(0, newWidth);
+                setSidebarWidth(collapsedWidth);
             } else {
                 setSidebarOpen(true);
                 if (newWidth > 450) newWidth = 450;
-                if (newWidth < 200) newWidth = 200;
                 setSidebarWidth(newWidth);
             }
         }
@@ -106,6 +128,7 @@ const Layout = ({ children }) => {
                         <button
                             className="btn btn-sm btn-premium btn-premium-primary rounded-circle p-0"
                             onClick={handleOpenSidebar}
+                            onMouseDown={(e) => e.stopPropagation()}
                             style={{
                                 position: 'absolute',
                                 left: '10px',
