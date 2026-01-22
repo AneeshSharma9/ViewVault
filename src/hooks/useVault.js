@@ -116,7 +116,7 @@ const useVault = (type, listId) => {
         } finally {
             if (!silent) setLoading(false);
         }
-    }, [listId, type, getItemsPath, getSettingsPath]);
+    }, [listId, type, getSettingsPath]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {

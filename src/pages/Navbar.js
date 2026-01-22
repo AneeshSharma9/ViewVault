@@ -1,6 +1,6 @@
 import { auth, signInWithGooglePopup } from "../utils/firebase"
 import { signOut } from "firebase/auth";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
