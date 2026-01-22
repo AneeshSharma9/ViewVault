@@ -153,6 +153,15 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             </div>
 
             <div className="d-flex align-items-center gap-3">
+                <button
+                    onClick={toggleTheme}
+                    className="btn btn-link nav-link p-0 d-flex align-items-center justify-content-center theme-toggle-btn"
+                    style={{ transition: 'transform 0.3s ease', width: '40px', height: '40px', borderRadius: '50%', background: isDarkMode ? '#333' : '#ffffff', border: isDarkMode ? 'none' : '1px solid rgba(0, 0, 0, 0.1)', boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)' }}
+                    title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                    <span style={{ fontSize: '1.2rem' }}>{isDarkMode ? '🌞' : '🌙'}</span>
+                </button>
+
                 <ul className="navbar-nav flex-row align-items-center gap-3">
                     <li className="nav-item">
                         {loading ? (
@@ -164,7 +173,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                             </button>
                         ) : uid ? (
                             <button 
-                                className="btn btn-outline-danger rounded-pill" 
+                                className="btn btn-outline-danger rounded-pill auth-btn-fade-in" 
                                 onClick={handleSignOut} 
                                 title="Logout"
                                 style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
@@ -177,7 +186,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                             </button>
                         ) : (
                             <button 
-                                className="btn btn-outline-success rounded-pill" 
+                                className="btn btn-outline-success rounded-pill auth-btn-fade-in" 
                                 onClick={handleLogin} 
                                 title="Login"
                                 style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
@@ -191,15 +200,6 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                         )}
                     </li>
                 </ul>
-
-                <button
-                    onClick={toggleTheme}
-                    className="btn btn-link nav-link p-0 d-flex align-items-center justify-content-center theme-toggle-btn"
-                    style={{ transition: 'transform 0.3s ease', width: '40px', height: '40px', borderRadius: '50%', background: isDarkMode ? '#333' : '#ffffff', border: isDarkMode ? 'none' : '1px solid rgba(0, 0, 0, 0.1)', boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)' }}
-                    title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                >
-                    <span style={{ fontSize: '1.2rem' }}>{isDarkMode ? '🌞' : '🌙'}</span>
-                </button>
             </div>
         </nav>
     )

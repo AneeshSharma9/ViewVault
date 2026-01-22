@@ -2237,3 +2237,21 @@ input:focus {
     width: 100%;
   }
 }
+
+/* Auth Button Fade In */
+.auth-btn-fade-in {
+  animation: authFadeIn 0.5s ease-in-out;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+@keyframes authFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
