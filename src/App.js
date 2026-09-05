@@ -1,4 +1,5 @@
 import './App.css';
+import './VaultTheme.css';
 import './Homepage.css';
 import Footer from "./pages/Footer";
 
