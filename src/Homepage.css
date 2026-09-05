@@ -1,0 +1,571 @@
+/* ============================================
+   VIEWVAULT HOMEPAGE — Cinematic Film-Roll Theme
+   Styles the landing page (App.js) only.
+   ============================================ */
+
+.homepage *,
+.homepage *::before,
+.homepage *::after {
+  box-sizing: border-box;
+}
+
+.homepage {
+  --film-black: #0d0f12;
+  --film-edge: 14px;
+  --sprocket: 8px;
+  --sprocket-gap: 22px;
+
+  position: relative;
+  color: var(--text);
+  background: var(--background);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.vv-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+/* ============================================
+   MARQUEE TICKER
+   ============================================ */
+.vv-ticker {
+  position: relative;
+  z-index: 2;
+  background: var(--secondary);
+  color: #fff;
+  overflow: hidden;
+  padding: 0.9rem 0;
+  border-top: 4px solid var(--text);
+  border-bottom: 4px solid var(--text);
+}
+
+.vv-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 30s linear infinite;
+  will-change: transform;
+}
+
+.vv-ticker:hover .vv-ticker-track {
+  animation-play-state: paused;
+}
+
+.vv-ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding-right: 2rem;
+  font-family: "Bungee", sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.vv-ticker-item::after {
+  content: "★";
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes ticker-scroll {
+  to { transform: translateX(-50%); }
+}
+
+/* ============================================
+   HERO — Movie marquee sign
+   ============================================ */
+.vv-hero {
+  position: relative;
+  z-index: 2;
+  padding: 6rem 0 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.vv-marquee-sign {
+  display: inline-block;
+  background: var(--film-black);
+  color: #ffd76a;
+  border: 3px solid #ffd76a;
+  border-radius: 14px;
+  box-shadow: 0 0 18px rgba(255, 215, 106, 0.35),
+    0 0 0 6px var(--film-black),
+    0 0 0 10px rgba(255, 215, 106, 0.15);
+  padding: 0.7rem 1.6rem;
+  font-family: "Bungee", sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 2.25rem;
+  animation: sign-flicker 4s linear infinite;
+}
+
+@keyframes sign-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.5; }
+  94% { opacity: 1; }
+  96% { opacity: 0.7; }
+  97% { opacity: 1; }
+}
+
+.vv-hero-title {
+  font-family: "Bungee", sans-serif;
+  font-size: clamp(2.6rem, 9vw, 5.5rem);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  margin: 0 0 1.4rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: 4px 4px 0 rgba(var(--secondary-rgb), 0.25);
+  transform: rotate(-2deg);
+}
+
+.vv-hero-title .accent {
+  display: inline-block;
+  color: var(--primary);
+  animation: accent-wobble 2.5s ease-in-out infinite;
+}
+
+@keyframes accent-wobble {
+  0%, 100% { transform: rotate(-2deg) translateY(0); }
+  50% { transform: rotate(2deg) translateY(-6px); }
+}
+
+.vv-hero-sub {
+  font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+  line-height: 1.7;
+  color: var(--text);
+  opacity: 0.8;
+  max-width: 52ch;
+  margin: 0 0 2.5rem;
+}
+
+.vv-hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.vv-btn {
+  font-family: "Bungee", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.6rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.vv-btn:hover {
+  transform: translateY(-4px) rotate(-1deg);
+}
+
+.vv-btn-primary {
+  background: var(--secondary);
+  color: #fff;
+  box-shadow: 0 6px 0 var(--film-black);
+}
+
+.vv-btn-primary:hover {
+  box-shadow: 0 10px 0 var(--film-black);
+}
+
+.vv-btn-ghost {
+  background: transparent;
+  color: var(--secondary);
+  border-color: var(--secondary);
+  box-shadow: inset 0 0 0 2px transparent;
+}
+
+.vv-btn-ghost:hover {
+  background: var(--secondary);
+  color: #fff;
+}
+
+/* ============================================
+   FILM STRIP DIVIDER
+   ============================================ */
+.vv-filmstrip {
+  position: relative;
+  height: 64px;
+  margin: 3rem 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--film-black) 0 var(--sprocket),
+    transparent var(--sprocket) calc(var(--sprocket-gap))
+  );
+  background-color: var(--secondary);
+  -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 6%,
+      #000 94%,
+      transparent
+    ),
+    linear-gradient(
+      to right,
+      #000 calc(var(--film-edge) + 4px),
+      transparent calc(var(--film-edge) + 4px),
+      transparent calc(100% - var(--film-edge) - 4px),
+      #000 calc(100% - var(--film-edge) - 4px)
+    );
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 6%,
+      #000 94%,
+      transparent
+    ),
+    linear-gradient(
+      to right,
+      #000 calc(var(--film-edge) + 4px),
+      transparent calc(var(--film-edge) + 4px),
+      transparent calc(100% - var(--film-edge) - 4px),
+      #000 calc(100% - var(--film-edge) - 4px)
+    );
+}
+
+/* ============================================
+   SECTION SHARED
+   ============================================ */
+.vv-section {
+  position: relative;
+  z-index: 2;
+  padding: 4rem 0;
+}
+
+.vv-eyebrow,
+.vv-label {
+  font-family: "Bungee", sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--secondary);
+}
+
+.vv-title {
+  font-family: "Bungee", sans-serif;
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  margin: 0 0 1.25rem;
+}
+
+.vv-copy {
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: var(--text);
+  opacity: 0.78;
+  margin: 0 0 2rem;
+}
+
+/* ============================================
+   ABOUT — film-strip framed image
+   ============================================ */
+.vv-about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.vv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.vv-tag {
+  font-family: "Bungee", sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  padding: 0.5rem 1.1rem;
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--background);
+  border: 2px solid var(--secondary);
+  box-shadow: 3px 3px 0 var(--secondary);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vv-tag:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--secondary);
+}
+
+/* Film-strip framed image */
+.vv-image-frame {
+  position: relative;
+  background: var(--film-black);
+  padding: var(--film-edge);
+  border-radius: 10px;
+  transform: rotate(1.5deg);
+}
+
+.vv-image-frame img {
+  width: 100%;
+  display: block;
+  border-radius: 6px;
+  border: 3px solid #3a3d42;
+}
+
+/* sprocket holes on film strip */
+.vv-image-frame::before,
+.vv-image-frame::after {
+  content: "";
+  position: absolute;
+  left: var(--film-edge);
+  right: var(--film-edge);
+  height: var(--sprocket);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--background) 0 var(--sprocket),
+    transparent var(--sprocket) calc(var(--sprocket-gap))
+  );
+}
+
+.vv-image-frame::before {
+  top: var(--film-edge);
+}
+
+.vv-image-frame::after {
+  bottom: var(--film-edge);
+}
+
+/* ============================================
+   FEATURES — film roll cards
+   ============================================ */
+.vv-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.75rem;
+}
+
+.vv-feature {
+  position: relative;
+  background: var(--background);
+  border: 2px solid rgba(var(--secondary-rgb), 0.35);
+  border-radius: 14px;
+  padding: 2rem 1.6rem 1.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 5px 5px 0 rgba(var(--secondary-rgb), 0.12);
+}
+
+.vv-feature:hover {
+  transform: translate(-3px, -6px) rotate(-1deg);
+  box-shadow: 9px 9px 0 rgba(var(--secondary-rgb), 0.18);
+  border-color: var(--secondary);
+}
+
+.vv-feature-index {
+  font-family: "Bungee", sans-serif;
+  color: var(--primary);
+  font-size: 1.3rem;
+  margin-bottom: 0.9rem;
+}
+
+.vv-feature-stripes {
+  height: 6px;
+  margin-bottom: 1.5rem;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--secondary) 0 10px,
+    transparent 10px 18px
+  );
+}
+
+.vv-feature-title {
+  font-family: "Bungee", sans-serif;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  margin: 0 0 0.7rem;
+}
+
+.vv-feature-copy {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--text);
+  opacity: 0.68;
+  margin: 0;
+}
+
+/* ============================================
+   MOVIENYTE CTA — 35mm reel card
+   ============================================ */
+.vv-cta-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  background: var(--secondary);
+  color: #fff;
+  border-radius: 16px;
+  padding: 3.5rem 3.5rem 4.5rem;
+  border: 3px solid var(--text);
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.25);
+}
+
+.vv-cta-label {
+  font-family: "Bungee", sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  opacity: 0.8;
+  margin-bottom: 1.1rem;
+}
+
+.vv-cta-title {
+  font-family: "Bungee", sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  margin: 0 0 1.2rem;
+}
+
+.vv-cta-copy {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  opacity: 0.9;
+  margin: 0 0 1.6rem;
+}
+
+.vv-cta-list {
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
+}
+
+.vv-cta-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.3rem 0;
+  font-size: 1rem;
+}
+
+.vv-cta-list li::before {
+  content: "▶";
+  font-size: 0.7rem;
+  color: var(--primary);
+}
+
+.vv-cta-btn {
+  font-family: "Bungee", sans-serif;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  display: inline-block;
+  padding: 0.9rem 1.6rem;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--secondary);
+  text-decoration: none;
+  border: 3px solid var(--film-black);
+  box-shadow: 4px 4px 0 var(--film-black);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.vv-cta-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--film-black);
+}
+
+/* film-strip bottom of CTA (sprocket holes) */
+.vv-cta-card::after {
+  content: "";
+  position: absolute;
+  left: var(--film-edge);
+  right: var(--film-edge);
+  bottom: var(--film-edge);
+  height: var(--sprocket);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--background) 0 var(--sprocket),
+    transparent var(--sprocket) calc(var(--sprocket-gap))
+  );
+  opacity: 0.55;
+}
+
+/* spinning film reel in stats column */
+.vv-cta-reel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vv-reel {
+  width: 120px;
+  height: 120px;
+  border: 8px solid var(--film-black);
+  border-radius: 50%;
+  position: relative;
+  animation: reel-spin 6s linear infinite;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.vv-reel::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 4px dashed var(--primary);
+  border-radius: 50%;
+}
+
+.vv-reel::after {
+  content: "";
+  position: absolute;
+  inset: 34px;
+  border-radius: 50%;
+  background: var(--film-black);
+  border: 4px solid var(--primary);
+}
+
+@keyframes reel-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 900px) {
+  .vv-hero {
+    padding: 4rem 0 2.5rem;
+  }
+
+  .vv-about-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .vv-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vv-cta-card {
+    grid-template-columns: 1fr;
+    padding: 2.5rem 1.8rem 4rem;
+  }
+
+  .vv-hero-title {
+    transform: rotate(0deg);
+  }
+}

@@ -1,109 +1,142 @@
 import './App.css';
+import './Homepage.css';
 import Footer from "./pages/Footer";
 
-function App() {
-    return (
-        <div className="homepage-wrapper">
+const tickerItems = [
+    "Popcorn ready",
+    "Lights down",
+    "Blockbuster night",
+    "Fresh recommendations",
+    "Curate your vault",
+    "Group movie night",
+];
 
-            {/* Hero Section */}
-            <div className="image-container hero-container">
-                <div className="hero-content">
-                    <h1 className="hero-title animate-pop-in">ViewVault</h1>
-                    <p className="hero-tagline animate-fade-in">Discover entertainment, curate your vault, and master your movie nights.</p>
-                    <div className="hero-buttons animate-slide-up">
-                        <a className="btn-premium btn-premium-primary" href="#about">
-                            Get Started
-                        </a>
-                        <a className="btn-premium btn-premium-outline" href="#how">
-                            MovieNyte™
-                        </a>
-                    </div>
+function App() {
+    const tickerLoop = [...tickerItems, ...tickerItems];
+
+    return (
+        <div className="homepage">
+
+            {/* Marquee ticker */}
+            <div className="vv-ticker" aria-hidden="true">
+                <div className="vv-ticker-track">
+                    {tickerLoop.map((item, i) => (
+                        <span className="vv-ticker-item" key={i}>{item}</span>
+                    ))}
                 </div>
-                {/* Decorative overlay */}
-                <div className="hero-overlay"></div>
             </div>
 
+            {/* Hero — marquee sign */}
+            <section className="vv-hero">
+                <span className="vv-marquee-sign">Now showing</span>
+                <h1 className="vv-hero-title">
+                    View<span className="accent">Vault</span>
+                </h1>
+                <p className="vv-hero-sub">
+                    Discover entertainment, curate your vault, and master your movie nights —
+                    all in one seriously fun place.
+                </p>
+                <div className="vv-hero-actions">
+                    <a href="#about" className="vv-btn vv-btn-primary">Get Started</a>
+                    <a href="#how" className="vv-btn vv-btn-ghost">MovieNyte&trade;</a>
+                </div>
+            </section>
+
+            {/* Film strip divider */}
+            <div className="vv-filmstrip" aria-hidden="true"></div>
+
             {/* About Section */}
-            <section id="about" className="section-padding">
-                <div className="modern-section">
-                    <div className="row align-items-center">
-                        <div className="col-lg-6 mb-4 mb-lg-0">
-                            <h2 className="customh2 mb-4">Your Personal Entertainment Sanctuary</h2>
-                            <p className="introtext mb-4">ViewVault is a versatile platform designed for organizing and curating vaults of movies and TV shows. It simplifies the process of managing and exploring entertainment options across various genres, ensuring a seamless viewing experience.</p>
-                            <div className="d-flex gap-3 flex-wrap">
-                                <span className="badge p-2 px-4 rounded-pill" style={{ backgroundColor: 'rgba(var(--secondary-rgb), 0.1)', color: 'var(--secondary)', border: '1px solid rgba(var(--secondary-rgb), 0.2)', fontWeight: '600' }}>Movies</span>
-                                <span className="badge p-2 px-4 rounded-pill" style={{ backgroundColor: 'rgba(var(--secondary-rgb), 0.1)', color: 'var(--secondary)', border: '1px solid rgba(var(--secondary-rgb), 0.2)', fontWeight: '600' }}>TV Shows</span>
-                                <span className="badge p-2 px-4 rounded-pill" style={{ backgroundColor: 'rgba(var(--secondary-rgb), 0.1)', color: 'var(--secondary)', border: '1px solid rgba(var(--secondary-rgb), 0.2)', fontWeight: '600' }}>Vaults</span>
+            <section id="about" className="vv-section">
+                <div className="vv-container">
+                    <div className="vv-about-grid">
+                        <div>
+                            <p className="vv-label">About ViewVault</p>
+                            <h2 className="vv-title">Your personal<br />movie sanctuary</h2>
+                            <p className="vv-copy">
+                                ViewVault is a versatile platform for organizing and curating vaults of
+                                movies and TV shows. It simplifies managing and exploring entertainment
+                                across genres, ensuring a seamless viewing experience.
+                            </p>
+                            <div className="vv-tags">
+                                <span className="vv-tag">Movies</span>
+                                <span className="vv-tag">TV Shows</span>
+                                <span className="vv-tag">Vaults</span>
                             </div>
                         </div>
-                        <div className="col-lg-6">
-                            <div className="image-card-decorative shadow-lg rounded-4 overflow-hidden">
-                                <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop" className="img-fluid" alt="Cinema" />
-                            </div>
+                        <div className="vv-image-frame">
+                            <img
+                                src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop"
+                                alt="Cinema"
+                            />
                         </div>
                     </div>
                 </div>
             </section>
+
+            {/* Film strip divider */}
+            <div className="vv-filmstrip" aria-hidden="true"></div>
 
             {/* Why ViewVault Section */}
-            <section className="section-padding bg-light-section">
-                <div className="modern-section">
-                    <h2 className="customh2 text-center mb-5">Why ViewVault?</h2>
-                    <div className="row g-4">
-                        <div className="col-md-4">
-                            <div className="feature-card">
-                                <span className="feature-icon">🚀</span>
-                                <h4 className="feature-title">Streamlined Experience</h4>
-                                <p className="feature-text">Simplify complex processes with a user-friendly interface designed for effortless navigation and vault organization.</p>
-                            </div>
+            <section className="vv-section">
+                <div className="vv-container">
+                    <div className="vv-features-grid">
+                        <div className="vv-feature">
+                            <p className="vv-feature-index">01</p>
+                            <div className="vv-feature-stripes"></div>
+                            <h4 className="vv-feature-title">Streamlined</h4>
+                            <p className="vv-feature-copy">
+                                A user-friendly interface for effortless navigation and vault organization.
+                            </p>
                         </div>
-                        <div className="col-md-4">
-                            <div className="feature-card">
-                                <span className="feature-icon">✨</span>
-                                <h4 className="feature-title">Personalized Discovery</h4>
-                                <p className="feature-text">Get tailored suggestions based on your unique preferences and viewing history for an enjoyable discovery experience.</p>
-                            </div>
+                        <div className="vv-feature">
+                            <p className="vv-feature-index">02</p>
+                            <div className="vv-feature-stripes"></div>
+                            <h4 className="vv-feature-title">Personalized</h4>
+                            <p className="vv-feature-copy">
+                                Tailored suggestions based on your unique preferences and viewing history.
+                            </p>
                         </div>
-                        <div className="col-md-4">
-                            <div className="feature-card">
-                                <span className="feature-icon">🛡️</span>
-                                <h4 className="feature-title">Complete Control</h4>
-                                <p className="feature-text">Easily add, remove, and prioritize content. Your vault, your rules—managed seamlessly in one central place.</p>
-                            </div>
+                        <div className="vv-feature">
+                            <p className="vv-feature-index">03</p>
+                            <div className="vv-feature-stripes"></div>
+                            <h4 className="vv-feature-title">Your rules</h4>
+                            <p className="vv-feature-copy">
+                                Easily add, remove, and prioritize content. Your vault, your rules.
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
+            {/* Film strip divider */}
+            <div className="vv-filmstrip" aria-hidden="true"></div>
+
             {/* MovieNyte Section */}
-            <section className="section-padding" id="how">
-                <div className="modern-section">
-                    <div className="section-bg shadow-lg">
-                        <div className="row align-items-center">
-                            <div className="col-lg-7">
-                                <span className="badge mb-3 p-2 px-4 rounded-pill fw-bold" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', color: 'var(--primary)', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)' }}>FEATURED TOOL</span>
-                                <h2 className="customh2 text-white mb-4">Meet MovieNyte™</h2>
-                                <p className="introtext text-white opacity-90 mb-4">
-                                    Revolutionize the way your group chooses films. No more endless scrolling or "I don't know, what do you want to watch?".
-                                    MovieNyte analyzes everyone's preferences—genres, ratings, and even origins—to find the perfect match for the whole group.
-                                </p>
-                                <ul className="list-unstyled text-white mb-4">
-                                    <li className="mb-2"><span className="me-2">✅</span> Group preferences synthesis</li>
-                                    <li className="mb-2"><span className="me-2">✅</span> Smart age rating filters</li>
-                                    <li className="mb-2"><span className="me-2">✅</span> One-click recommendations</li>
-                                </ul>
-                            </div>
-                            <div className="col-lg-5 text-center text-lg-end">
-                                <div className="p-4 bg-white bg-opacity-10 rounded-4 backdrop-blur border border-white border-opacity-20 animate-float">
-                                    <h4 className="text-white mb-3">Host a MovieNyte</h4>
-                                    <p className="text-white-50 small mb-4">Combine 2-10 profiles instantly</p>
-                                    <a href="/movienyte" className="btn btn-light w-100 rounded-pill fw-bold py-2 shadow-sm">Try it now</a>
-                                </div>
-                            </div>
+            <section className="vv-section" id="how">
+                <div className="vv-container">
+                    <div className="vv-cta-card">
+                        <div>
+                            <p className="vv-cta-label">Featured tool</p>
+                            <h2 className="vv-cta-title">MovieNyte&trade;</h2>
+                            <p className="vv-cta-copy">
+                                Revolutionize the way your group chooses films. No more endless scrolling
+                                or "I don't know, what do you want to watch?". MovieNyte analyzes
+                                everyone's preferences to find the perfect match.
+                            </p>
+                            <ul className="vv-cta-list">
+                                <li>Group preferences synthesis</li>
+                                <li>Smart age rating filters</li>
+                                <li>One-click recommendations</li>
+                            </ul>
+                            <a href="/movienyte" className="vv-cta-btn">Try it now</a>
+                        </div>
+                        <div className="vv-cta-reel">
+                            <div className="vv-reel" title="Rolling the reels"></div>
                         </div>
                     </div>
                 </div>
             </section>
+
             <Footer></Footer>
         </div>
     );

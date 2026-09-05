@@ -778,6 +778,12 @@ body {
   --secondary: #6b46c1;
   --accent: #ff69b4;
   
+  /* Cinematic film-roll custom props */
+  --film-black: #0d0f12;
+  --film-edge: 14px;
+  --sprocket: 8px;
+  --sprocket-gap: 22px;
+  
   /* RGB values for rgba usage */
   --primary-rgb: 0, 212, 255;
   --secondary-rgb: 107, 70, 193;
