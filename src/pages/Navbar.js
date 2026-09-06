@@ -113,9 +113,6 @@ const Navbar = () => {
 
                 {/* Desktop nav links */}
                 <nav className="topnav-links d-none d-lg-flex">
-                    <NavLink to="/movies" className={navLinkClass}>Movies</NavLink>
-                    <NavLink to="/tvshows" className={navLinkClass}>TV Shows</NavLink>
-
                     <div className="topnav-dropdown">
                         <button className="topnav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Discover
@@ -127,6 +124,9 @@ const Navbar = () => {
                             <li><NavLink to="/movienyte" className="dropdown-item">MovieNyte&trade;</NavLink></li>
                         </ul>
                     </div>
+
+                    <NavLink to="/movies" className={navLinkClass}>Movies</NavLink>
+                    <NavLink to="/tvshows" className={navLinkClass}>TV Shows</NavLink>
 
                     <div className="topnav-dropdown">
                         <button className="topnav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -176,12 +176,13 @@ const Navbar = () => {
                 {mobileOpen && (
                     <div className="topnav-mobile d-lg-none navbar-bg">
                         <nav className="topnav-mobile-links">
-                            <NavLink to="/movies" className={navLinkClass} onClick={handleNavClick}>🎬 Movies</NavLink>
-                            <NavLink to="/tvshows" className={navLinkClass} onClick={handleNavClick}>📺 TV Shows</NavLink>
+                            <div className="topnav-mobile-sep">Discover</div>
                             <NavLink to="/searchmovie" className={navLinkClass} onClick={handleNavClick}>Search Movies</NavLink>
                             <NavLink to="/searchtv" className={navLinkClass} onClick={handleNavClick}>Search TV</NavLink>
                             <NavLink to="/movienyte" className={navLinkClass} onClick={handleNavClick}>MovieNyte&trade;</NavLink>
-                            <div className="topnav-mobile-sep">Custom Vaults</div>
+                            <div className="topnav-mobile-sep">Vaults</div>
+                            <NavLink to="/movies" className={navLinkClass} onClick={handleNavClick}>🎬 Movies</NavLink>
+                            <NavLink to="/tvshows" className={navLinkClass} onClick={handleNavClick}>📺 TV Shows</NavLink>
                             {customVaults.length > 0 ? (
                                 customVaults.map(vault => (
                                     <NavLink
