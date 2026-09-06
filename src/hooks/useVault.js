@@ -55,6 +55,8 @@ const useVault = (type, listId) => {
                 // Only use defaultwatchlists as per request
                 const path = `users/${currentUid}/defaultwatchlists/${defaultSegment}`;
 
+                setListName(defaultSegment === 'movies' ? "Movie Vault" : "TV Show Vault");
+
                 const snap = await get(ref(db, path));
                 if (snap.exists()) {
                     resolvedBase = path;

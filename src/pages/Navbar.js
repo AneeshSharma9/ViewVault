@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { auth, db, signInWithGooglePopup } from "../utils/firebase";
 import { signOut } from "firebase/auth";
 import { useTheme } from "../context/ThemeContext";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import useUserVaults from "../hooks/useUserVaults";
 import { ref, push } from "firebase/database";
 
@@ -15,6 +15,7 @@ const Navbar = () => {
     const [newListName, setNewListName] = useState("");
     const [newListType, setNewListType] = useState("movies");
     const { customVaults } = useUserVaults();
+    const location = useLocation();
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -60,6 +61,24 @@ const Navbar = () => {
     };
 
     const navLinkClass = ({ isActive }) => `topnav-link${isActive ? ' active' : ''}`;
+
+    const defaultVaultLinkClass = (targetType) => ({ isActive }) => {
+        const listId = new URLSearchParams(location.search).get('list');
+        const isActiveTarget = isActive && !listId && location.pathname === `/${targetType}`;
+        return `topnav-link${isActiveTarget ? ' active' : ''}`;
+    };
+
+    const customVaultLinkClass = (vault) => ({ isActive }) => {
+        const listId = new URLSearchParams(location.search).get('list');
+        const isActiveTarget = isActive && listId === vault.id && location.pathname === `/${vault.type === 'movies' ? 'movies' : 'tvshows'}`;
+        return `topnav-link${isActiveTarget ? ' active' : ''}`;
+    };
+
+    const customVaultDropdownClass = (vault) => ({ isActive }) => {
+        const listId = new URLSearchParams(location.search).get('list');
+        const isActiveTarget = isActive && listId === vault.id && location.pathname === `/${vault.type === 'movies' ? 'movies' : 'tvshows'}`;
+        return `dropdown-item${isActiveTarget ? ' active' : ''}`;
+    };
 
     const brandImgFilter = isDarkMode ? 'none' : 'invert(1)';
 
@@ -125,8 +144,8 @@ const Navbar = () => {
                         </ul>
                     </div>
 
-                    <NavLink to="/movies" className={navLinkClass}>Movies</NavLink>
-                    <NavLink to="/tvshows" className={navLinkClass}>TV Shows</NavLink>
+                    <NavLink to="/movies" className={defaultVaultLinkClass('movies')}>Movies</NavLink>
+                    <NavLink to="/tvshows" className={defaultVaultLinkClass('tvshows')}>TV Shows</NavLink>
 
                     <div className="topnav-dropdown">
                         <button className="topnav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -138,7 +157,7 @@ const Navbar = () => {
                                     <li key={vault.id}>
                                         <NavLink
                                             to={`/${vault.type === 'movies' ? 'movies' : 'tvshows'}?list=${vault.id}`}
-                                            className={({ isActive }) => `dropdown-item${isActive ? ' active' : ''}`}
+                                            className={customVaultDropdownClass(vault)}
                                         >
                                             {getTypeIcon(vault.type)} {vault.name}
                                         </NavLink>
@@ -181,14 +200,14 @@ const Navbar = () => {
                             <NavLink to="/searchtv" className={navLinkClass} onClick={handleNavClick}>Search TV</NavLink>
                             <NavLink to="/movienyte" className={navLinkClass} onClick={handleNavClick}>MovieNyte&trade;</NavLink>
                             <div className="topnav-mobile-sep">Vaults</div>
-                            <NavLink to="/movies" className={navLinkClass} onClick={handleNavClick}>🎬 Movies</NavLink>
-                            <NavLink to="/tvshows" className={navLinkClass} onClick={handleNavClick}>📺 TV Shows</NavLink>
+                            <NavLink to="/movies" className={defaultVaultLinkClass('movies')} onClick={handleNavClick}>🎬 Movies</NavLink>
+                            <NavLink to="/tvshows" className={defaultVaultLinkClass('tvshows')} onClick={handleNavClick}>📺 TV Shows</NavLink>
                             {customVaults.length > 0 ? (
                                 customVaults.map(vault => (
                                     <NavLink
                                         key={vault.id}
                                         to={`/${vault.type === 'movies' ? 'movies' : 'tvshows'}?list=${vault.id}`}
-                                        className={navLinkClass}
+                                        className={customVaultLinkClass(vault)}
                                         onClick={handleNavClick}
                                     >
                                         {getTypeIcon(vault.type)} {vault.name}
