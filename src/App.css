@@ -783,6 +783,8 @@ body {
   --film-edge: 14px;
   --sprocket: 8px;
   --sprocket-gap: 22px;
+  /* Divider band contrast slot: near-white in light, dark in dark mode */
+  --strip-contrast: #ffffff;
   
   /* RGB values for rgba usage */
   --primary-rgb: 0, 212, 255;
@@ -858,6 +860,7 @@ body {
     --primary: #00d4ff;
     --secondary: #6b46c1;
     --accent: #ff69b4;
+    --strip-contrast: #0a0c10;
   }
 }
 
@@ -870,6 +873,7 @@ body {
   --primary: #00d4ff;
   --secondary: #6b46c1;
   --accent: #ff69b4;
+  --strip-contrast: #0a0c10;
 }
 
 body {

@@ -170,44 +170,45 @@ const Navbar = () => {
                     </button>
                     {renderAuthButton()}
                 </div>
-            </nav>
 
-            {/* Mobile collapse menu */}
-            {mobileOpen && (
-                <div className="topnav-mobile d-lg-none navbar-bg">
-                    <nav className="topnav-mobile-links">
-                        <NavLink to="/movies" className={navLinkClass} onClick={handleNavClick}>🎬 Movies</NavLink>
-                        <NavLink to="/tvshows" className={navLinkClass} onClick={handleNavClick}>📺 TV Shows</NavLink>
-                        <NavLink to="/searchmovie" className={navLinkClass} onClick={handleNavClick}>Search Movies</NavLink>
-                        <NavLink to="/searchtv" className={navLinkClass} onClick={handleNavClick}>Search TV</NavLink>
-                        <NavLink to="/movienyte" className={navLinkClass} onClick={handleNavClick}>MovieNyte&trade;</NavLink>
-                        <div className="topnav-mobile-sep">Custom Vaults</div>
-                        {customVaults.length > 0 ? (
-                            customVaults.map(vault => (
-                                <NavLink
-                                    key={vault.id}
-                                    to={`/${vault.type === 'movies' ? 'movies' : 'tvshows'}?list=${vault.id}`}
-                                    className={navLinkClass}
-                                    onClick={handleNavClick}
-                                >
-                                    {getTypeIcon(vault.type)} {vault.name}
-                                </NavLink>
-                            ))
-                        ) : (
-                            <div className="topnav-mobile-empty">
-                                {uid ? 'No custom vaults yet' : 'Log in to see your vaults'}
-                            </div>
-                        )}
-                        <button
-                            className="topnav-create w-100 justify-content-center mt-2"
-                            onClick={() => { setShowCreateModal(true); setMobileOpen(false); }}
-                            disabled={!uid}
-                        >
-                            + New Vault
-                        </button>
-                    </nav>
-                </div>
-            )}
+                {/* Mobile collapse menu — rendered inside the sticky nav so it
+                    stays pinned below the bar when the page is scrolled */}
+                {mobileOpen && (
+                    <div className="topnav-mobile d-lg-none navbar-bg">
+                        <nav className="topnav-mobile-links">
+                            <NavLink to="/movies" className={navLinkClass} onClick={handleNavClick}>🎬 Movies</NavLink>
+                            <NavLink to="/tvshows" className={navLinkClass} onClick={handleNavClick}>📺 TV Shows</NavLink>
+                            <NavLink to="/searchmovie" className={navLinkClass} onClick={handleNavClick}>Search Movies</NavLink>
+                            <NavLink to="/searchtv" className={navLinkClass} onClick={handleNavClick}>Search TV</NavLink>
+                            <NavLink to="/movienyte" className={navLinkClass} onClick={handleNavClick}>MovieNyte&trade;</NavLink>
+                            <div className="topnav-mobile-sep">Custom Vaults</div>
+                            {customVaults.length > 0 ? (
+                                customVaults.map(vault => (
+                                    <NavLink
+                                        key={vault.id}
+                                        to={`/${vault.type === 'movies' ? 'movies' : 'tvshows'}?list=${vault.id}`}
+                                        className={navLinkClass}
+                                        onClick={handleNavClick}
+                                    >
+                                        {getTypeIcon(vault.type)} {vault.name}
+                                    </NavLink>
+                                ))
+                            ) : (
+                                <div className="topnav-mobile-empty">
+                                    {uid ? 'No custom vaults yet' : 'Log in to see your vaults'}
+                                </div>
+                            )}
+                            <button
+                                className="topnav-create w-100 justify-content-center mt-2"
+                                onClick={() => { setShowCreateModal(true); setMobileOpen(false); }}
+                                disabled={!uid}
+                            >
+                                + New Vault
+                            </button>
+                        </nav>
+                    </div>
+                )}
+            </nav>
 
             {/* Create Vault Modal */}
             {showCreateModal && (
