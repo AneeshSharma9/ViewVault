@@ -731,15 +731,15 @@ body::after {
 
 .topnav-dropdown .dropdown-menu {
   min-width: 210px;
-  background-color: #111318;
-  border: 2px solid rgba(var(--secondary-rgb), 0.5);
+  background-color: #111318 !important;
+  border: 2px solid rgba(var(--secondary-rgb), 0.5) !important;
   border-radius: 10px;
   box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
   padding: 0.4rem;
 }
 
 .topnav-dropdown .dropdown-item {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.85) !important;
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
   font-family: "Space Grotesk", sans-serif;
@@ -747,13 +747,13 @@ body::after {
 }
 
 .topnav-dropdown .dropdown-item:hover {
-  background: rgba(var(--secondary-rgb), 0.25);
-  color: #fff;
+  background: rgba(var(--secondary-rgb), 0.25) !important;
+  color: #fff !important;
 }
 
 .topnav-dropdown .dropdown-item.active {
-  background: var(--secondary);
-  color: #fff;
+  background: var(--secondary) !important;
+  color: #fff !important;
 }
 
 .topnav-dropdown .dropdown-divider {
@@ -902,6 +902,285 @@ body::after {
     transparent 20px 34px
   );
   opacity: 0.6;
+}
+
+/* ============================================
+   LIGHT MODE — film-roll on paper
+   Only applies when dark mode is OFF; dark mode
+   rules above are left completely untouched.
+   ============================================ */
+html:not(.dark-mode) body {
+  background-color: var(--background);
+  color: var(--text);
+}
+
+/* ---------- Search bar ---------- */
+html:not(.dark-mode) .search-wrapper-premium {
+  background: #ffffff;
+  border: 3px solid var(--text);
+  box-shadow: 6px 6px 0 rgba(var(--secondary-rgb), 0.16);
+}
+
+html:not(.dark-mode) .search-wrapper-premium:focus-within {
+  box-shadow: 9px 9px 0 rgba(var(--secondary-rgb), 0.24);
+}
+
+html:not(.dark-mode) .search-input-premium {
+  color: var(--text) !important;
+}
+
+html:not(.dark-mode) .search-input-premium::placeholder {
+  color: rgba(26, 26, 26, 0.45);
+}
+
+/* ---------- Film-strip card ---------- */
+html:not(.dark-mode) .media-card-premium {
+  background: #ffffff !important;
+  color: var(--text);
+  border: 2px solid rgba(var(--secondary-rgb), 0.45) !important;
+  box-shadow: 6px 6px 0 rgba(var(--secondary-rgb), 0.16);
+}
+
+html:not(.dark-mode) .media-card-premium:hover {
+  box-shadow: 9px 9px 0 rgba(var(--secondary-rgb), 0.28);
+}
+
+html:not(.dark-mode) .media-card-premium::before,
+html:not(.dark-mode) .media-card-premium::after {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--background) 0 var(--sprocket, 8px),
+    transparent var(--sprocket, 8px) calc(var(--sprocket-gap, 22px))
+  );
+}
+
+html:not(.dark-mode) .media-poster {
+  border: 2px solid rgba(var(--secondary-rgb), 0.35);
+}
+
+html:not(.dark-mode) .media-title {
+  color: var(--text);
+}
+
+html:not(.dark-mode) .media-card-premium .text-muted {
+  color: rgba(26, 26, 26, 0.55) !important;
+}
+
+/* ---------- Grid cards ---------- */
+html:not(.dark-mode) .grid-card-premium {
+  background: #ffffff !important;
+  color: var(--text) !important;
+  border: 3px solid var(--text) !important;
+  box-shadow: 6px 6px 0 rgba(var(--secondary-rgb), 0.16) !important;
+}
+
+html:not(.dark-mode) .grid-card-premium:hover {
+  box-shadow: 9px 9px 0 rgba(var(--secondary-rgb), 0.28) !important;
+}
+
+html:not(.dark-mode) .grid-body {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 0 18px,
+    transparent 18px 36px
+  ) !important;
+}
+
+html:not(.dark-mode) .grid-card-title {
+  color: var(--text) !important;
+}
+
+html:not(.dark-mode) .grid-card-premium .text-muted {
+  color: rgba(26, 26, 26, 0.55) !important;
+}
+
+/* ---------- MovieNyte cards & action bar ---------- */
+html:not(.dark-mode) .mn-profile-card {
+  background: #ffffff !important;
+  color: var(--text) !important;
+  border: 3px solid var(--text) !important;
+  box-shadow: 6px 6px 0 rgba(var(--secondary-rgb), 0.16) !important;
+}
+
+html:not(.dark-mode) .mn-profile-card:hover {
+  box-shadow: 9px 9px 0 rgba(var(--secondary-rgb), 0.28) !important;
+}
+
+html:not(.dark-mode) .mn-profile-name {
+  color: var(--text) !important;
+}
+
+html:not(.dark-mode) .mn-pref-label {
+  color: rgba(26, 26, 26, 0.5) !important;
+}
+
+html:not(.dark-mode) .mn-pill {
+  background: rgba(var(--secondary-rgb), 0.08) !important;
+  color: var(--secondary) !important;
+}
+
+html:not(.dark-mode) .mn-action-bar-premium {
+  background: #ffffff;
+  color: var(--text) !important;
+  border: 3px solid var(--text) !important;
+  box-shadow: 6px 6px 0 rgba(var(--secondary-rgb), 0.16) !important;
+}
+
+/* ---------- Empty state ---------- */
+html:not(.dark-mode) .mn-empty-state {
+  background: #ffffff;
+  color: var(--text);
+}
+
+html:not(.dark-mode) .mn-empty-state h2 {
+  color: var(--text) !important;
+}
+
+html:not(.dark-mode) .mn-empty-state .text-muted {
+  color: rgba(26, 26, 26, 0.55) !important;
+}
+
+/* ---------- Forms & filters ---------- */
+html:not(.dark-mode) .form-control,
+html:not(.dark-mode) .form-select {
+  background-color: #ffffff !important;
+  color: var(--text) !important;
+}
+
+html:not(.dark-mode) .form-select option {
+  background: #ffffff;
+  color: var(--text);
+}
+
+html:not(.dark-mode) .watched-toggle {
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+html:not(.dark-mode) .remove-btn {
+  background: rgba(var(--secondary-rgb), 0.1);
+  color: var(--text);
+}
+
+/* ---------- Modals ---------- */
+html:not(.dark-mode) .modal-content {
+  background-color: #ffffff !important;
+  color: var(--text) !important;
+  border: 3px solid var(--text) !important;
+  box-shadow: 8px 8px 0 rgba(var(--secondary-rgb), 0.18);
+}
+
+html:not(.dark-mode) .modal-title {
+  color: var(--text);
+}
+
+html:not(.dark-mode) .modal-content .text-muted {
+  color: rgba(26, 26, 26, 0.55) !important;
+}
+
+html:not(.dark-mode) .modal-content .form-label {
+  color: var(--text);
+}
+
+html:not(.dark-mode) .modal-content .form-control {
+  background-color: #f3f3f3 !important;
+  color: var(--text) !important;
+}
+
+/* ---------- Small controls ---------- */
+html:not(.dark-mode) .scroll-btn {
+  background: #ffffff;
+  color: var(--secondary);
+}
+
+html:not(.dark-mode) .scroll-btn:hover {
+  background: var(--secondary);
+  color: #fff;
+}
+
+/* ---------- Navbar / topnav ---------- */
+html:not(.dark-mode) .navbar-bg {
+  background-color: #ffffff !important;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.12);
+}
+
+html:not(.dark-mode) .topnav-brand {
+  color: var(--text);
+}
+
+html:not(.dark-mode) .topnav-brand:hover {
+  color: var(--secondary);
+}
+
+html:not(.dark-mode) .topnav-hamburger {
+  color: var(--text);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+html:not(.dark-mode) .topnav-link {
+  color: rgba(26, 26, 26, 0.75);
+}
+
+html:not(.dark-mode) .topnav-link:hover {
+  background: rgba(var(--secondary-rgb), 0.12);
+  color: var(--text);
+}
+
+html:not(.dark-mode) .topnav-link.active {
+  background: var(--secondary);
+  color: #fff;
+}
+
+html:not(.dark-mode) .topnav-dropdown .dropdown-menu {
+  background-color: #ffffff !important;
+  border: 2px solid rgba(var(--secondary-rgb), 0.5) !important;
+  box-shadow: 5px 5px 0 rgba(var(--secondary-rgb), 0.2) !important;
+}
+
+html:not(.dark-mode) .topnav-dropdown .dropdown-item {
+  color: rgba(26, 26, 26, 0.85) !important;
+}
+
+html:not(.dark-mode) .topnav-dropdown .dropdown-item:hover {
+  background: rgba(var(--secondary-rgb), 0.12) !important;
+  color: var(--text) !important;
+}
+
+html:not(.dark-mode) .topnav-dropdown .dropdown-item.active {
+  background: var(--secondary) !important;
+  color: #fff !important;
+}
+
+html:not(.dark-mode) .topnav-dropdown .dropdown-divider {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark-mode) .topnav-create {
+  border-color: var(--text);
+}
+
+html:not(.dark-mode) .topnav-icon {
+  color: var(--text);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+html:not(.dark-mode) .topnav-icon:hover {
+  border-color: var(--secondary);
+  background: rgba(var(--secondary-rgb), 0.12);
+}
+
+/* ---------- Mobile menu ---------- */
+html:not(.dark-mode) .topnav-mobile {
+  background-color: #ffffff;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.12);
+}
+
+html:not(.dark-mode) .topnav-mobile-sep {
+  color: rgba(26, 26, 26, 0.5);
+}
+
+html:not(.dark-mode) .topnav-mobile-empty {
+  color: rgba(26, 26, 26, 0.5);
 }
 
 /* ============================================
