@@ -260,11 +260,11 @@ const Movies = () => {
                             streamingFilter={streamingFilter}
                             selectedProviders={selectedProviders}
                             onSelectAllStreaming={() => {
-                                if (streamingFilter.length === selectedProviders.length) setStreamingFilter([]);
+                                if (streamingFilter.length === selectedProviders.length && selectedProviders.length > 0) setStreamingFilter([]);
                                 else setStreamingFilter(selectedProviders);
                             }}
                             onStreamingFilterToggle={(p) => setStreamingFilter(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
-                            streamingFilterButtonText={streamingFilter.length === 0 ? "All" : streamingFilter.length === 1 ? streamingFilter[0] : `${streamingFilter.length} Selected`}
+                            streamingFilterButtonText={streamingFilter.length === 0 || streamingFilter.length === selectedProviders.length ? "All" : streamingFilter.length === 1 ? streamingFilter[0] : `${streamingFilter.length} Selected`}
                             onImport={() => { setShowImportModal(true); setImportText(""); setImportStatus(""); }}
                             onExport={exportVault}
                             onEditProviders={() => setShowStreamingModal(true)}

@@ -26,6 +26,7 @@ const MediaFilters = ({
     onSearchChange
 }) => {
     return (
+        <>
         <div className="mb-3 d-flex flex-column flex-md-row justify-content-between gap-3 fade-in">
             <div className="d-flex gap-2 flex-wrap flex-grow-1">
                 {/* Search Input */}
@@ -57,17 +58,17 @@ const MediaFilters = ({
                 </div>
 
                 {/* Streaming Filter Dropdown */}
-                <div className="dropdown flex-fill">
+                <div className="dropdown flex-fill" data-bs-auto-close="outside">
                     <button className="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {streamingFilterButtonText}
                     </button>
                     <ul className="dropdown-menu shadow-lg" style={{ minWidth: '220px', maxHeight: '350px', overflowY: 'auto', borderRadius: '0.8rem' }}>
-                        <li>
-                            <label className="dropdown-item py-2" style={{ cursor: 'pointer' }}>
+                        <li onClick={(e) => e.stopPropagation()}>
+                            <label className="dropdown-item py-2" style={{ cursor: 'pointer' }} onClick={(e) => e.stopPropagation()}>
                                 <input
                                     type="checkbox"
                                     className="form-check-input me-3"
-                                    checked={streamingFilter.length === 0 || (streamingFilter.length === selectedProviders.length && selectedProviders.length > 0)}
+                                    checked={streamingFilter.length === 0 || (selectedProviders.length > 0 && streamingFilter.length === selectedProviders.length)}
                                     onChange={onSelectAllStreaming}
                                     onClick={(e) => e.stopPropagation()}
                                 />
@@ -77,12 +78,12 @@ const MediaFilters = ({
                         {selectedProviders.length > 0 && <li><hr className="dropdown-divider opacity-10" /></li>}
                         {selectedProviders.length > 0 ? (
                             selectedProviders.map((provider) => (
-                                <li key={provider}>
-                                    <label className="dropdown-item py-2" style={{ cursor: 'pointer' }}>
+                                <li key={provider} onClick={(e) => e.stopPropagation()}>
+                                    <label className="dropdown-item py-2" style={{ cursor: 'pointer' }} onClick={(e) => e.stopPropagation()}>
                                         <input
                                             type="checkbox"
                                             className="form-check-input me-3"
-                                            checked={streamingFilter.includes(provider)}
+                                            checked={streamingFilter.length === 0 ? false : streamingFilter.includes(provider)}
                                             onChange={() => onStreamingFilterToggle(provider)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
@@ -112,7 +113,7 @@ const MediaFilters = ({
                             <button className="dropdown-item py-2" onClick={onRefresh} disabled={isRefreshing || !anyItems}>
                                 <div className="d-flex align-items-center">
                                     {isRefreshing && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>}
-                                    {isRefreshing ? refreshStatus : "Refresh Vault"}
+                                    {isRefreshing ? "Refreshing..." : "Refresh Vault"}
                                 </div>
                             </button>
                         </li>
@@ -127,6 +128,31 @@ const MediaFilters = ({
                 </div>
             </div>
         </div>
+            {isRefreshing && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="d-flex align-items-center gap-2 px-4 py-2 shadow-lg rounded-pill fade-in"
+                    style={{
+                        position: 'fixed',
+                        bottom: '24px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 1050,
+                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        color: '#fff',
+                        maxWidth: '90vw',
+                        backdropFilter: 'blur(10px)',
+                        pointerEvents: 'none',
+                    }}
+                >
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span className="text-truncate" style={{ maxWidth: '70vw' }}>
+                        {refreshStatus || "Refreshing..."}
+                    </span>
+                </div>
+            )}
+        </>
     );
 };
 
