@@ -50,10 +50,6 @@
   will-change: transform;
 }
 
-.vv-ticker:hover .vv-ticker-track {
-  animation-play-state: paused;
-}
-
 .vv-ticker-item {
   display: flex;
   align-items: center;

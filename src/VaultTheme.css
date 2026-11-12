@@ -216,7 +216,9 @@ h1, h2, h3, h4, h5, .display-1, button {
 .grid-card-premium {
   background: var(--film-black, #0d0f12) !important;
   border-radius: 12px;
-  overflow: hidden;
+  /* overflow visible (not hidden) so the "+ Add to Vault" dropdown menu
+     can render below the card on mobile instead of being clipped */
+  overflow: visible;
   height: 100%;
   border: 3px solid var(--text) !important;
   box-shadow: 6px 6px 0 rgba(var(--secondary-rgb), 0.2) !important;

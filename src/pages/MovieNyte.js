@@ -581,7 +581,7 @@ const MovieNyte = () => {
             </div>
 
             <div className="container pb-5 px-5">
-                <div className="modern-section">
+                <div>
                     <div className="p-0">
 
                         <div className="mn-profile-grid animate-fade-in">
@@ -723,7 +723,7 @@ const MovieNyte = () => {
 
                                 {(filteredMovies.length > 0 || isSearching) && (
                                     <div className="mt-5 animate-slide-up">
-                                        <div className="d-flex align-items-center justify-content-between mb-4 px-2">
+                                        <div className="d-flex flex-wrap align-items-center justify-content-between mb-4 px-2 gap-2">
                                             <h3 className="mn-profile-name fs-2">Recommended for Your Group</h3>
                                             <span className="badge bg-primary rounded-pill px-3 py-2 fs-6 shadow-sm">{filteredMovies.length} Matching Results</span>
                                         </div>

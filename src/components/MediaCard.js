@@ -90,7 +90,7 @@ const MediaCard = ({
             {/* Poster Column */}
             <div className="media-poster-wrapper">
                 {posterUrl ? (
-                    <div ref={dropdownRef} className="btn-group dropend w-100 h-100">
+                    <div ref={dropdownRef} className="btn-group w-100 h-100">
                         <button
                             type="button"
                             className="btn p-0 border-0 w-100 h-100 position-relative"
