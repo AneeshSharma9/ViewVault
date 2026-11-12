@@ -229,6 +229,29 @@ h1, h2, h3, h4, h5, .display-1, button {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Raise the card above following cards while the Add to Vault dropdown is open.
+   Bootstrap 5 adds .show to the .dropdown-menu and aria-expanded to the toggle;
+   the .dropdown wrapper itself never gets .show.
+   The .animate-slide-up columns keep a transform (fill: forwards), which makes
+   each column its own stacking context — so the column must be raised, not
+   just the card inside it. */
+.row > [class*="col-"]:has(.dropdown-menu.show),
+.row > [class*="col-"]:has([aria-expanded="true"]) {
+  position: relative;
+  z-index: 1050;
+}
+
+.grid-card-premium:has(.dropdown-menu.show),
+.grid-card-premium:has([aria-expanded="true"]) {
+  z-index: 1050 !important;
+  position: relative;
+}
+
+.grid-card-premium .dropdown-menu.show {
+  z-index: 1051 !important;
+  position: absolute;
+}
+
 .grid-card-premium:hover {
   transform: translate(-4px, -6px) rotate(-0.5deg);
   box-shadow: 9px 9px 0 rgba(var(--secondary-rgb), 0.35);

@@ -75,7 +75,7 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                 <div className="mt-4 pt-3 border-top border-light flex-shrink-0">
                                     {addedMovies && addedMovies[movie.id] ? (
                                         <button className="btn btn-premium btn-premium-outline w-100 py-2" type="button" disabled style={{ opacity: 0.7 }}>
-                                            ✓ In Vault
+                                            ✓ {addedMovies[movie.id].watched ? "Watched" : "In Vault"}
                                         </button>
                                     ) : (
                                         <div className="dropdown">
