@@ -23,10 +23,17 @@ const MovieNyte = () => {
     const [recommendedMovies, setRecommendedMovies] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchMessage, setSearchMessage] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
-    const [searchParams, setSearchParams] = useState(null); // Store params for load more
+    const PAGE_SIZE = 30; // Movies shown per results page
+    const POOL_TARGET = 200; // Keep querying TMDB on search until this many recommendations survive the filters (or none are left)
+    const POOL_ROUND_SIZE = 4; // Top-rated pages fetched per round during initial search
+    const TOP_PAGES_PER_LOAD = 4; // extra top-rated pages fetched per "Load More"
+    const FRESH_PAGES_PER_LOAD = 1; // extra fresh pages fetched per "Load More"
+    const MAX_DISCOVER_PAGE = 60; // safety cap on TMDB discover paging
+    const [resultsPage, setResultsPage] = useState(1);
+    const [discoverParams, setDiscoverParams] = useState(null); // Params of the current search, so the pool can be deepened on demand
+    const [poolPages, setPoolPages] = useState({ top: 0, fresh: 0 }); // Discover pages fetched so far, per pool
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [poolExhausted, setPoolExhausted] = useState(false);
     const [movieRatings, setMovieRatings] = useState({}); // Store age ratings by movie ID
     const [filteredMovies, setFilteredMovies] = useState([]); // Movies filtered by selected ratings
     const [excludeAnimated, setExcludeAnimated] = useState(true); // Toggle to exclude animated movies
@@ -257,116 +264,142 @@ const MovieNyte = () => {
         }
     }, [currentPerson, people]);
 
-    // Fetch age ratings for recommended movies and filter by selected ratings
-    useEffect(() => {
-        const fetchRatings = async () => {
-            // Get movies that don't have ratings yet
-            const moviesToFetch = recommendedMovies.filter(m => !movieRatings[m.id]);
-            if (moviesToFetch.length === 0) {
-                // If no new movies to fetch, just filter existing ones
-                filterMoviesByRatings(recommendedMovies, movieRatings);
-                return;
-            }
-
-            const newRatings = { ...movieRatings };
-
-            // Fetch ratings in parallel (batch of 5 at a time to avoid rate limiting)
-            for (let i = 0; i < moviesToFetch.length; i += 5) {
-                const batch = moviesToFetch.slice(i, i + 5);
-                const promises = batch.map(async (movie) => {
-                    try {
-                        const response = await axios.get(
-                            `https://api.themoviedb.org/3/movie/${movie.id}/release_dates`,
-                            { params: { api_key: process.env.REACT_APP_API_KEY } }
-                        );
-                        const usRelease = response.data.results.find(r => r.iso_3166_1 === 'US');
-                        if (usRelease) {
-                            const certification = usRelease.release_dates.find(rd => rd.certification)?.certification;
-                            return { id: movie.id, rating: certification || 'NR' };
-                        }
-                        return { id: movie.id, rating: 'NR' };
-                    } catch {
-                        return { id: movie.id, rating: 'NR' };
-                    }
-                });
-
-                const results = await Promise.all(promises);
-                results.forEach(r => { newRatings[r.id] = r.rating; });
-            }
-
-            setMovieRatings(newRatings);
-            // Filter movies after ratings are updated
-            filterMoviesByRatings(recommendedMovies, newRatings);
-        };
-
-        const filterMoviesByRatings = (movies, ratings) => {
-            // Filter to only enabled profiles
-            const enabledPeople = people.filter(p => p.enabled !== false);
-
-            // Get all selected ratings from all enabled people
-            const selectedRatings = [...new Set(enabledPeople.flatMap(p => p.preferences.rating))];
-
-            // Get each enabled person's selected genre IDs
-            const peopleGenreIds = enabledPeople.map(p => {
-                const personGenres = p.preferences.genre || [];
-                return personGenres.map(name => genres.find(g => g.name === name)?.id).filter(Boolean);
-            });
-
-            // Filter movies by ratings and genres
-            const filtered = movies.filter(movie => {
-                // Check rating filter
-                const movieRating = ratings[movie.id];
-                const ratingMatch = selectedRatings.length === 0 || (movieRating && selectedRatings.includes(movieRating));
-
-                if (!ratingMatch) return false;
-
-                // Check if animated movies should be excluded
-                if (excludeAnimated) {
-                    const movieGenreIds = movie.genre_ids || [];
-                    const animationGenreId = 16; // TMDB Animation genre ID
-                    if (movieGenreIds.includes(animationGenreId)) {
-                        return false;
-                    }
-                }
-
-                // Check genre filter - ALL people must have at least one genre matching the movie
-                if (peopleGenreIds.length === 0) return true; // No genre preferences, show all
-
-                const movieGenreIds = movie.genre_ids || [];
-
-                // Check if every person has at least one genre that matches the movie
-                const allPeopleHaveMatchingGenre = peopleGenreIds.every(personGenres => {
-                    // If person has no genres selected, skip them (show all)
-                    if (personGenres.length === 0) return true;
-                    // Check if person has at least one genre that matches movie
-                    return personGenres.some(genreId => movieGenreIds.includes(genreId));
-                });
-
-                return allPeopleHaveMatchingGenre;
-            });
-
-            setFilteredMovies(filtered);
-            if (filtered.length === 0 && movies.length > 0) {
-                setSearchMessage("No movies found matching the selected ratings and genres. Try selecting different preferences!");
-            } else if (filtered.length > 0) {
-                setSearchMessage(`Found ${filtered.length} movies matching your selected preferences!`);
-            } else if (movies.length === 0) {
-                setSearchMessage("No movies found matching everyone's preferences. Try loosening some restrictions!");
-            }
-        };
-
-        if (recommendedMovies.length > 0) {
-            fetchRatings();
+    // Fetch the US age rating (certification) for one movie, batched elsewhere.
+    const fetchUSRating = async (movie) => {
+        try {
+            const response = await axios.get(
+                `https://api.themoviedb.org/3/movie/${movie.id}/release_dates`,
+                { params: { api_key: process.env.REACT_APP_API_KEY } }
+            );
+            const usRelease = response.data.results.find(r => r.iso_3166_1 === 'US');
+            const certification = usRelease?.release_dates.find(rd => rd.certification)?.certification;
+            return { id: movie.id, rating: certification || 'NR' };
+        } catch {
+            return { id: movie.id, rating: 'NR' };
         }
-    }, [recommendedMovies, movieRatings, people, excludeAnimated, genres]); // eslint-disable-line react-hooks/exhaustive-deps
+    };
+
+    // Rank and filter a candidate pool: IMDB-style weighted rating, group
+    // affinity (how much of each member's picks a movie satisfies), a recency
+    // boost, plus the group's rating/genre rules. Pure given (movies, ratings).
+    const computeRecommendations = (movies, ratings) => {
+        const enabledPeople = people.filter(p => p.enabled !== false);
+        const genreIdOf = (name) => genres.find(g => g.name === name)?.id;
+
+        // Group affinity in [0, 1]: fraction of each member's genre picks the
+        // movie satisfies, averaged across members. Members with no genre
+        // picks count as a neutral 0.5.
+        const affinityOf = (movie) => {
+            if (enabledPeople.length === 0) return 1;
+            const movieGenreIds = movie.genre_ids || [];
+            const total = enabledPeople.reduce((sum, p) => {
+                const selected = (p.preferences.genre || []).map(genreIdOf).filter(Boolean);
+                if (selected.length === 0) return sum + 0.5;
+                const matches = selected.filter(id => movieGenreIds.includes(id)).length;
+                return sum + matches / selected.length;
+            }, 0);
+            return total / enabledPeople.length;
+        };
+
+        // IMDB-style weighted rating so low-vote outliers don't top the list.
+        // C = mean vote across the candidate pool, m = prior (min votes).
+        const C = movies.length > 0
+            ? movies.reduce((sum, mv) => sum + (mv.vote_average || 0), 0) / movies.length
+            : 7;
+        const m = 200;
+        const currentYear = new Date().getFullYear();
+
+        const scoreOf = (movie) => {
+            const v = movie.vote_count || 0;
+            const R = movie.vote_average || 0;
+            const weighted = (v * R + m * C) / (v + m); // 0-10
+            const affinity = affinityOf(movie); // 0-1
+            const year = parseInt((movie.release_date || '').substring(0, 4), 10);
+            // Freshness boost: 1 for this year, fading to 0 for 8+ year old titles
+            const recency = isNaN(year) ? 0 : Math.max(0, Math.min(1, (year - (currentYear - 8)) / 8));
+            return weighted * (6 + 4 * affinity) + recency * 3;
+        };
+
+        // Get all selected ratings from all enabled people
+        const selectedRatings = [...new Set(enabledPeople.flatMap(p => p.preferences.rating))];
+
+        // Get each enabled person's selected genre IDs
+        const peopleGenreIds = enabledPeople.map(p => {
+            const personGenres = p.preferences.genre || [];
+            return personGenres.map(name => genres.find(g => g.name === name)?.id).filter(Boolean);
+        });
+
+        // Filter movies by watched status, ratings, animation and genres
+        const filtered = movies.filter(movie => {
+            // Hide movies already marked as watched in any vault
+            if (addedMovies[movie.id]?.watched) return false;
+
+            // Check rating filter
+            const movieRating = ratings[movie.id];
+            const ratingMatch = selectedRatings.length === 0 || (movieRating && selectedRatings.includes(movieRating));
+            if (!ratingMatch) return false;
+
+            // Check if animated movies should be excluded
+            const movieGenreIds = movie.genre_ids || [];
+            if (excludeAnimated && movieGenreIds.includes(16)) { // TMDB Animation genre ID
+                return false;
+            }
+
+            // Check genre filter - ALL people must have at least one genre matching the movie
+            if (peopleGenreIds.length === 0) return true; // No genre preferences, show all
+            return peopleGenreIds.every(personGenres => {
+                // If person has no genres selected, skip them (show all)
+                if (personGenres.length === 0) return true;
+                return personGenres.some(genreId => movieGenreIds.includes(genreId));
+            });
+        }).sort((a, b) => scoreOf(b) - scoreOf(a));
+
+        return filtered;
+    };
+
+    // Fetch any missing US age ratings (batched), then apply the full filter +
+    // ranking once, so the displayed list is stable and correctly ordered.
+    useEffect(() => {
+        if (recommendedMovies.length === 0) {
+            setFilteredMovies([]);
+            return;
+        }
+        let cancelled = false;
+
+        const run = async () => {
+            const ratings = { ...movieRatings };
+            const missing = recommendedMovies.filter(m => !ratings[m.id]);
+
+            for (let i = 0; i < missing.length; i += 20) {
+                const batch = missing.slice(i, i + 20);
+                const results = await Promise.all(batch.map(fetchUSRating));
+                results.forEach(r => { ratings[r.id] = r.rating; });
+            }
+
+            if (cancelled) return;
+            if (missing.length > 0) setMovieRatings(ratings);
+
+            const filtered = computeRecommendations(recommendedMovies, ratings);
+            setFilteredMovies(filtered);
+            if (filtered.length === 0) {
+                setSearchMessage(recommendedMovies.length > 0
+                    ? "No movies found matching the selected ratings and genres (already-watched titles are hidden). Try selecting different preferences!"
+                    : "No movies found matching everyone's preferences (already-watched titles are hidden). Try loosening some restrictions!");
+            } else {
+                setSearchMessage(`Found ${filtered.length} movies — ranked by group match, quality and freshness!`);
+            }
+        };
+
+        run();
+        return () => { cancelled = true; };
+    }, [recommendedMovies, movieRatings, people, excludeAnimated, genres, addedMovies]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const findMovies = async () => {
         setIsSearching(true);
         setSearchMessage("Finding movies for everyone...");
         setRecommendedMovies([]);
         setFilteredMovies([]);
-        setCurrentPage(1);
-        setTotalPages(0);
+        setResultsPage(1);
 
         try {
             setHasTypedSearch(true);
@@ -442,22 +475,84 @@ const MovieNyte = () => {
             if (maxRuntime) params['with_runtime.lte'] = Math.round(maxRuntime);
             if (allCountries.length > 0) params.with_origin_country = allCountries.join('|'); // Using | for OR (any country)
 
-            // Save params for load more
-            setSearchParams(params);
+            // Remember params and pool depth so "Load More Movies" can fetch further pages
+            setDiscoverParams(params);
+            setPoolExhausted(false);
+            setIsLoadingMore(false);
 
-            // 7. Call API
-            const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-                params: { ...params, page: 1 }
-            });
+            // 7. Keep querying until POOL_TARGET recommendations survive the full
+            // pipeline (watched/rating/animation/genre filters) or TMDB has no
+            // more matches for these filters. Each round pulls POOL_ROUND_SIZE
+            // pages of the all-time top-rated matches plus one page of the newest
+            // releases (lower vote floor, since recent movies accumulate votes
+            // slowly). Everything is filtered, ranked and then paginated
+            // client-side, so the ordering never shifts under the user.
+            const discover = (overrides) =>
+                axios.get('https://api.themoviedb.org/3/discover/movie', {
+                    params: { ...params, ...overrides }
+                });
 
-            setTotalPages(response.data.total_pages);
+            const seen = new Set();
+            const allMovies = [];
+            let ratings = { ...movieRatings };
+            let kept = 0; // movies surviving the full filter pipeline
+            let topPage = 1;
+            let freshPage = 1;
+            let addedLastRound = true;
+            let allRequestsFailed = true;
 
-            if (response.data.results.length === 0) {
+            while (kept < POOL_TARGET && addedLastRound && topPage <= MAX_DISCOVER_PAGE) {
+                const requests = [];
+                for (let i = 0; i < POOL_ROUND_SIZE && topPage + i <= MAX_DISCOVER_PAGE; i++) {
+                    requests.push(discover({ page: topPage + i }));
+                }
+                requests.push(discover({ sort_by: 'primary_release_date.desc', 'vote_count.gte': 25, page: freshPage }));
+
+                const responses = await Promise.allSettled(requests);
+                const newOnes = [];
+                for (const res of responses) {
+                    if (res.status !== 'fulfilled') continue;
+                    allRequestsFailed = false;
+                    for (const movie of res.value.data.results || []) {
+                        if (!seen.has(movie.id)) {
+                            seen.add(movie.id);
+                            newOnes.push(movie);
+                        }
+                    }
+                }
+
+                if (newOnes.length > 0) {
+                    // Fetch age ratings for just this batch (needed for the rating filter)
+                    for (let i = 0; i < newOnes.length; i += 20) {
+                        const batch = newOnes.slice(i, i + 20);
+                        const results = await Promise.all(batch.map(fetchUSRating));
+                        results.forEach(r => { ratings[r.id] = r.rating; });
+                    }
+                    kept += computeRecommendations(newOnes, ratings).length;
+                    allMovies.push(...newOnes);
+                }
+
+                addedLastRound = newOnes.length > 0;
+                topPage += POOL_ROUND_SIZE;
+                freshPage += 1;
+                setSearchMessage(`Scanning TMDB… ${Math.min(kept, POOL_TARGET)} group recommendations found so far`);
+                if (allMovies.length >= 800) break; // safety bound on total candidates scanned
+            }
+
+            // Remember how deep the pool went so "Load More Movies" continues from here
+            setPoolPages({ top: topPage - 1, fresh: freshPage - 1 });
+
+            if (allRequestsFailed && allMovies.length === 0) {
+                throw new Error('All discover requests failed');
+            }
+
+            if (allMovies.length === 0) {
                 setSearchMessage("No movies found matching everyone's preferences. Try loosening some restrictions!");
             } else {
                 setSearchMessage("Fetching movie ratings and filtering...");
             }
-            setRecommendedMovies(response.data.results);
+            setMovieRatings(ratings);
+            setRecommendedMovies(allMovies);
         } catch (error) {
             console.error('Error finding movies:', error);
             setSearchMessage("Error finding movies. Please try again.");
@@ -466,19 +561,51 @@ const MovieNyte = () => {
         setIsSearching(false);
     };
 
-    const loadMoreMovies = async () => {
-        if (!searchParams || currentPage >= totalPages) return;
-
+    // Deepen the candidate pool: fetch the next batch of discover pages,
+    // dedupe against what's already loaded, and append. The ratings/filter
+    // effect re-runs automatically, so new matches slot into the ranking.
+    const loadMorePool = async () => {
+        if (!discoverParams || isLoadingMore || poolExhausted) return;
         setIsLoadingMore(true);
-        const nextPage = currentPage + 1;
 
-        try {
-            const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-                params: { ...searchParams, page: nextPage }
+        const topStart = poolPages.top + 1;
+        const freshStart = poolPages.fresh + 1;
+        const discover = (overrides) =>
+            axios.get('https://api.themoviedb.org/3/discover/movie', {
+                params: { ...discoverParams, ...overrides }
             });
 
-            setRecommendedMovies(prev => [...prev, ...response.data.results]);
-            setCurrentPage(nextPage);
+        const requests = [];
+        for (let i = 0; i < TOP_PAGES_PER_LOAD && topStart + i <= MAX_DISCOVER_PAGE; i++) {
+            requests.push(discover({ page: topStart + i }));
+        }
+        for (let i = 0; i < FRESH_PAGES_PER_LOAD && freshStart + i <= MAX_DISCOVER_PAGE; i++) {
+            requests.push(discover({ sort_by: 'primary_release_date.desc', 'vote_count.gte': 25, page: freshStart + i }));
+        }
+
+        try {
+            const responses = await Promise.allSettled(requests);
+            const seen = new Set(recommendedMovies.map(m => m.id));
+            const added = [];
+            for (const res of responses) {
+                if (res.status !== 'fulfilled') continue;
+                for (const movie of res.value.data.results || []) {
+                    if (!seen.has(movie.id)) {
+                        seen.add(movie.id);
+                        added.push(movie);
+                    }
+                }
+            }
+
+            if (added.length === 0) {
+                setPoolExhausted(true);
+            } else {
+                setRecommendedMovies(prev => [...prev, ...added]);
+                setPoolPages({
+                    top: Math.min(poolPages.top + TOP_PAGES_PER_LOAD, MAX_DISCOVER_PAGE),
+                    fresh: Math.min(poolPages.fresh + FRESH_PAGES_PER_LOAD, MAX_DISCOVER_PAGE),
+                });
+            }
         } catch (error) {
             console.error('Error loading more movies:', error);
         }
@@ -569,6 +696,18 @@ const MovieNyte = () => {
         } else {
             console.error('User is not signed in!');
         }
+    };
+
+    // Derived pagination for the ranked results (stable ordering, 30 per page)
+    const totalResultPages = Math.max(1, Math.ceil(filteredMovies.length / PAGE_SIZE));
+    const safeResultsPage = Math.min(resultsPage, totalResultPages);
+    const pagedMovies = filteredMovies.slice((safeResultsPage - 1) * PAGE_SIZE, safeResultsPage * PAGE_SIZE);
+    const showFrom = filteredMovies.length === 0 ? 0 : (safeResultsPage - 1) * PAGE_SIZE + 1;
+    const showTo = Math.min(safeResultsPage * PAGE_SIZE, filteredMovies.length);
+    const goToResultsPage = (page) => {
+        const target = Math.min(Math.max(1, page), totalResultPages);
+        setResultsPage(target);
+        document.getElementById('mn-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     return (
@@ -722,14 +861,15 @@ const MovieNyte = () => {
                                 )}
 
                                 {(filteredMovies.length > 0 || isSearching) && (
-                                    <div className="mt-5 animate-slide-up">
-                                        <div className="d-flex flex-wrap align-items-center justify-content-between mb-4 px-2 gap-2">
+                                    <div className="mt-5 animate-slide-up" id="mn-results">
+                                        <div className="d-flex flex-wrap align-items-center justify-content-between mb-2 px-2 gap-2">
                                             <h3 className="mn-profile-name fs-2">Recommended for Your Group</h3>
                                             <span className="badge bg-primary rounded-pill px-3 py-2 fs-6 shadow-sm">{filteredMovies.length} Matching Results</span>
                                         </div>
+                                        <p className="text-muted small px-2 mb-4">Ranked by group match, quality and freshness · Showing {showFrom}–{showTo} of {filteredMovies.length}</p>
                                         <MovieCardGrid
                                             key={isSearching ? "loading" : "results"}
-                                            movies={filteredMovies}
+                                            movies={pagedMovies}
                                             genres={genres}
                                             movieRatings={movieRatings}
                                             addedMovies={addedMovies}
@@ -738,21 +878,53 @@ const MovieNyte = () => {
                                             loading={isSearching}
                                         />
 
-                                        {currentPage < totalPages && (
-                                            <div className="text-center my-5">
+                                        {!isSearching && filteredMovies.length > 0 && (
+                                            <div className="text-center mt-4">
                                                 <button
                                                     className="btn btn-premium btn-premium-outline px-5 py-3 shadow-sm fw-bold"
-                                                    onClick={loadMoreMovies}
-                                                    disabled={isLoadingMore}
+                                                    onClick={loadMorePool}
+                                                    disabled={isLoadingMore || poolExhausted}
                                                 >
                                                     {isLoadingMore ? (
                                                         <>
                                                             <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                            Exploring More...
+                                                            Fetching More from TMDB...
                                                         </>
-                                                    ) : "View More Group Recommendations"}
+                                                    ) : poolExhausted ? "🎬 That's Every Matching Movie!" : "➕ Load More Movies"}
                                                 </button>
+                                                {!poolExhausted && (
+                                                    <p className="text-muted small mt-2 mb-0">Fetches more candidates from TMDB — new matches slot into the ranking.</p>
+                                                )}
                                             </div>
+                                        )}
+
+                                        {totalResultPages > 1 && (
+                                            <nav className="d-flex flex-wrap justify-content-center align-items-center gap-2 my-5" aria-label="Recommendations pages">
+                                                <button
+                                                    className="btn btn-premium btn-premium-outline px-4 py-2 fw-bold shadow-sm"
+                                                    onClick={() => goToResultsPage(safeResultsPage - 1)}
+                                                    disabled={safeResultsPage === 1}
+                                                >
+                                                    ← Previous
+                                                </button>
+                                                {Array.from({ length: totalResultPages }, (_, i) => i + 1).map(page => (
+                                                    <button
+                                                        key={page}
+                                                        className={`btn px-3 py-2 fw-bold shadow-sm ${page === safeResultsPage ? 'btn-premium btn-premium-primary' : 'btn-premium btn-premium-outline'}`}
+                                                        onClick={() => goToResultsPage(page)}
+                                                        aria-current={page === safeResultsPage ? 'page' : undefined}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    className="btn btn-premium btn-premium-outline px-4 py-2 fw-bold shadow-sm"
+                                                    onClick={() => goToResultsPage(safeResultsPage + 1)}
+                                                    disabled={safeResultsPage === totalResultPages}
+                                                >
+                                                    Next →
+                                                </button>
+                                            </nav>
                                         )}
                                     </div>
                                 )}
