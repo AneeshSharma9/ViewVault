@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { auth, db } from "../utils/firebase";
-import { ref, get, remove, update } from "firebase/database";
+import { ref, get, remove, update, push } from "firebase/database";
 import axios from "axios";
 
 const useVault = (type, listId) => {
@@ -160,6 +160,40 @@ const useVault = (type, listId) => {
         }
     };
 
+    // Move an item to another vault. destinationListId = custom vault id, or
+    // null for the default vault of this type. Returns { ok, reason? }.
+    const handleMove = async (item, destinationListId = null) => {
+        try {
+            const sourcePath = `${getItemsPath(uid)}/${item.id}`;
+            const defaultSegment = type === 'movie' ? 'movies' : 'tvshows';
+            const destPath = destinationListId
+                ? `users/${uid}/customwatchlists/${destinationListId}/items`
+                : `users/${uid}/defaultwatchlists/${defaultSegment}/items`;
+
+            // Read the raw item so we keep the exact stored schema untouched
+            const snap = await get(ref(db, sourcePath));
+            if (!snap.exists()) return { ok: false, reason: 'missing' };
+            const rawItem = snap.val();
+
+            // Duplicate check on the destination (same TMDB id = already there)
+            const destSnap = await get(ref(db, destPath));
+            const destItems = destSnap.exists() ? destSnap.val() : {};
+            const itemTmdbId = rawItem.movieid || rawItem.tvshowid;
+            const alreadyExists = Object.values(destItems).some(dest =>
+                (dest.movieid || dest.tvshowid) && (dest.movieid || dest.tvshowid) === itemTmdbId
+            );
+            if (alreadyExists) return { ok: false, reason: 'exists' };
+
+            await push(ref(db, destPath), rawItem);
+            await remove(ref(db, sourcePath));
+            setItems(prev => prev.filter(i => i.id !== item.id));
+            return { ok: true };
+        } catch (error) {
+            console.error("Error moving item:", error);
+            return { ok: false, reason: 'error' };
+        }
+    };
+
     const handleClear = async () => {
         try {
             await remove(ref(db, getItemsPath(uid)));
@@ -243,6 +277,7 @@ const useVault = (type, listId) => {
         setRefreshStatus,
         handleToggleWatched,
         handleDelete,
+        handleMove,
         handleClear,
         handleSaveProviders,
         handleSaveSites,

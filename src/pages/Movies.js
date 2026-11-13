@@ -12,6 +12,8 @@ import MediaFilters from "../components/MediaFilters";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import ScrollControls from "../components/ScrollControls";
+import MoveToVaultModal from "../components/MoveToVaultModal";
+import useUserVaults from "../hooks/useUserVaults";
 import useVault from "../hooks/useVault";
 import axios from "axios";
 import { db } from "../utils/firebase";
@@ -41,6 +43,7 @@ const Movies = () => {
         setRefreshStatus,
         handleToggleWatched: baseToggleWatched,
         handleDelete,
+        handleMove,
         handleClear,
         handleSaveProviders,
         handleSaveSites,
@@ -63,6 +66,46 @@ const Movies = () => {
     const [movieToRate, setMovieToRate] = useState(null);
     const [showDeleteVaultModal, setShowDeleteVaultModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Move between vaults
+    const { customVaults } = useUserVaults();
+    const [showMoveModal, setShowMoveModal] = useState(false);
+    const [itemToMove, setItemToMove] = useState(null);
+    const [isMoving, setIsMoving] = useState(false);
+    const [moveMessage, setMoveMessage] = useState("");
+
+    // Vaults a movie can move to: default movie vault (unless we're in it) + custom movie vaults
+    const moveDestinations = [
+        ...(listId ? [{ id: null, name: "Movies", icon: "🎬" }] : []),
+        ...customVaults
+            .filter(v => v.type === 'movies' && v.id !== listId)
+            .map(v => ({ id: v.id, name: v.name, icon: '📁' }))
+    ];
+
+    const handleMoveClick = (item) => {
+        setItemToMove(item);
+        setShowMoveModal(true);
+    };
+
+    const handleConfirmMove = async (destId) => {
+        if (!itemToMove) return;
+        setIsMoving(true);
+        const result = await handleMove(itemToMove, destId);
+        setIsMoving(false);
+        setShowMoveModal(false);
+        const destName = destId
+            ? (customVaults.find(v => v.id === destId)?.name || "another vault")
+            : "Movies";
+        if (result.ok) {
+            setMoveMessage(`Moved "${itemToMove.name}" to ${destName}!`);
+        } else if (result.reason === 'exists') {
+            setMoveMessage(`"${itemToMove.name}" is already in ${destName}.`);
+        } else {
+            setMoveMessage("Failed to move movie. Please try again.");
+        }
+        setItemToMove(null);
+        setTimeout(() => setMoveMessage(""), 4000);
+    };
 
     // Filter movies by search query
     const searchFilteredMovies = searchQuery.trim()
@@ -304,6 +347,7 @@ const Movies = () => {
                                     getProviderLogo={getProviderLogo}
                                     handleToggleWatched={handleToggleWatched}
                                     handleDeleteClick={handleDeleteClick}
+                                    handleMoveClick={handleMoveClick}
                                     toComponentB={(m) => navigate('/recommendedmovies', { state: m })}
                                     openWatchSite={(n, s) => window.open(`${s.url}${n.replace(/ /g, s.format)}`, '_blank')}
                                     toImdbParentsGuide={(id) => window.open(`https://www.imdb.com/title/${id}/parentalguide`, '_blank')}
@@ -321,6 +365,14 @@ const Movies = () => {
                     <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
                     <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
                     <RemoveMediaModal show={showDeleteMovieModal} onHide={() => setShowDeleteMovieModal(false)} onConfirm={handleConfirmDeleteMovie} itemName={movieToDelete?.name} type="movie" />
+                    <MoveToVaultModal show={showMoveModal} onHide={() => setShowMoveModal(false)} onConfirm={handleConfirmMove} itemName={itemToMove?.name} type="movie" destinations={moveDestinations} moving={isMoving} />
+
+                    {moveMessage && (
+                        <div className="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 rounded-pill shadow-lg fw-semibold"
+                            style={{ backgroundColor: 'var(--secondary)', color: '#fff', zIndex: 1080, fontSize: '0.9rem' }}>
+                            {moveMessage}
+                        </div>
+                    )}
 
                     {/* Floating Add Button */}
                     <a href="./searchmovie" className="floating-add-btn" data-tooltip="Add Movie">

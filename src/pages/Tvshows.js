@@ -8,10 +8,12 @@ import ImportModal from "../components/ImportModal";
 import ClearVaultModal from "../components/ClearVaultModal";
 import DeleteVaultModal from "../components/DeleteVaultModal";
 import RemoveMediaModal from "../components/RemoveMediaModal";
+import MoveToVaultModal from "../components/MoveToVaultModal";
 import MediaFilters from "../components/MediaFilters";
 import EditWatchSites from "../components/EditWatchSites";
 import EditStreamingServices from "../components/EditStreamingServices";
 import ScrollControls from "../components/ScrollControls";
+import useUserVaults from "../hooks/useUserVaults";
 import useVault from "../hooks/useVault";
 import axios from "axios";
 import { db } from "../utils/firebase";
@@ -41,6 +43,7 @@ const Tvshows = () => {
         setRefreshStatus,
         handleToggleWatched: baseToggleWatched,
         handleDelete,
+        handleMove,
         handleClear,
         handleSaveProviders,
         handleSaveSites,
@@ -63,6 +66,46 @@ const Tvshows = () => {
     const [showToRate, setShowToRate] = useState(null);
     const [showDeleteVaultModal, setShowDeleteVaultModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Move between vaults
+    const { customVaults } = useUserVaults();
+    const [showMoveModal, setShowMoveModal] = useState(false);
+    const [itemToMove, setItemToMove] = useState(null);
+    const [isMoving, setIsMoving] = useState(false);
+    const [moveMessage, setMoveMessage] = useState("");
+
+    // Vaults a show can move to: default TV vault (unless we're in it) + custom TV vaults
+    const moveDestinations = [
+        ...(listId ? [{ id: null, name: "TV Shows", icon: "📺" }] : []),
+        ...customVaults
+            .filter(v => v.type === 'tvshows' && v.id !== listId)
+            .map(v => ({ id: v.id, name: v.name, icon: '📁' }))
+    ];
+
+    const handleMoveClick = (show) => {
+        setItemToMove(show);
+        setShowMoveModal(true);
+    };
+
+    const handleConfirmMove = async (destId) => {
+        if (!itemToMove) return;
+        setIsMoving(true);
+        const result = await handleMove(itemToMove, destId);
+        setIsMoving(false);
+        setShowMoveModal(false);
+        const destName = destId
+            ? (customVaults.find(v => v.id === destId)?.name || "another vault")
+            : "TV Shows";
+        if (result.ok) {
+            setMoveMessage(`Moved "${itemToMove.name}" to ${destName}!`);
+        } else if (result.reason === 'exists') {
+            setMoveMessage(`"${itemToMove.name}" is already in ${destName}.`);
+        } else {
+            setMoveMessage("Failed to move show. Please try again.");
+        }
+        setItemToMove(null);
+        setTimeout(() => setMoveMessage(""), 4000);
+    };
 
     // Filter shows by search query
     const searchFilteredShows = searchQuery.trim()
@@ -298,6 +341,7 @@ const Tvshows = () => {
                                     getProviderLogo={getProviderLogo}
                                     handleToggleWatched={handleToggleWatched}
                                     handleDeleteClick={handleDeleteClick}
+                                    handleMoveClick={handleMoveClick}
                                     toComponentB={(s) => navigate('/recommendedshows', { state: s })}
                                     openWatchSite={(n, s) => window.open(`${s.url}${n.replace(/ /g, s.format)}`, '_blank')}
                                     index={index}
@@ -314,6 +358,14 @@ const Tvshows = () => {
                     <EditStreamingServices show={showStreamingModal} onHide={() => setShowStreamingModal(false)} availableProviders={availableProviders} selectedProviders={selectedProviders} onSave={handleSaveProviders} />
                     <EditWatchSites show={showSitesModal} onHide={() => setShowSitesModal(false)} watchSites={watchSites} onSave={handleSaveSites} />
                     <RemoveMediaModal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} onConfirm={handleConfirmDelete} itemName={showToDelete?.name} type="tv" />
+                    <MoveToVaultModal show={showMoveModal} onHide={() => setShowMoveModal(false)} onConfirm={handleConfirmMove} itemName={itemToMove?.name} type="tv" destinations={moveDestinations} moving={isMoving} />
+
+                    {moveMessage && (
+                        <div className="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 rounded-pill shadow-lg fw-semibold"
+                            style={{ backgroundColor: 'var(--secondary)', color: '#fff', zIndex: 1080, fontSize: '0.9rem' }}>
+                            {moveMessage}
+                        </div>
+                    )}
 
                     {/* Floating Add Button */}
                     <a href="./searchtv" className="floating-add-btn" data-tooltip="Add TV Show">
