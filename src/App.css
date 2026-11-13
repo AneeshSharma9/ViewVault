@@ -1980,7 +1980,7 @@ input:focus {
   line-height: 1;
   padding-bottom: 3px;
   cursor: pointer;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 22px rgba(0, 0, 0, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
   text-decoration: none;
@@ -1990,7 +1990,7 @@ input:focus {
   transform: translateY(-5px) scale(1.1);
   background: var(--accent);
   color: white;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.4);
 }
 
 .floating-add-btn:active {
@@ -1999,12 +1999,12 @@ input:focus {
 
 .dark-mode .floating-add-btn {
   background: var(--primary);
-  box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.35);
 }
 
 .dark-mode .floating-add-btn:hover {
   background: var(--accent);
-  box-shadow: 0 15px 35px rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.45);
 }
 
 /* Tooltip for floating button */

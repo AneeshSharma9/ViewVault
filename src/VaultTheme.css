@@ -571,7 +571,7 @@ h1, h2, h3, h4, h5, .display-1, button {
   font-weight: 800;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 1000;
   text-decoration: none;
@@ -582,6 +582,8 @@ h1, h2, h3, h4, h5, .display-1, button {
   transform: rotate(90deg) scale(1.05);
   background: var(--accent);
   color: white;
+  /* Omni-directional glow so it wraps the whole button and doesn't orbit when the button rotates */
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.45), 0 0 10px rgba(var(--accent-rgb), 0.35);
 }
 
 /* ============================================
