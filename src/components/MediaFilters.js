@@ -23,7 +23,9 @@ const MediaFilters = ({
     addLabel,
     addLink,
     searchQuery = '',
-    onSearchChange
+    onSearchChange,
+    onGetRecommendations,
+    recommendDisabled = false
 }) => {
     return (
         <>
@@ -103,6 +105,21 @@ const MediaFilters = ({
                         ⋯
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end shadow-lg" style={{ borderRadius: '0.8rem', minWidth: '200px' }}>
+                        {onGetRecommendations && (
+                            <>
+                                <li>
+                                    <button
+                                        className="dropdown-item py-2"
+                                        onClick={onGetRecommendations}
+                                        disabled={recommendDisabled}
+                                        title={recommendDisabled ? "Add something to your vault first" : "Recommend titles similar to your vault"}
+                                    >
+                                        ✨ Get Recommendations
+                                    </button>
+                                </li>
+                                <li><hr className="dropdown-divider opacity-10" /></li>
+                            </>
+                        )}
                         <li><button className="dropdown-item py-2" onClick={onImport}>Import Vault</button></li>
                         <li><button className="dropdown-item py-2" onClick={onExport}>Export Vault</button></li>
                         <li><hr className="dropdown-divider opacity-10" /></li>

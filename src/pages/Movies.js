@@ -321,6 +321,8 @@ const Movies = () => {
                             anyItems={movies.length > 0}
                             addLabel="Add Movie"
                             addLink="./searchmovie"
+                            onGetRecommendations={() => navigate(`/vaultrecommendations?type=movie${listId ? `&list=${listId}` : ''}`)}
+                            recommendDisabled={movies.length === 0}
                             searchQuery={searchQuery}
                             onSearchChange={setSearchQuery}
                         />

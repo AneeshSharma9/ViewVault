@@ -19,6 +19,7 @@ import RecommendedMovies from './pages/RecommendedMovies';
 import RecommendedShows from './pages/RecommendedShows';
 import SearchTV from './pages/SearchTV';
 import MovieNyte from './pages/MovieNyte';
+import VaultRecommendations from './pages/VaultRecommendations';
 import Layout from './components/Layout';
 import { Outlet } from 'react-router-dom';
 
@@ -42,6 +43,7 @@ export default function All() {
             <Route path="searchmovie" element={<SearchMovie />} />
             <Route path="recommendedmovies" element={<RecommendedMovies />} />
             <Route path="movienyte" element={<MovieNyte />} />
+            <Route path="vaultrecommendations" element={<VaultRecommendations />} />
           </Route>
         </Routes>
       </BrowserRouter>

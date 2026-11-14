@@ -314,6 +314,8 @@ const Tvshows = () => {
                             anyItems={shows.length > 0}
                             addLabel="Add TV Show"
                             addLink="./searchtv"
+                            onGetRecommendations={() => navigate(`/vaultrecommendations?type=tv${listId ? `&list=${listId}` : ''}`)}
+                            recommendDisabled={shows.length === 0}
                             searchQuery={searchQuery}
                             onSearchChange={setSearchQuery}
                         />
