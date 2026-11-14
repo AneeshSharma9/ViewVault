@@ -50,7 +50,7 @@ const RecommendedShows = () => {
                         const path = `users/${uid}/defaultwatchlists/tvshows/items`;
                         const snap = await get(ref(db, path));
                         if (snap.exists()) {
-                            Object.values(snap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = { watched: !!s.watched }; });
+                            Object.values(snap.val()).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = { watched: !!s.watched, vaultName: 'TV Shows (Default)' }; });
                         }
                     } catch (error) {
                         console.error('Error fetching user tv shows:', error);
@@ -68,7 +68,7 @@ const RecommendedShows = () => {
                                 if (data[key].type === 'tvshows') {
                                     tvLists[key] = { id: key, ...data[key] };
                                     if (data[key].items) {
-                                        Object.values(data[key].items).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = { watched: !!s.watched }; });
+                                        Object.values(data[key].items).forEach(s => { if (s.tvshowid) addedShowsData[s.tvshowid] = { watched: !!s.watched, vaultName: data[key].name || 'Custom Vault' }; });
                                     }
                                 }
                             }
@@ -188,7 +188,8 @@ const RecommendedShows = () => {
                 first_air_date: showDetails.first_air_date,
                 poster_path: tvshow.poster_path || ''
             });
-            setAddedShows({ ...addedShows, [tvshow.id]: { watched: false } });
+            const destVaultName = listId ? (customVaults.find(v => v.id === listId)?.name || 'Custom Vault') : 'TV Shows (Default)';
+            setAddedShows({ ...addedShows, [tvshow.id]: { watched: false, vaultName: destVaultName } });
         }
     };
 

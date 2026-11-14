@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Footer from "./Footer";
 import axios from "axios";
 import { auth, db } from "../utils/firebase";
@@ -37,6 +37,7 @@ const MovieNyte = () => {
     const [movieRatings, setMovieRatings] = useState({}); // Store age ratings by movie ID
     const [filteredMovies, setFilteredMovies] = useState([]); // Movies filtered by selected ratings
     const [excludeAnimated, setExcludeAnimated] = useState(true); // Toggle to exclude animated movies
+    const [excludeInVault, setExcludeInVault] = useState(false); // Toggle to hide movies already in any vault
     const [addedMovies, setAddedMovies] = useState({}); // Track movies already in vaults
     const [customVaults, setCustomVaults] = useState([]); // Custom movie vaults
     const [uid, setUid] = useState(null); // User ID
@@ -85,7 +86,7 @@ const MovieNyte = () => {
                         const path = `users/${uid}/defaultwatchlists/movies/items`;
                         const snap = await get(ref(db, path));
                         if (snap.exists()) {
-                            Object.values(snap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched }; });
+                            Object.values(snap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched, vaultName: 'Main List' }; });
                         }
                     } catch (error) {
                         console.error('Error fetching default movies:', error);
@@ -103,7 +104,7 @@ const MovieNyte = () => {
                                 if (data[key].type === 'movies') {
                                     movieLists[key] = { id: key, ...data[key] };
                                     if (data[key].items) {
-                                        Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched }; });
+                                        Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched, vaultName: data[key].name || 'Custom Vault' }; });
                                     }
                                 }
                             }
@@ -329,8 +330,11 @@ const MovieNyte = () => {
             return personGenres.map(name => genres.find(g => g.name === name)?.id).filter(Boolean);
         });
 
-        // Filter movies by watched status, ratings, animation and genres
+        // Filter movies by in-vault status, watched status, ratings, animation and genres
         const filtered = movies.filter(movie => {
+            // Hide movies already added to any vault (when the toggle is on)
+            if (excludeInVault && addedMovies[movie.id]) return false;
+
             // Hide movies already marked as watched in any vault
             if (addedMovies[movie.id]?.watched) return false;
 
@@ -357,6 +361,25 @@ const MovieNyte = () => {
         return filtered;
     };
 
+    // Canonical display order. Fresh searches rank everything by score; after
+    // "Load More" appends new movies, already-shown movies keep their stored
+    // positions and new unique movies slot in after them (still score-sorted
+    // among themselves) — so loading more never reshuffles earlier pages.
+    const orderRef = useRef([]);
+    const computeAndOrder = (movies, ratings) => {
+        const filtered = computeRecommendations(movies, ratings); // score-sorted
+        const orderIndex = new Map(orderRef.current.map((id, i) => [id, i]));
+        const kept = [];
+        const fresh = [];
+        for (const movie of filtered) {
+            (orderIndex.has(movie.id) ? kept : fresh).push(movie);
+        }
+        kept.sort((a, b) => orderIndex.get(a.id) - orderIndex.get(b.id));
+        const ordered = [...kept, ...fresh];
+        orderRef.current = ordered.map(m => m.id);
+        return ordered;
+    };
+
     // Fetch any missing US age ratings (batched), then apply the full filter +
     // ranking once, so the displayed list is stable and correctly ordered.
     useEffect(() => {
@@ -379,7 +402,7 @@ const MovieNyte = () => {
             if (cancelled) return;
             if (missing.length > 0) setMovieRatings(ratings);
 
-            const filtered = computeRecommendations(recommendedMovies, ratings);
+            const filtered = computeAndOrder(recommendedMovies, ratings);
             setFilteredMovies(filtered);
             if (filtered.length === 0) {
                 setSearchMessage(recommendedMovies.length > 0
@@ -392,9 +415,10 @@ const MovieNyte = () => {
 
         run();
         return () => { cancelled = true; };
-    }, [recommendedMovies, movieRatings, people, excludeAnimated, genres, addedMovies]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [recommendedMovies, movieRatings, people, excludeAnimated, genres, addedMovies, excludeInVault]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const findMovies = async () => {
+        orderRef.current = []; // Fresh search re-ranks everything by score from scratch
         setIsSearching(true);
         setSearchMessage("Finding movies for everyone...");
         setRecommendedMovies([]);
@@ -688,7 +712,8 @@ const MovieNyte = () => {
             })
                 .then(() => {
                     console.log('Movie added successfully!');
-                    setAddedMovies({ ...addedMovies, [movie.id]: { watched: false } });
+                    const destVaultName = listId ? (customVaults.find(v => v.id === listId)?.name || 'Custom Vault') : 'Main List';
+                    setAddedMovies({ ...addedMovies, [movie.id]: { watched: false, vaultName: destVaultName } });
                 })
                 .catch((error) => {
                     console.error('Error adding movie:', error);
@@ -707,7 +732,18 @@ const MovieNyte = () => {
     const goToResultsPage = (page) => {
         const target = Math.min(Math.max(1, page), totalResultPages);
         setResultsPage(target);
-        document.getElementById('mn-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Scroll after React re-renders the new page of results, using the
+        // element's fresh position minus the sticky navbar height. (Calling
+        // scrollIntoView synchronously here targets the pre-render layout,
+        // which is off/miss on mobile when the re-flowed page shifts.)
+        setTimeout(() => {
+            const el = document.getElementById('mn-results');
+            if (!el) return;
+            const navbar = document.querySelector('.topnav');
+            const offset = (navbar?.offsetHeight || 70) + 8;
+            const top = el.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }, 60);
     };
 
     return (
@@ -830,6 +866,19 @@ const MovieNyte = () => {
                                         <input
                                             className="form-check-input ms-0"
                                             type="checkbox"
+                                            id="excludeInVault"
+                                            checked={excludeInVault}
+                                            onChange={(e) => setExcludeInVault(e.target.checked)}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <label className="form-check-label small fw-bold mb-0" htmlFor="excludeInVault" style={{ whiteSpace: 'nowrap' }}>
+                                            Hide In-Vault
+                                        </label>
+                                    </div>
+                                    <div className="form-check form-switch ms-md-3 bg-light dark-mode-bg-dark rounded-pill px-4 py-2 border shadow-sm d-flex align-items-center gap-2">
+                                        <input
+                                            className="form-check-input ms-0"
+                                            type="checkbox"
                                             id="excludeAnimated"
                                             checked={excludeAnimated}
                                             onChange={(e) => setExcludeAnimated(e.target.checked)}
@@ -878,26 +927,6 @@ const MovieNyte = () => {
                                             loading={isSearching}
                                         />
 
-                                        {!isSearching && filteredMovies.length > 0 && (
-                                            <div className="text-center mt-4">
-                                                <button
-                                                    className="btn btn-premium btn-premium-outline px-5 py-3 shadow-sm fw-bold"
-                                                    onClick={loadMorePool}
-                                                    disabled={isLoadingMore || poolExhausted}
-                                                >
-                                                    {isLoadingMore ? (
-                                                        <>
-                                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                            Fetching More from TMDB...
-                                                        </>
-                                                    ) : poolExhausted ? "🎬 That's Every Matching Movie!" : "➕ Load More Movies"}
-                                                </button>
-                                                {!poolExhausted && (
-                                                    <p className="text-muted small mt-2 mb-0">Fetches more candidates from TMDB — new matches slot into the ranking.</p>
-                                                )}
-                                            </div>
-                                        )}
-
                                         {totalResultPages > 1 && (
                                             <nav className="d-flex flex-wrap justify-content-center align-items-center gap-2 my-5" aria-label="Recommendations pages">
                                                 <button
@@ -925,6 +954,26 @@ const MovieNyte = () => {
                                                     Next →
                                                 </button>
                                             </nav>
+                                        )}
+
+                                        {safeResultsPage === totalResultPages && !isSearching && filteredMovies.length > 0 && (
+                                            <div className="text-center mt-4">
+                                                <button
+                                                    className="btn btn-premium btn-premium-outline px-5 py-3 shadow-sm fw-bold"
+                                                    onClick={loadMorePool}
+                                                    disabled={isLoadingMore || poolExhausted}
+                                                >
+                                                    {isLoadingMore ? (
+                                                        <>
+                                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                            Fetching More from TMDB...
+                                                        </>
+                                                    ) : poolExhausted ? "🎬 That's Every Matching Movie!" : "➕ Load More Movies"}
+                                                </button>
+                                                {!poolExhausted && !isLoadingMore && (
+                                                    <p className="text-muted small mt-2 mb-0">Fetches more unique matches — they'll be added to new pages after this one.</p>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 )}

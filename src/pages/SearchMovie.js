@@ -65,7 +65,7 @@ const SearchMovie = () => {
                         const path = `users/${uid}/defaultwatchlists/movies/items`;
                         const snap = await get(ref(db, path));
                         if (snap.exists()) {
-                            Object.values(snap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched }; });
+                            Object.values(snap.val()).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched, vaultName: 'Movies (Default)' }; });
                         }
                     } catch (error) {
                         console.error('Error fetching default movies:', error);
@@ -83,7 +83,7 @@ const SearchMovie = () => {
                                 if (data[key].type === 'movies') {
                                     movieLists[key] = { id: key, ...data[key] };
                                     if (data[key].items) {
-                                        Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched }; });
+                                        Object.values(data[key].items).forEach(m => { if (m.movieid) addedMoviesData[m.movieid] = { watched: !!m.watched, vaultName: data[key].name || 'Custom Vault' }; });
                                     }
                                 }
                             }
@@ -283,7 +283,8 @@ const SearchMovie = () => {
             })
                 .then(() => {
                     console.log('Movie added successfully!');
-                    setAddedMovies({ ...addedMovies, [movie.id]: { watched: false } });
+                    const destVaultName = listId ? (customVaults.find(v => v.id === listId)?.name || 'Custom Vault') : 'Movies (Default)';
+                    setAddedMovies({ ...addedMovies, [movie.id]: { watched: false, vaultName: destVaultName } });
                 })
                 .catch((error) => {
                     console.error('Error adding movie:', error);
