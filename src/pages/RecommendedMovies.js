@@ -5,6 +5,7 @@ import { ref, push, get } from "firebase/database";
 import Footer from "./Footer";
 import axios from "axios";
 import MovieCardGrid from "../components/MovieCardGrid";
+import useMediaRatings from "../hooks/useMediaRatings";
 
 
 const RecommendedMovies = () => {
@@ -18,6 +19,9 @@ const RecommendedMovies = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+    // Cross-source ratings (TMDB / IMDb / Rotten Tomatoes) for the result cards
+    const { ratings } = useMediaRatings(searchResults);
 
     const searchMovie = useCallback(async () => {
         if (!location.state?.movieid && !location.state?.id) return;
@@ -269,6 +273,7 @@ const RecommendedMovies = () => {
                         movies={searchResults}
                         genres={genres}
                         movieRatings={movieRatings}
+                        ratings={ratings}
                         addedMovies={addedMovies}
                         customVaults={customVaults}
                         handleAddMovie={handleAddMovie}

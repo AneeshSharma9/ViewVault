@@ -15,6 +15,7 @@ import EditStreamingServices from "../components/EditStreamingServices";
 import ScrollControls from "../components/ScrollControls";
 import useUserVaults from "../hooks/useUserVaults";
 import useVault from "../hooks/useVault";
+import useMediaRatings from "../hooks/useMediaRatings";
 import axios from "axios";
 import { db } from "../utils/firebase";
 import { ref, push, update, remove } from "firebase/database";
@@ -49,6 +50,9 @@ const Tvshows = () => {
         handleSaveSites,
         refreshData
     } = useVault('tv', listId);
+
+    // Cross-source ratings (TMDB / IMDb / Rotten Tomatoes) for the vault cards
+    const { ratings } = useMediaRatings(filteredShows);
 
     // Local UI State
     const [showExportModal, setShowExportModal] = useState(false);
@@ -346,6 +350,7 @@ const Tvshows = () => {
                                     handleMoveClick={handleMoveClick}
                                     toComponentB={(s) => navigate('/recommendedshows', { state: s })}
                                     openWatchSite={(n, s) => window.open(`${s.url}${n.replace(/ /g, s.format)}`, '_blank')}
+                                    ratings={ratings}
                                     index={index}
                                 />
                             ))}

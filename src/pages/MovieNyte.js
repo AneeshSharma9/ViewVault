@@ -4,6 +4,8 @@ import axios from "axios";
 import { auth, db } from "../utils/firebase";
 import { ref, push, get, set, remove } from "firebase/database";
 import MovieCardGrid from "../components/MovieCardGrid";
+import useMediaRatings from "../hooks/useMediaRatings";
+import { consensusScore10 } from "../utils/ratings";
 
 const MovieNyte = () => {
     const initialPersonState = { id: 1, name: "Person 1", enabled: true, preferences: { genre: [], rating: [], year: '', runtime: '', country: 'US' } };
@@ -42,6 +44,9 @@ const MovieNyte = () => {
     const [customVaults, setCustomVaults] = useState([]); // Custom movie vaults
     const [uid, setUid] = useState(null); // User ID
     const [hasTypedSearch, setHasTypedSearch] = useState(false); // Track if user has initiated a search
+
+    // Cross-source ratings (TMDB / IMDb / Rotten Tomatoes) for the result cards
+    const { ratings: scoresById } = useMediaRatings(filteredMovies);
 
     useEffect(() => {
         // Fetch genres and countries from TMDB API
@@ -282,8 +287,10 @@ const MovieNyte = () => {
 
     // Rank and filter a candidate pool: IMDB-style weighted rating, group
     // affinity (how much of each member's picks a movie satisfies), a recency
-    // boost, plus the group's rating/genre rules. Pure given (movies, ratings).
-    const computeRecommendations = (movies, ratings) => {
+    // boost, plus the group's rating/genre rules. Pure given (movies, ratings,
+    // scores). The ranking score uses the cross-source consensus (TMDB + IMDb +
+    // RT averaged) when available, falling back to the raw TMDB score.
+    const computeRecommendations = (movies, ratings, scores = {}) => {
         const enabledPeople = people.filter(p => p.enabled !== false);
         const genreIdOf = (name) => genres.find(g => g.name === name)?.id;
 
@@ -312,7 +319,8 @@ const MovieNyte = () => {
 
         const scoreOf = (movie) => {
             const v = movie.vote_count || 0;
-            const R = movie.vote_average || 0;
+            const consensus = consensusScore10(scores?.[movie.id]);
+            const R = consensus ?? movie.vote_average ?? 0;
             const weighted = (v * R + m * C) / (v + m); // 0-10
             const affinity = affinityOf(movie); // 0-1
             const year = parseInt((movie.release_date || '').substring(0, 4), 10);
@@ -366,8 +374,8 @@ const MovieNyte = () => {
     // positions and new unique movies slot in after them (still score-sorted
     // among themselves) — so loading more never reshuffles earlier pages.
     const orderRef = useRef([]);
-    const computeAndOrder = (movies, ratings) => {
-        const filtered = computeRecommendations(movies, ratings); // score-sorted
+    const computeAndOrder = (movies, ratings, scores = {}) => {
+        const filtered = computeRecommendations(movies, ratings, scores); // score-sorted
         const orderIndex = new Map(orderRef.current.map((id, i) => [id, i]));
         const kept = [];
         const fresh = [];
@@ -402,7 +410,7 @@ const MovieNyte = () => {
             if (cancelled) return;
             if (missing.length > 0) setMovieRatings(ratings);
 
-            const filtered = computeAndOrder(recommendedMovies, ratings);
+            const filtered = computeAndOrder(recommendedMovies, movieRatings, scoresById);
             setFilteredMovies(filtered);
             if (filtered.length === 0) {
                 setSearchMessage(recommendedMovies.length > 0
@@ -552,7 +560,7 @@ const MovieNyte = () => {
                         const results = await Promise.all(batch.map(fetchUSRating));
                         results.forEach(r => { ratings[r.id] = r.rating; });
                     }
-                    kept += computeRecommendations(newOnes, ratings).length;
+                    kept += computeRecommendations(newOnes, ratings, scoresById).length;
                     allMovies.push(...newOnes);
                 }
 
@@ -921,6 +929,7 @@ const MovieNyte = () => {
                                             movies={pagedMovies}
                                             genres={genres}
                                             movieRatings={movieRatings}
+                                            ratings={scoresById}
                                             addedMovies={addedMovies}
                                             customVaults={customVaults}
                                             handleAddMovie={handleAddMovie}

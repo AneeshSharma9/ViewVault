@@ -1,13 +1,24 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { toScorePercent, consensusScore10 } from "../utils/ratings";
 
-const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults, handleAddMovie, defaultVaultName, loading }) => {
+const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults, handleAddMovie, defaultVaultName, loading, ratings = {} }) => {
     const [selectedMovieDescription, setSelectedMovieDescription] = useState(null);
 
-    const getBackgroundColor = (voteAverage) => {
-        if (voteAverage * 10 >= 70) return "bg-success";
-        if (voteAverage * 10 >= 50) return "bg-warning text-dark";
-        return "bg-danger";
+    // The poster badge score: cross-source consensus (TMDB + IMDb + RT) when
+    // available, falling back to the raw TMDB score.
+    const getPosterBadge = (movie) => {
+        const scoreInfo = ratings?.[movie.id];
+        const consensusScore = consensusScore10(scoreInfo);
+        const score = consensusScore ?? movie.vote_average ?? null;
+        const percent = score != null ? score * 10 : null;
+        const bg = percent == null ? "bg-danger" : percent >= 70 ? "bg-success" : percent >= 50 ? "bg-warning text-dark" : "bg-danger";
+        const textDark = percent != null && percent < 70 && percent >= 50;
+        return (
+            <div className={`grid-rating-badge shadow-sm ${bg} ${textDark ? 'text-dark' : 'text-white'}`}>
+                ⭐ {(percent ?? 0).toFixed(0)}%
+            </div>
+        );
     };
 
 
@@ -36,9 +47,7 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                 ) : (
                                     <div className="bg-secondary d-flex align-items-center justify-content-center text-white h-100">No Image</div>
                                 )}
-                                <div className={`grid-rating-badge shadow-sm ${getBackgroundColor(movie.vote_average)} ${movie.vote_average * 10 < 70 && movie.vote_average * 10 >= 50 ? 'text-dark' : 'text-white'}`}>
-                                    ⭐ {(movie.vote_average * 10).toFixed(0)}%
-                                </div>
+                                {getPosterBadge(movie)}
                                 <div className="grid-overlay">
                                     <span className="text-white small fw-bold mb-1">RELEASED</span>
                                     <span className="text-white h5 mb-0">{(movie.release_date || movie.first_air_date) ? (movie.release_date || movie.first_air_date).substring(0, 4) : 'N/A'}</span>
@@ -56,6 +65,26 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                         <span className="badge bg-secondary bg-opacity-10 text-muted border-0 rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>{movieRatings[movie.id]}</span>
                                     )}
                                 </div>
+
+                                {ratings?.[movie.id] && (
+                                    <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                        {ratings[movie.id].tmdb != null && ratings[movie.id].tmdb > 0 && (
+                                            <span className={`badge rounded-pill ${toScorePercent(ratings[movie.id].tmdb).badgeClass}`} style={{ fontSize: '0.75rem' }} title="TMDB rating">
+                                                ⭐ TMDB {(ratings[movie.id].tmdb * 10).toFixed(0)}%
+                                            </span>
+                                        )}
+                                        {ratings[movie.id].imdb != null && (
+                                            <span className={`badge rounded-pill ${toScorePercent(ratings[movie.id].imdb).badgeClass}`} style={{ fontSize: '0.75rem' }} title="IMDb rating">
+                                                🎬 IMDb {ratings[movie.id].imdb}
+                                            </span>
+                                        )}
+                                        {ratings[movie.id].rottentomatoes != null && (
+                                            <span className={`badge rounded-pill ${toScorePercent(ratings[movie.id].rottentomatoes, true).badgeClass}`} style={{ fontSize: '0.75rem' }} title="Rotten Tomatoes critic score">
+                                                🍅 RT {toScorePercent(ratings[movie.id].rottentomatoes, true).percent}%
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="flex-grow-1">
                                     <p className="text-muted small line-clamp-3 mb-2" style={{ lineHeight: '1.6' }}>

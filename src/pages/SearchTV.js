@@ -5,6 +5,7 @@ import { ref, push, get } from "firebase/database";
 import { useLocation } from "react-router-dom";
 import Footer from "./Footer";
 import MovieCardGrid from "../components/MovieCardGrid";
+import useMediaRatings from "../hooks/useMediaRatings";
 
 
 const SearchTV = () => {
@@ -21,6 +22,9 @@ const SearchTV = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+
+    // Cross-source ratings (TMDB / IMDb / Rotten Tomatoes) for the result cards
+    const { ratings } = useMediaRatings(searchResults);
 
     // Auto-search if query is passed from navigation
     useEffect(() => {
@@ -335,6 +339,7 @@ const SearchTV = () => {
                     movies={searchResults}
                     genres={genres}
                     movieRatings={tvRatings}
+                    ratings={ratings}
                     addedMovies={addedShows}
                     customVaults={customVaults}
                     handleAddMovie={handleAddTVShow}

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { toScorePercent, consensusScore10 } from '../utils/ratings';
 
 const MediaCard = ({
     item,
@@ -12,6 +13,7 @@ const MediaCard = ({
     toComponentB,
     openWatchSite,
     toImdbParentsGuide,
+    ratings = {}, // TMDB id -> { tmdb, imdb, rottentomatoes }
     index = 0
 }) => {
     const cardRef = useRef(null);
@@ -44,9 +46,9 @@ const MediaCard = ({
         };
     }, []);
     const getTextColorClass = (voteAverage) => {
-        if (voteAverage * 10 >= 70) return "text-success";
-        if (voteAverage * 10 >= 50) return "text-warning";
-        return "text-danger";
+        const pct = toScorePercent(voteAverage);
+        if (!pct) return "text-muted";
+        return pct.textClass;
     };
 
     const getAgeRatingClass = (rating) => {
@@ -81,6 +83,13 @@ const MediaCard = ({
     const metaLabel = type === 'movie'
         ? `⏱ ${convertMinToHrMin(item.runtime)}`
         : `📺 ${item.num_episodes} Episodes`;
+
+    const tmdbId = item.movieid || item.tvshowid || item.id;
+    const scoreInfo = ratings?.[tmdbId] || null;
+    const consensusScore = consensusScore10(scoreInfo);
+    const tmdbScore = consensusScore ?? scoreInfo?.tmdb ?? item.vote_average;
+    const imdbPercent = toScorePercent(scoreInfo?.imdb);
+    const rtPercent = scoreInfo?.rottentomatoes != null ? toScorePercent(scoreInfo.rottentomatoes, true) : null;
 
     return (
         <li
@@ -173,9 +182,19 @@ const MediaCard = ({
                     {item.watched && item.user_rating !== undefined && item.user_rating !== null && (
                         <span className="text-warning fw-bold">⭐ {item.user_rating}</span>
                     )}
-                    {item.vote_average > 0 && (
-                        <span className={`${getTextColorClass(item.vote_average)} fw-bold`}>
-                            {(item.vote_average * 10).toFixed(1)}% Score
+                    {tmdbScore > 0 && (
+                        <span className={`${getTextColorClass(tmdbScore)} fw-bold`}>
+                            ⭐ {(tmdbScore * 10).toFixed(1)}% Score
+                        </span>
+                    )}
+                    {imdbPercent && (
+                        <span className={`${imdbPercent.textClass} fw-bold`} title="IMDb rating">
+                            🎬 IMDb {scoreInfo.imdb}
+                        </span>
+                    )}
+                    {rtPercent && (
+                        <span className={`${rtPercent.textClass} fw-bold`} title="Rotten Tomatoes critic score">
+                            🍅 RT {rtPercent.percent}%
                         </span>
                     )}
                     <span className="text-muted opacity-75">{metaLabel}</span>

@@ -6,6 +6,7 @@ import { ref, push, get } from "firebase/database";
 import Footer from "./Footer";
 import MovieCardGrid from "../components/MovieCardGrid";
 import useVault from "../hooks/useVault";
+import useMediaRatings from "../hooks/useMediaRatings";
 import { ageCapForVault, buildSeed, similarityScore } from "../utils/seedRecommend";
 
 const PAGE_SIZE = 30;
@@ -54,6 +55,9 @@ const VaultRecommendations = () => {
     const orderRef = useRef([]);
     const [page, setPage] = useState(1);
     const [hideInVault, setHideInVault] = useState(false);
+
+    // Cross-source ratings (TMDB / IMDb / Rotten Tomatoes) for the recommendation cards
+    const { ratings } = useMediaRatings(orderedMovies);
 
     const [addedItems, setAddedItems] = useState({});
     const [customVaults, setCustomVaults] = useState([]);
@@ -124,7 +128,7 @@ const VaultRecommendations = () => {
             return;
         }
         const scored = [...allMovies].sort((a, b) =>
-            similarityScore(b, seedCtx) - similarityScore(a, seedCtx)
+            similarityScore(b, { ...seedCtx, scores: ratings }) - similarityScore(a, { ...seedCtx, scores: ratings })
         );
         const orderIndex = new Map(orderRef.current.map((id, i) => [id, i]));
         const kept = [];
@@ -134,7 +138,7 @@ const VaultRecommendations = () => {
         const ordered = [...kept, ...fresh];
         orderRef.current = ordered.map(m => m.id);
         setOrderedMovies(ordered);
-    }, [allMovies, seedCtx]);
+    }, [allMovies, seedCtx, ratings]);
 
     const handleAddToVault = async (media, destListId = null) => {
         const id = media.id;
@@ -492,6 +496,7 @@ const VaultRecommendations = () => {
                                     movies={paged}
                                     genres={genres}
                                     movieRatings={{}}
+                                    ratings={ratings}
                                     addedMovies={addedItems}
                                     customVaults={customVaults}
                                     handleAddMovie={handleAddToVault}

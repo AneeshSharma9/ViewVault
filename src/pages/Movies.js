@@ -15,6 +15,7 @@ import ScrollControls from "../components/ScrollControls";
 import MoveToVaultModal from "../components/MoveToVaultModal";
 import useUserVaults from "../hooks/useUserVaults";
 import useVault from "../hooks/useVault";
+import useMediaRatings from "../hooks/useMediaRatings";
 import axios from "axios";
 import { db } from "../utils/firebase";
 import { ref, push, update, remove } from "firebase/database";
@@ -49,6 +50,9 @@ const Movies = () => {
         handleSaveSites,
         refreshData
     } = useVault('movie', listId);
+
+    // Cross-source ratings (TMDB / IMDb / Rotten Tomatoes) for the vault cards
+    const { ratings } = useMediaRatings(filteredMovies);
 
     // Local UI State
     const [showExportModal, setShowExportModal] = useState(false);
@@ -353,6 +357,7 @@ const Movies = () => {
                                     toComponentB={(m) => navigate('/recommendedmovies', { state: m })}
                                     openWatchSite={(n, s) => window.open(`${s.url}${n.replace(/ /g, s.format)}`, '_blank')}
                                     toImdbParentsGuide={(id) => window.open(`https://www.imdb.com/title/${id}/parentalguide`, '_blank')}
+                                    ratings={ratings}
                                     index={index}
                                 />
                             ))}

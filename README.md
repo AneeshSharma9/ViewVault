@@ -10,6 +10,13 @@ Website providing easily maintained watchlists for movies and TV shows\
 ONGOING!\
 Created using React, Firebase, TMDB Api\
 
+## 🔧 Environment Variables
+- `REACT_APP_API_KEY` — TMDB API key
+- `REACT_APP_OMDB_API_KEY` — OMDb API key (used for IMDb / Rotten Tomatoes / Metacritic scores shown on cards alongside the TMDB score). Get a free key at https://www.omdbapi.com/ and put it in `.env`.
+
+## ⭐ Ratings on Cards
+Cards show the TMDB score plus the IMDb and Rotten Tomatoes critic scores (resolved via OMDb) so you can compare sources instead of relying on TMDB alone.
+
 ## 🔨 Tools
 
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)

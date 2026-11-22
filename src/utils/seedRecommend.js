@@ -1,3 +1,5 @@
+import { consensusScore10 } from './ratings';
+
 // Seed recommendation engine: build a taste profile from the user's vault
 // and score TMDB candidates against it (MovieNyte-style ranking).
 
@@ -81,9 +83,10 @@ export const affinityOf = (candidate, topGenres, lovedGenres) => {
     return score / max;
 };
 
-export const similarityScore = (candidate, { C, topGenres, lovedGenres, currentYear }) => {
+export const similarityScore = (candidate, { C, topGenres, lovedGenres, currentYear, scores }) => {
     const v = candidate.vote_count || 0;
-    const R = candidate.vote_average || 0;
+    const consensus = scores ? consensusScore10(scores[candidate.id]) : null;
+    const R = consensus ?? candidate.vote_average ?? 0;
     const weighted = weightedRating(R, v, C);
     const affinity = affinityOf(candidate, topGenres, lovedGenres);
     const dateStr = candidate.release_date || candidate.first_air_date || '';
