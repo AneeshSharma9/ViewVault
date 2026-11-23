@@ -357,9 +357,10 @@ const MovieNyte = () => {
                 return false;
             }
 
-            // Check genre filter - ALL people must have at least one genre matching the movie
+            // Check genre filter - ANY person with genre picks matching is enough
+            // (relaxed from "everyone must match" to keep recommendations flowing)
             if (peopleGenreIds.length === 0) return true; // No genre preferences, show all
-            return peopleGenreIds.every(personGenres => {
+            return peopleGenreIds.some(personGenres => {
                 // If person has no genres selected, skip them (show all)
                 if (personGenres.length === 0) return true;
                 return personGenres.some(genreId => movieGenreIds.includes(genreId));
