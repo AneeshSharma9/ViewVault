@@ -5,7 +5,7 @@
 // title. These helpers resolve the IMDb + Rotten Tomatoes scores via OMDb and
 // keep them next to the TMDB score so cards can display all three.
 
-const OMDb_BASE_URL = 'http://www.omdbapi.com/';
+const OMDb_BASE_URL = 'https://www.omdbapi.com/';
 const omdbCache = new Map(); // imdbId -> { imdb, rottentomatoes } | null
 const imdbIdCache = new Map(); // tmdbId -> imdbId | null
 
