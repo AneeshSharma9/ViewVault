@@ -221,6 +221,7 @@ const RecommendedShows = () => {
                         addedMovies={addedShows}
                         customVaults={customVaults}
                         handleAddMovie={handleAddTVShow}
+                        handleMoveTo={handleAddTVShow}
                         defaultVaultName="TV Shows (Default)"
                         loading={isLoading}
                     />

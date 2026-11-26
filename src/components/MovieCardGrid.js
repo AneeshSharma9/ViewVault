@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { toScorePercent, consensusScore10 } from "../utils/ratings";
 
-const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults, handleAddMovie, defaultVaultName, loading, ratings = {} }) => {
+const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults, handleAddMovie, defaultVaultName, loading, ratings = {}, handleMoveTo }) => {
     const [selectedMovieDescription, setSelectedMovieDescription] = useState(null);
 
     // The poster badge score: cross-source consensus (TMDB + IMDb + RT) when
@@ -64,6 +64,13 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                     {movieRatings && movieRatings[movie.id] && (
                                         <span className="badge bg-secondary bg-opacity-10 text-muted border-0 rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>{movieRatings[movie.id]}</span>
                                     )}
+                                    {addedMovies && addedMovies[movie.id] && (
+                                        <span className={`badge rounded-pill px-2 py-1 ${addedMovies[movie.id].watched ? 'bg-danger bg-opacity-10 text-danger' : 'bg-secondary bg-opacity-10 text-muted border-0'}`} style={{ fontSize: '0.7rem' }} title={addedMovies[movie.id].watched ? `Watched${addedMovies[movie.id].vaultName ? ` · In ${addedMovies[movie.id].vaultName}` : ''}` : `In ${addedMovies[movie.id].vaultName || defaultVaultName || 'Vault'}`}>
+                                            {addedMovies[movie.id].watched
+                                                ? `✓ Watched${addedMovies[movie.id].vaultName ? ` · In ${addedMovies[movie.id].vaultName}` : ''}`
+                                                : `📁 ${addedMovies[movie.id].vaultName || defaultVaultName || 'Vault'}`}
+                                        </span>
+                                    )}
                                 </div>
 
                                 {ratings?.[movie.id] && (
@@ -102,12 +109,27 @@ const MovieCardGrid = ({ movies, genres, movieRatings, addedMovies, customVaults
                                 </div>
 
                                 <div className="mt-4 pt-3 border-top border-light flex-shrink-0">
-                                    {addedMovies && addedMovies[movie.id] ? (
+                                    {addedMovies && addedMovies[movie.id] && addedMovies[movie.id].watched ? (
                                         <button className="btn btn-premium btn-premium-outline w-100 py-2" type="button" disabled
                                             style={{ opacity: 0.7, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                                             title={addedMovies[movie.id].watched ? "Watched" : `In ${addedMovies[movie.id].vaultName || defaultVaultName || 'Vault'}`}>
-                                            ✓ {addedMovies[movie.id].watched ? "Watched" : `In ${addedMovies[movie.id].vaultName || defaultVaultName || 'Vault'}`}
+                                            ✓ {addedMovies[movie.id].watched ? `Watched${addedMovies[movie.id].vaultName ? ` · In ${addedMovies[movie.id].vaultName}` : ''}` : `In ${addedMovies[movie.id].vaultName || defaultVaultName || 'Vault'}`}
                                         </button>
+                                    ) : addedMovies && addedMovies[movie.id] && !addedMovies[movie.id].watched ? (
+                                        <div className="dropdown">
+                                            <button className="btn btn-premium btn-premium-outline w-100 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                📁 Move to Vault
+                                            </button>
+                                            <ul className="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-2 w-100">
+                                                {customVaults && customVaults.map(v => (
+                                                    <li key={v.id}>
+                                                        <button className="dropdown-item rounded-3 py-2" onClick={() => (handleMoveTo ? handleMoveTo(movie, v.id) : handleAddMovie(movie, v.id))}>
+                                                            📁 {v.name}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     ) : (
                                         <div className="dropdown">
                                             <button className="btn btn-premium btn-premium-primary w-100 py-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

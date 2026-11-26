@@ -364,6 +364,7 @@ const SearchMovie = () => {
                     addedMovies={addedMovies}
                     customVaults={customVaults}
                     handleAddMovie={handleAddMovie}
+                    handleMoveTo={handleAddMovie}
                     defaultVaultName="Movies (Default)"
                     loading={isLoading}
                 />

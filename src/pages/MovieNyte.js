@@ -934,6 +934,7 @@ const MovieNyte = () => {
                                             addedMovies={addedMovies}
                                             customVaults={customVaults}
                                             handleAddMovie={handleAddMovie}
+                                            handleMoveTo={handleAddMovie}
                                             loading={isSearching}
                                         />
 

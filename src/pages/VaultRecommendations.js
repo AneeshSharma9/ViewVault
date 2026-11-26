@@ -500,6 +500,7 @@ const VaultRecommendations = () => {
                                     addedMovies={addedItems}
                                     customVaults={customVaults}
                                     handleAddMovie={handleAddToVault}
+                                    handleMoveTo={handleAddToVault}
                                     defaultVaultName={defaultLabel}
                                     loading={false}
                                 />
